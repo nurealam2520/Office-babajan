@@ -92,10 +92,13 @@ const MessageSection = ({ userId, role }: Props) => {
       });
 
       for (const u of targetUsers) {
+        const notifMessage = broadcastVoiceUrl
+          ? `${content}\n[audio]${broadcastVoiceUrl}[/audio]`
+          : content;
         await supabase.from("notifications").insert({
           user_id: u.user_id,
           title: "ব্রডকাস্ট মেসেজ",
-          message: content,
+          message: notifMessage,
           type: "broadcast",
         });
       }

@@ -257,26 +257,30 @@ const UserManagementSection = ({ userId, role }: Props) => {
                         </Button>
                       )}
                       {restriction ? (
-                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
-                          <ShieldOff className="h-3 w-3" /> সরান
-                        </Button>
+                        (role === "super_admin" || role === "admin") && (
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
+                            <ShieldOff className="h-3 w-3" /> সরান
+                          </Button>
+                        )
                       ) : (
-                        <>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="ব্যান করুন"
-                            onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
-                            <Ban className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
-                            onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
-                            <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
-                          </Button>
-                          {role === "super_admin" && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" title="স্থায়ীভাবে ডিলিট"
-                              onClick={() => setDeleteConfirm(user)}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        (role === "super_admin" || role === "admin") && (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="ব্যান করুন"
+                              onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
+                              <Ban className="h-3.5 w-3.5 text-destructive" />
                             </Button>
-                          )}
-                        </>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
+                              onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
+                              <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
+                            </Button>
+                            {role === "super_admin" && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7" title="স্থায়ীভাবে ডিলিট"
+                                onClick={() => setDeleteConfirm(user)}>
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            )}
+                          </>
+                        )
                       )}
                     </div>
                   </div>
