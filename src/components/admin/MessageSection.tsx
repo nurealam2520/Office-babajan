@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ConversationList from "./ConversationList";
 import ChatView from "./ChatView";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowLeft } from "lucide-react";
 
 interface Props {
   userId: string;
@@ -136,38 +138,50 @@ const MessageSection = ({ userId, role }: Props) => {
 
   const selectedProfile = profiles.find(p => p.user_id === selectedUserId);
   const showLocation = role === "super_admin" || role === "admin";
+  const isMobile = useIsMobile();
 
   if (loading) {
     return <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>;
   }
 
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">মেসেজ</h2>
-        <Button size="sm" variant="secondary" onClick={() => setBroadcastOpen(true)} className="gap-2">
-          <Megaphone className="h-4 w-4" /> ব্রডকাস্ট
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] rounded-lg border bg-card overflow-hidden shadow-sm" style={{ height: "70vh" }}>
+  const MobileConversationLayout = () => {
+    // On mobile: show list OR chat, not both
+    if (isMobile) {
+      if (selectedUserId && selectedProfile) {
+        return (
+          <div className="flex h-full flex-col">
+            <div className="flex items-center gap-2 border-b px-2 py-1.5 bg-card">
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSelectedUserId(null)}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h3 className="text-sm font-semibold text-foreground">{selectedProfile.full_name}</h3>
+            </div>
+            <div className="flex-1">
+              <ChatView userId={userId} otherUserId={selectedUserId} otherUserName={selectedProfile.full_name} />
+            </div>
+          </div>
+        );
+      }
+      return (
         <ConversationList
-          userId={userId}
-          role={role}
-          profiles={profiles}
-          userRoles={userRoles}
-          selectedUserId={selectedUserId}
-          onSelectUser={setSelectedUserId}
-          onNewMessage={() => setNewMsgOpen(true)}
-          showLocation={showLocation}
+          userId={userId} role={role} profiles={profiles} userRoles={userRoles}
+          selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
+          onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
+        />
+      );
+    }
+
+    // Desktop: two-column
+    return (
+      <div className="grid h-full grid-cols-[280px_1fr]">
+        <ConversationList
+          userId={userId} role={role} profiles={profiles} userRoles={userRoles}
+          selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
+          onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
         />
         <div className="flex flex-col">
           {selectedUserId && selectedProfile ? (
-            <ChatView
-              userId={userId}
-              otherUserId={selectedUserId}
-              otherUserName={selectedProfile.full_name}
-            />
+            <ChatView userId={userId} otherUserId={selectedUserId} otherUserName={selectedProfile.full_name} />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
               <MessageSquare className="h-12 w-12 opacity-30" />
@@ -178,6 +192,21 @@ const MessageSection = ({ userId, role }: Props) => {
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">মেসেজ</h2>
+        <Button size="sm" variant="secondary" onClick={() => setBroadcastOpen(true)} className="gap-2">
+          <Megaphone className="h-4 w-4" /> ব্রডকাস্ট
+        </Button>
+      </div>
+
+      <div className="rounded-lg border bg-card overflow-hidden shadow-sm" style={{ height: "70vh" }}>
+        <MobileConversationLayout />
       </div>
 
       {/* New Message Dialog */}

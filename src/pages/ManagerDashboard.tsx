@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShieldCheck, MessageSquare, ClipboardList, FileText, LogOut, Menu, X,
+  ShieldCheck, MessageSquare, ClipboardList, FileText, Users, LogOut, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import MessageSection from "@/components/admin/MessageSection";
 import TaskSection from "@/components/admin/TaskSection";
 import ReportSection from "@/components/admin/ReportSection";
+import UserManagementSection from "@/components/admin/UserManagementSection";
 import NotificationBell from "@/components/NotificationBell";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ const ManagerDashboard = () => {
   const tabs = [
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
     { id: "tasks", label: "টাস্ক", icon: ClipboardList },
+    { id: "users", label: "ইউজার", icon: Users },
     { id: "reports", label: "রিপোর্ট", icon: FileText },
   ];
 
@@ -64,6 +67,7 @@ const ManagerDashboard = () => {
             <h1 className="text-lg font-bold text-foreground">ম্যানেজার প্যানেল</h1>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <NotificationBell userId={session.user.id} />
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -120,6 +124,9 @@ const ManagerDashboard = () => {
           </TabsContent>
           <TabsContent value="tasks">
             <TaskSection userId={session.user.id} role="manager" />
+          </TabsContent>
+          <TabsContent value="users">
+            <UserManagementSection userId={session.user.id} role="manager" />
           </TabsContent>
           <TabsContent value="reports">
             <ReportSection userId={session.user.id} />

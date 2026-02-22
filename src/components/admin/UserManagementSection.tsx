@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Ban, Trash2, ShieldOff, Search, Users, Eye, MessageSquareOff } from "lucide-react";
+import { Ban, Trash2, ShieldOff, Search, Users, Eye, MessageSquareOff, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,13 +12,36 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin";
+  role: "super_admin" | "admin" | "manager";
 }
+
+const DURATION_OPTIONS = [
+  { value: "1h", label: "১ ঘণ্টা" },
+  { value: "6h", label: "৬ ঘণ্টা" },
+  { value: "24h", label: "২৪ ঘণ্টা" },
+  { value: "3d", label: "৩ দিন" },
+  { value: "7d", label: "৭ দিন" },
+  { value: "30d", label: "৩০ দিন" },
+  { value: "permanent", label: "স্থায়ী" },
+];
+
+const getDurationMs = (val: string): number | null => {
+  switch (val) {
+    case "1h": return 3600000;
+    case "6h": return 21600000;
+    case "24h": return 86400000;
+    case "3d": return 259200000;
+    case "7d": return 604800000;
+    case "30d": return 2592000000;
+    default: return null;
+  }
+};
 
 const UserManagementSection = ({ userId, role }: Props) => {
   const { toast } = useToast();
@@ -30,11 +53,11 @@ const UserManagementSection = ({ userId, role }: Props) => {
     open: false, type: "", user: null,
   });
   const [reason, setReason] = useState("");
+  const [duration, setDuration] = useState("permanent");
   const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null);
   const [conversationDialog, setConversationDialog] = useState<{ open: boolean; user: any | null }>({
     open: false, user: null,
   });
-  const [userConversations, setUserConversations] = useState<any[]>([]);
   const [userMessages, setUserMessages] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
@@ -53,11 +76,15 @@ const UserManagementSection = ({ userId, role }: Props) => {
   const getRestriction = (uid: string) => restrictions.find(r => r.user_id === uid);
 
   const applyRestriction = async (type: string, targetUser: any) => {
+    const durationMs = getDurationMs(duration);
+    const expiresAt = durationMs ? new Date(Date.now() + durationMs).toISOString() : null;
+
     const { error } = await supabase.from("user_restrictions").insert({
       user_id: targetUser.user_id,
       restriction_type: type,
       reason: reason || null,
       restricted_by: userId,
+      expires_at: expiresAt,
     });
 
     if (type === "ban" || type === "delete") {
@@ -79,6 +106,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
       toast({ title: "সফল", description: `ব্যবহারকারী ${type === "ban" ? "ব্যান" : type === "restrict" ? "সীমাবদ্ধ" : "ডিলিট"} করা হয়েছে` });
       setActionDialog({ open: false, type: "", user: null });
       setReason("");
+      setDuration("permanent");
       fetchData();
     }
   };
@@ -111,6 +139,16 @@ const UserManagementSection = ({ userId, role }: Props) => {
     return p ? p.full_name : uid.slice(0, 8);
   };
 
+  const getTimeRemaining = (expiresAt: string | null) => {
+    if (!expiresAt) return "স্থায়ী";
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return "মেয়াদ শেষ";
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 24) return `${hours} ঘণ্টা বাকি`;
+    const days = Math.floor(hours / 24);
+    return `${days} দিন বাকি`;
+  };
+
   const filteredProfiles = profiles.filter(p =>
     p.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,43 +175,51 @@ const UserManagementSection = ({ userId, role }: Props) => {
             const restriction = getRestriction(user.user_id);
             return (
               <Card key={user.user_id} className={restriction ? "border-destructive/30" : ""}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{user.full_name}</span>
-                      <span className="text-sm text-muted-foreground">@{user.username}</span>
-                      {!user.is_active && <Badge variant="destructive" className="text-xs">নিষ্ক্রিয়</Badge>}
+                <CardContent className="flex items-center gap-3 p-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm">{user.full_name}</span>
+                      <span className="text-xs text-muted-foreground">@{user.username}</span>
+                      {!user.is_active && <Badge variant="destructive" className="text-[10px]">নিষ্ক্রিয়</Badge>}
                       {restriction && (
-                        <Badge variant="destructive" className="text-xs">
-                          {restriction.restriction_type === "ban" ? "ব্যান" : restriction.restriction_type === "restrict" ? "সীমাবদ্ধ" : "ডিলিট"}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="destructive" className="text-[10px]">
+                            {restriction.restriction_type === "ban" ? "ব্যান" : restriction.restriction_type === "restrict" ? "সীমাবদ্ধ" : "ডিলিট"}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] gap-1">
+                            <Clock className="h-2.5 w-2.5" />
+                            {getTimeRemaining(restriction.expires_at)}
+                          </Badge>
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">📱 {user.mobile_number}</p>
+                    <p className="text-xs text-muted-foreground">📱 {user.mobile_number}</p>
                   </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" title="কথোপকথন দেখুন"
-                      onClick={() => viewConversations(user)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                  <div className="flex gap-1 shrink-0">
+                    {(role === "super_admin" || role === "admin") && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="কথোপকথন দেখুন"
+                        onClick={() => viewConversations(user)}>
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     {restriction ? (
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeRestriction(restriction.id)}>
-                        <ShieldOff className="h-4 w-4 text-primary" />
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeRestriction(restriction.id)}>
+                        <ShieldOff className="h-3.5 w-3.5 text-primary" />
                       </Button>
                     ) : (
                       <>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"
-                          onClick={() => setActionDialog({ open: true, type: "ban", user })}>
-                          <Ban className="h-4 w-4 text-destructive" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7"
+                          onClick={() => { setDuration("permanent"); setActionDialog({ open: true, type: "ban", user }); }}>
+                          <Ban className="h-3.5 w-3.5 text-destructive" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"
-                          onClick={() => setActionDialog({ open: true, type: "restrict", user })}>
-                          <MessageSquareOff className="h-4 w-4 text-accent-foreground" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7"
+                          onClick={() => { setDuration("permanent"); setActionDialog({ open: true, type: "restrict", user }); }}>
+                          <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
                         </Button>
                         {role === "super_admin" && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8"
+                          <Button variant="ghost" size="icon" className="h-7 w-7"
                             onClick={() => setDeleteConfirm(user)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         )}
                       </>
@@ -186,18 +232,39 @@ const UserManagementSection = ({ userId, role }: Props) => {
         </div>
       )}
 
-      {/* Ban/Restrict Dialog */}
+      {/* Ban/Restrict Dialog with Duration */}
       <Dialog open={actionDialog.open} onOpenChange={o => setActionDialog(p => ({ ...p, open: o }))}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionDialog.type === "ban" ? "ব্যবহারকারী ব্যান" : "সীমাবদ্ধ করুন"}
+              {actionDialog.type === "ban" ? "ব্যবহারকারী ব্যান" : "মেসেজ সীমাবদ্ধ করুন"}
             </DialogTitle>
             <DialogDescription>
               {actionDialog.user?.full_name} (@{actionDialog.user?.username})
+              {actionDialog.type === "restrict" && (
+                <span className="block mt-1 text-xs">সীমাবদ্ধ ব্যবহারকারী শুধু টাস্ক, রিপোর্ট এবং অ্যাডমিনের সাথে যোগাযোগ করতে পারবে।</span>
+              )}
+              {actionDialog.type === "ban" && (
+                <span className="block mt-1 text-xs">ব্যান ব্যবহারকারী নির্দিষ্ট সময়ের জন্য অ্যাপে শুধু দেখতে পারবে, কিছু করতে পারবে না।</span>
+              )}
             </DialogDescription>
           </DialogHeader>
-          <Textarea placeholder="কারণ (ঐচ্ছিক)" value={reason} onChange={e => setReason(e.target.value)} rows={3} />
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium text-foreground mb-1 block">সময়সীমা</label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_OPTIONS.map(d => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Textarea placeholder="কারণ (ঐচ্ছিক)" value={reason} onChange={e => setReason(e.target.value)} rows={3} />
+          </div>
           <DialogFooter>
             <Button variant="destructive" onClick={() => actionDialog.user && applyRestriction(actionDialog.type, actionDialog.user)}>
               নিশ্চিত করুন
@@ -237,22 +304,22 @@ const UserManagementSection = ({ userId, role }: Props) => {
               <p className="py-8 text-center text-muted-foreground">কোন মেসেজ নেই</p>
             ) : (
               userMessages.map(msg => (
-                <div key={msg.id} className={`flex items-start gap-2 rounded-lg border p-3 ${msg.is_deleted_by_admin ? "opacity-40" : ""}`}>
+                <div key={msg.id} className={`flex items-start gap-2 rounded-lg border p-2.5 ${msg.is_deleted_by_admin ? "opacity-40" : ""}`}>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-xs">
                       <span className="font-medium">{getProfileName(msg.sender_id)}</span>
                       <span className="text-muted-foreground">→</span>
                       <span className="text-muted-foreground">{getProfileName(msg.receiver_id)}</span>
                     </div>
-                    <p className="mt-1 text-sm">{msg.content}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs">{msg.content}</p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
                       {new Date(msg.created_at).toLocaleString("bn-BD")}
                     </p>
                   </div>
-                  {!msg.is_deleted_by_admin && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"
+                  {!msg.is_deleted_by_admin && (role === "super_admin" || role === "admin") && (
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
                       onClick={() => deleteMessage(msg.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   )}
                 </div>
