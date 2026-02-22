@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,16 +19,49 @@ const PopupNotification = ({ userId }: Props) => {
   const [popup, setPopup] = useState<PopupData | null>(null);
   const [showOk, setShowOk] = useState(false);
   const [timerRef, setTimerRef] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const queueRef = useRef<PopupData[]>([]);
+  const showingRef = useRef(false);
 
-  const showPopup = useCallback((notif: PopupData) => {
-    setPopup(notif);
+  const showNext = useCallback(() => {
+    if (queueRef.current.length === 0) {
+      showingRef.current = false;
+      return;
+    }
+    showingRef.current = true;
+    const next = queueRef.current.shift()!;
+    setPopup(next);
     setShowOk(false);
-    const timer = setTimeout(() => setShowOk(true), 12000); // 12 seconds
+    const timer = setTimeout(() => setShowOk(true), 12000);
     setTimerRef(timer);
   }, []);
 
+  const enqueue = useCallback((notif: PopupData) => {
+    queueRef.current.push(notif);
+    if (!showingRef.current) {
+      showNext();
+    }
+  }, [showNext]);
+
+  // Fetch unread notifications on mount
   useEffect(() => {
-    // Listen for new notifications in realtime
+    const fetchUnread = async () => {
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, type, title, message, reference_id")
+        .eq("user_id", userId)
+        .eq("is_read", false)
+        .in("type", ["task_assigned", "broadcast"])
+        .order("created_at", { ascending: true });
+
+      if (data && data.length > 0) {
+        data.forEach((notif) => enqueue(notif));
+      }
+    };
+    fetchUnread();
+  }, [userId, enqueue]);
+
+  // Listen for new notifications in realtime
+  useEffect(() => {
     const channel = supabase
       .channel(`popup-notif-${userId}`)
       .on(
@@ -41,9 +74,8 @@ const PopupNotification = ({ userId }: Props) => {
         },
         (payload) => {
           const notif = payload.new as any;
-          // Show popup for task_assigned and broadcast types
           if (notif.type === "task_assigned" || notif.type === "broadcast") {
-            showPopup({
+            enqueue({
               id: notif.id,
               type: notif.type,
               title: notif.title,
@@ -57,16 +89,13 @@ const PopupNotification = ({ userId }: Props) => {
 
     return () => {
       supabase.removeChannel(channel);
-      if (timerRef) clearTimeout(timerRef);
     };
-  }, [userId, showPopup, timerRef]);
+  }, [userId, enqueue]);
 
   const handleAccept = async () => {
     if (!popup) return;
 
-    // If task_assigned, notify the assigner that the user accepted
     if (popup.type === "task_assigned" && popup.reference_id) {
-      // Get the task to find who assigned it
       const { data: task } = await supabase
         .from("tasks")
         .select("assigned_by, title")
@@ -74,7 +103,6 @@ const PopupNotification = ({ userId }: Props) => {
         .maybeSingle();
 
       if (task) {
-        // Get acceptor's name
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name")
@@ -93,12 +121,13 @@ const PopupNotification = ({ userId }: Props) => {
       }
     }
 
-    // Mark notification as read
     await supabase.from("notifications").update({ is_read: true }).eq("id", popup.id);
 
     setPopup(null);
     setShowOk(false);
     if (timerRef) clearTimeout(timerRef);
+    // Show next in queue
+    showNext();
   };
 
   if (!popup) return null;
