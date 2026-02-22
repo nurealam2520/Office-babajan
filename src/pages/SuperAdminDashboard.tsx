@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
+import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -157,6 +158,7 @@ const SuperAdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <PopupNotification userId={session.user.id} />
     </div>
   );
 };

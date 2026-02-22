@@ -80,17 +80,18 @@ const TaskSection = ({ userId, role }: Props) => {
       due_date: newTask.due_date || null,
     }));
 
-    const { error } = await supabase.from("tasks").insert(inserts);
+    const { data: insertedTasks, error } = await supabase.from("tasks").insert(inserts).select("id, assigned_to");
     if (error) {
       toast({ title: "ত্রুটি", variant: "destructive" });
     } else {
-      // Send notifications
-      for (const uid of selectedUsers) {
+      // Send notifications with reference_id for popup
+      for (const task of (insertedTasks || [])) {
         await supabase.from("notifications").insert({
-          user_id: uid,
+          user_id: task.assigned_to,
           title: "নতুন টাস্ক",
           message: `আপনাকে "${newTask.title}" টাস্ক অ্যাসাইন করা হয়েছে`,
           type: "task_assigned",
+          reference_id: task.id,
         });
       }
       toast({ title: "সফল", description: `${selectedUsers.length} জনকে টাস্ক দেয়া হয়েছে` });

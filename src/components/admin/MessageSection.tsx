@@ -79,6 +79,27 @@ const MessageSection = ({ userId, role }: Props) => {
     if (error) {
       toast({ title: "ত্রুটি", description: "ব্রডকাস্ট পাঠাতে সমস্যা", variant: "destructive" });
     } else {
+      // Send popup notifications to target users
+      const targetUsers = profiles.filter(p => {
+        if (p.user_id === userId) return false;
+        const pRoles = userRoles[p.user_id] || [];
+        if (broadcastTarget === "all") return true;
+        if (broadcastTarget === "all_except_super") return !pRoles.includes("super_admin");
+        if (broadcastTarget === "member") return !pRoles.includes("admin") && !pRoles.includes("super_admin") && !pRoles.includes("manager");
+        if (broadcastTarget === "manager") return pRoles.includes("manager");
+        if (broadcastTarget === "admin") return pRoles.includes("admin");
+        return false;
+      });
+
+      for (const u of targetUsers) {
+        await supabase.from("notifications").insert({
+          user_id: u.user_id,
+          title: "ব্রডকাস্ট মেসেজ",
+          message: content,
+          type: "broadcast",
+        });
+      }
+
       toast({ title: "সফল", description: "ব্রডকাস্ট পাঠানো হয়েছে" });
       setBroadcastContent("");
       setBroadcastVoiceUrl(null);
