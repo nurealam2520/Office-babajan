@@ -160,7 +160,8 @@ const UserManagementSection = ({ userId, role }: Props) => {
     if (conversationDialog.user) viewConversations(conversationDialog.user);
   };
 
-  const getProfileName = (uid: string) => {
+  const getProfileName = (uid: string | null) => {
+    if (!uid) return "অজানা";
     const p = profiles.find(p => p.user_id === uid);
     return p ? p.full_name : uid.slice(0, 8);
   };
