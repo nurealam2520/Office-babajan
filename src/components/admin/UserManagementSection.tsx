@@ -109,9 +109,13 @@ const UserManagementSection = ({ userId, role }: Props) => {
     return r?.role || "member";
   };
 
-  const isUpperRole = (uid: string) => {
-    const r = getUserRole(uid);
-    return r === "super_admin" || r === "admin";
+  const isProtectedFromAction = (uid: string) => {
+    const targetRole = getUserRole(uid);
+    // সুপার অ্যাডমিনকে কেউ কিছু করতে পারবে না
+    if (targetRole === "super_admin") return true;
+    // অ্যাডমিনকে শুধু সুপার অ্যাডমিন অ্যাকশন নিতে পারবে
+    if (targetRole === "admin" && role !== "super_admin") return true;
+    return false;
   };
 
   const applyRestriction = async (type: string, targetUser: any) => {
@@ -270,7 +274,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
                         </Button>
                       )}
                       {/* অ্যাডমিন/সুপার অ্যাডমিনদের উপর কোনো অ্যাকশন নেওয়া যাবে না */}
-                      {!isUpperRole(user.user_id) && (
+                      {!isProtectedFromAction(user.user_id) && (
                         <>
                           {restriction ? (
                             (role === "super_admin" || role === "admin" || role === "manager") && (
