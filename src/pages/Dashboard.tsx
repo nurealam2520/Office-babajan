@@ -15,6 +15,19 @@ const Dashboard = () => {
         navigate("/login");
         return;
       }
+
+      // Check if admin/super_admin and redirect
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+      
+      const isAdminUser = roles?.some(r => r.role === "admin" || r.role === "super_admin");
+      if (isAdminUser) {
+        navigate("/admin");
+        return;
+      }
+
       const { data } = await supabase
         .from("profiles")
         .select("full_name, username")

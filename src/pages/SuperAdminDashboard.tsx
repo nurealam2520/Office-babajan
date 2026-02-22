@@ -1,0 +1,157 @@
+import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, 
+  LogOut, Menu, X 
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import OtpSection from "@/components/admin/OtpSection";
+import MessageSection from "@/components/admin/MessageSection";
+import TaskSection from "@/components/admin/TaskSection";
+import UserManagementSection from "@/components/admin/UserManagementSection";
+import ReportSection from "@/components/admin/ReportSection";
+import LocationSection from "@/components/admin/LocationSection";
+
+const SuperAdminDashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [role, setRole] = useState<"super_admin" | "admin" | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("messages");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (!s) { navigate("/login"); return; }
+      setSession(s);
+
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", s.user.id);
+
+      const isSuperAdmin = roles?.some(r => r.role === "super_admin");
+      const isAdmin = roles?.some(r => r.role === "admin");
+      
+      if (isSuperAdmin) setRole("super_admin");
+      else if (isAdmin) setRole("admin");
+      else {
+        toast({ title: "অনুমতি নেই", variant: "destructive" });
+        navigate("/dashboard");
+      }
+    };
+    checkAccess();
+  }, [navigate, toast]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
+
+  if (!role || !session) return null;
+
+  const tabs = [
+    ...(role === "super_admin" ? [{ id: "otp", label: "OTP", icon: ShieldCheck }] : []),
+    { id: "messages", label: "মেসেজ", icon: MessageSquare },
+    { id: "tasks", label: "টাস্ক", icon: ClipboardList },
+    { id: "users", label: "ইউজার", icon: Users },
+    { id: "reports", label: "রিপোর্ট", icon: FileText },
+    { id: "location", label: "লোকেশন", icon: MapPin },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-6 w-6 text-primary" />
+            <h1 className="text-lg font-bold text-foreground">
+              {role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন"} প্যানেল
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl px-4 py-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {/* Desktop Tabs */}
+          <TabsList className="mb-4 hidden w-full justify-start gap-1 overflow-x-auto md:flex">
+            {tabs.map(tab => (
+              <TabsTrigger key={tab.id} value={tab.id} className="gap-2">
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="mb-4 grid grid-cols-2 gap-2 md:hidden">
+              {tabs.map(tab => (
+                <Button
+                  key={tab.id}
+                  variant={activeTab === tab.id ? "default" : "outline"}
+                  className="justify-start gap-2"
+                  onClick={() => { setActiveTab(tab.id); setMobileMenuOpen(false); }}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Mobile current tab indicator */}
+          <div className="mb-4 flex items-center gap-2 md:hidden">
+            {(() => {
+              const t = tabs.find(t => t.id === activeTab);
+              if (!t) return null;
+              return (
+                <Button variant="secondary" size="sm" className="gap-2 pointer-events-none">
+                  <t.icon className="h-4 w-4" />
+                  {t.label}
+                </Button>
+              );
+            })()}
+          </div>
+
+          {role === "super_admin" && (
+            <TabsContent value="otp">
+              <OtpSection />
+            </TabsContent>
+          )}
+          <TabsContent value="messages">
+            <MessageSection userId={session.user.id} role={role} />
+          </TabsContent>
+          <TabsContent value="tasks">
+            <TaskSection userId={session.user.id} role={role} />
+          </TabsContent>
+          <TabsContent value="users">
+            <UserManagementSection userId={session.user.id} role={role} />
+          </TabsContent>
+          <TabsContent value="reports">
+            <ReportSection userId={session.user.id} />
+          </TabsContent>
+          <TabsContent value="location">
+            <LocationSection />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+export default SuperAdminDashboard;
