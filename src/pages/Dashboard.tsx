@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +8,10 @@ import PopupNotification from "@/components/PopupNotification";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const stayHere = location.state?.stayHere === true;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -20,21 +22,23 @@ const Dashboard = () => {
       }
       setUserId(session.user.id);
 
-      // Check if admin/super_admin and redirect
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id);
-      
-      const isAdminUser = roles?.some(r => r.role === "admin" || r.role === "super_admin");
-      if (isAdminUser) {
-        navigate("/admin");
-        return;
-      }
-      const isManager = roles?.some(r => r.role === "manager");
-      if (isManager) {
-        navigate("/manager");
-        return;
+      // Only auto-redirect if not explicitly coming back
+      if (!stayHere) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        
+        const isAdminUser = roles?.some(r => r.role === "admin" || r.role === "super_admin");
+        if (isAdminUser) {
+          navigate("/admin");
+          return;
+        }
+        const isManager = roles?.some(r => r.role === "manager");
+        if (isManager) {
+          navigate("/manager");
+          return;
+        }
       }
 
       const { data } = await supabase
@@ -45,7 +49,7 @@ const Dashboard = () => {
       setProfile(data);
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, stayHere]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

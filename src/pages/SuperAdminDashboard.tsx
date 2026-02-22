@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, 
-  LogOut, Menu, X, Home
+  LogOut, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
@@ -23,6 +23,7 @@ const SuperAdminDashboard = () => {
   const { toast } = useToast();
   const [role, setRole] = useState<"super_admin" | "admin" | null>(null);
   const [session, setSession] = useState<any>(null);
+  const [profileName, setProfileName] = useState("");
   const [activeTab, setActiveTab] = useState("messages");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -45,7 +46,11 @@ const SuperAdminDashboard = () => {
       else {
         toast({ title: "অনুমতি নেই", variant: "destructive" });
         navigate("/dashboard");
+        return;
       }
+
+      const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", s.user.id).maybeSingle();
+      if (prof) setProfileName(prof.full_name);
     };
     checkAccess();
   }, [navigate, toast]);
@@ -72,13 +77,14 @@ const SuperAdminDashboard = () => {
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/dashboard")} title="ড্যাশবোর্ডে ফিরে যান">
-              <Home className="h-4 w-4" />
-            </Button>
             <ShieldCheck className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">
-              {role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন"} প্যানেল
-            </h1>
+            <button
+              onClick={() => navigate("/dashboard", { state: { stayHere: true } })}
+              className="text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+              title="ড্যাশবোর্ডে ফিরে যান"
+            >
+              {profileName || (role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন")}
+            </button>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
