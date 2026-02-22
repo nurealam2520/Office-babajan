@@ -14,16 +14,157 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      login_notifications: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_duration_seconds: number
+          id: string
+          is_read: boolean
+          message: string
+          target_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_duration_seconds?: number
+          id?: string
+          is_read?: boolean
+          message: string
+          target_user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_duration_seconds?: number
+          id?: string
+          is_read?: boolean
+          message?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
+      otp_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_used: boolean
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          country_code: string
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          mobile_number: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          mobile_number: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          mobile_number?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          id: string
+          team_member_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_member_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_member_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_otp: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_user_active: { Args: { _user_id: string }; Returns: boolean }
+      verify_otp: {
+        Args: { _code: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "manager" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +291,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "manager", "member"],
+    },
   },
 } as const
