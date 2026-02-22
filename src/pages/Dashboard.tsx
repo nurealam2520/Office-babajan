@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User,
+  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("tasks");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [taskCount, setTaskCount] = useState(0);
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+  const [todayCollection, setTodayCollection] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -46,16 +49,55 @@ const Dashboard = () => {
         .maybeSingle();
       setProfile(data);
 
-      // Get active task count
-      const { count } = await supabase
+      // Get active task count & overdue
+      const { data: activeTasks } = await supabase
         .from("tasks")
-        .select("*", { count: "exact", head: true })
+        .select("id, due_date, status")
         .eq("assigned_to", session.user.id)
         .neq("status", "completed");
-      setTaskCount(count || 0);
+      setTaskCount(activeTasks?.length || 0);
+      setOverdueCount(activeTasks?.filter(t => t.due_date && new Date(t.due_date).getTime() < Date.now()).length || 0);
+
+      // Unread messages
+      const { count: msgCount } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .eq("receiver_id", session.user.id);
+      setUnreadMsgCount(msgCount || 0);
+
+      // Today's collection
+      const today = new Date().toISOString().split("T")[0];
+      const { data: todayCols } = await supabase
+        .from("collections")
+        .select("amount")
+        .eq("user_id", session.user.id)
+        .eq("collection_date", today);
+      setTodayCollection(todayCols?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
     };
     checkAuth();
   }, [navigate]);
+
+  // Real-time updates for tasks
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`dashboard-status-${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `assigned_to=eq.${userId}` }, async () => {
+        const { data } = await supabase.from("tasks").select("id, due_date, status").eq("assigned_to", userId).neq("status", "completed");
+        setTaskCount(data?.length || 0);
+        setOverdueCount(data?.filter(t => t.due_date && new Date(t.due_date).getTime() < Date.now()).length || 0);
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${userId}` }, () => {
+        setUnreadMsgCount(prev => prev + 1);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "collections", filter: `user_id=eq.${userId}` }, async () => {
+        const today = new Date().toISOString().split("T")[0];
+        const { data } = await supabase.from("collections").select("amount").eq("user_id", userId).eq("collection_date", today);
+        setTodayCollection(data?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -88,13 +130,37 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Status Micro-Hero */}
-          {taskCount > 0 && (
-            <div className="hidden sm:flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
-              <ClipboardList className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium text-primary">{taskCount} সক্রিয় টাস্ক</span>
-            </div>
-          )}
+          {/* Status Micro-Hero - Desktop */}
+          <div className="hidden sm:flex items-center gap-3">
+            <button
+              onClick={() => setActiveTab("tasks")}
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                overdueCount > 0 ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+              }`}
+            >
+              {overdueCount > 0 ? <AlertTriangle className="h-3 w-3" /> : <ClipboardList className="h-3 w-3" />}
+              {taskCount > 0 ? `${taskCount} টাস্ক` : "কোন টাস্ক নেই"}
+              {overdueCount > 0 && <span className="font-bold">({overdueCount} ওভারডিউ)</span>}
+            </button>
+            {unreadMsgCount > 0 && (
+              <button
+                onClick={() => setActiveTab("messages")}
+                className="flex items-center gap-1.5 rounded-full bg-accent/15 text-accent-foreground px-3 py-1 text-xs font-medium"
+              >
+                <MessageSquare className="h-3 w-3" />
+                {unreadMsgCount} মেসেজ
+              </button>
+            )}
+            {todayCollection > 0 && (
+              <button
+                onClick={() => setActiveTab("collection")}
+                className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
+              >
+                <Wallet className="h-3 w-3" />
+                ৳{todayCollection.toLocaleString("bn-BD")}
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-1">
             <ThemeToggle />
