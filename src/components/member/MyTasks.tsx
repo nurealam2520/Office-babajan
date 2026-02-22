@@ -16,7 +16,7 @@ interface Props {
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "অপেক্ষমাণ", variant: "secondary" },
-  in_progress: { label: "চলমান", variant: "default" },
+  in_progress: { label: "কাজ চলছে", variant: "default" },
   completed: { label: "সম্পন্ন", variant: "outline" },
   resubmit: { label: "পুনরায় জমা", variant: "destructive" },
 };

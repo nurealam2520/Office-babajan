@@ -114,13 +114,28 @@ const NotificationCenter = ({ userId }: Props) => {
             <div className="py-8 text-center text-sm text-muted-foreground">কোন নোটিফিকেশন নেই</div>
           ) : (
             filtered.map(n => (
-              <div key={n.id} className={`flex gap-3 border-b px-4 py-3 text-sm ${!n.is_read ? "bg-primary/5" : ""}`}>
+              <div
+                key={n.id}
+                className={`flex gap-3 border-b px-4 py-3 text-sm cursor-pointer hover:bg-muted/50 transition-colors ${!n.is_read ? "bg-primary/5" : ""}`}
+                onClick={() => {
+                  if (n.type === "broadcast") {
+                    const event = new CustomEvent("replay-popup", {
+                      detail: { id: n.id, type: n.type, title: n.title, message: n.message, reference_id: null },
+                    });
+                    window.dispatchEvent(event);
+                    setOpen(false);
+                  }
+                }}
+              >
                 <span className="text-lg">{typeLabels[n.type]?.icon || "🔔"}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{n.title}</p>
-                  {n.message && <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>}
+                  {n.message && <p className="text-xs text-muted-foreground line-clamp-2">{n.message?.replace(/\[audio\].*?\[\/audio\]/g, "🎤 ভয়েস").trim()}</p>}
                   <p className="text-xs text-muted-foreground mt-1">{timeAgo(n.created_at)}</p>
                 </div>
+                {n.type === "broadcast" && (
+                  <span className="text-[10px] text-primary self-center shrink-0">আবার দেখুন</span>
+                )}
               </div>
             ))
           )}

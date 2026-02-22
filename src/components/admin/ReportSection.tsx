@@ -122,7 +122,17 @@ const ReportSection = ({ userId }: Props) => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">👤 {getProfileName(report.submitted_by)}</p>
-                <p className="text-sm">{report.report_content}</p>
+                <p className="text-sm whitespace-pre-wrap">{report.report_content}</p>
+                {/* Report images */}
+                {report.image_urls && report.image_urls.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {report.image_urls.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block">
+                        <img src={url} alt={`ছবি ${i + 1}`} className="rounded-lg border object-cover aspect-square w-full hover:opacity-80 transition-opacity" />
+                      </a>
+                    ))}
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
                   জমা: {new Date(report.created_at).toLocaleString("bn-BD")}
                 </p>
