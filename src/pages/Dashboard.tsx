@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import NotificationBell from "@/components/NotificationBell";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -15,6 +17,7 @@ const Dashboard = () => {
         navigate("/login");
         return;
       }
+      setUserId(session.user.id);
 
       // Check if admin/super_admin and redirect
       const { data: roles } = await supabase
@@ -25,6 +28,11 @@ const Dashboard = () => {
       const isAdminUser = roles?.some(r => r.role === "admin" || r.role === "super_admin");
       if (isAdminUser) {
         navigate("/admin");
+        return;
+      }
+      const isManager = roles?.some(r => r.role === "manager");
+      if (isManager) {
+        navigate("/manager");
         return;
       }
 
@@ -54,10 +62,13 @@ const Dashboard = () => {
           </div>
         )}
         <p className="text-muted-foreground">ড্যাশবোর্ড শীঘ্রই আসছে...</p>
-        <Button variant="outline" onClick={handleLogout} className="gap-2">
-          <LogOut className="h-4 w-4" />
-          লগআউট
-        </Button>
+        <div className="flex items-center gap-2">
+          {userId && <NotificationBell userId={userId} />}
+          <Button variant="outline" onClick={handleLogout} className="gap-2">
+            <LogOut className="h-4 w-4" />
+            লগআউট
+          </Button>
+        </div>
       </div>
     </div>
   );

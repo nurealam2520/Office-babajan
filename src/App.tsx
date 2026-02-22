@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminOtpDashboard from "./pages/AdminOtpDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import NotFound from "./pages/NotFound";
+import ManagerDashboard from "./pages/ManagerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin/otp" element={<AdminOtpDashboard />} />
           <Route path="/admin" element={<SuperAdminDashboard />} />
+          <Route path="/manager" element={<ManagerDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
