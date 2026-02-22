@@ -14,9 +14,12 @@ import TeamSection from "@/components/member/TeamSection";
 import NotificationCenter from "@/components/member/NotificationCenter";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -107,10 +110,10 @@ const Dashboard = () => {
   if (!userId) return null;
 
   const tabs = [
-    { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
-    { id: "messages", label: "মেসেজ", icon: MessageSquare },
-    { id: "collection", label: "কালেকশন", icon: Wallet },
-    { id: "team", label: "টিম", icon: Users },
+    { id: "tasks", label: t("nav.tasks"), icon: ClipboardList, badge: taskCount },
+    { id: "messages", label: t("nav.messages"), icon: MessageSquare },
+    { id: "collection", label: t("nav.collection"), icon: Wallet },
+    { id: "team", label: t("nav.team"), icon: Users },
   ];
 
   return (
@@ -124,7 +127,7 @@ const Dashboard = () => {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-bold text-foreground leading-none">
-                {profile?.full_name || "ড্যাশবোর্ড"}
+                {profile?.full_name || t("nav.dashboard")}
               </p>
               {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
             </div>
@@ -139,8 +142,8 @@ const Dashboard = () => {
               }`}
             >
               {overdueCount > 0 ? <AlertTriangle className="h-3 w-3" /> : <ClipboardList className="h-3 w-3" />}
-              {taskCount > 0 ? `${taskCount} টাস্ক` : "কোন টাস্ক নেই"}
-              {overdueCount > 0 && <span className="font-bold">({overdueCount} ওভারডিউ)</span>}
+              {taskCount > 0 ? `${taskCount} ${t("stats.tasks")}` : t("stats.no_tasks")}
+              {overdueCount > 0 && <span className="font-bold">({overdueCount} {t("stats.overdue")})</span>}
             </button>
             {unreadMsgCount > 0 && (
               <button
@@ -148,7 +151,7 @@ const Dashboard = () => {
                 className="flex items-center gap-1.5 rounded-full bg-accent/15 text-accent-foreground px-3 py-1 text-xs font-medium"
               >
                 <MessageSquare className="h-3 w-3" />
-                {unreadMsgCount} মেসেজ
+                {unreadMsgCount} {t("stats.messages")}
               </button>
             )}
             {todayCollection > 0 && (
@@ -163,10 +166,11 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            <LanguageToggle />
             <ThemeToggle />
             <NotificationCenter userId={userId} />
             {activeTab !== "tasks" && (
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab("tasks")} title="মূল ট্যাবে ফিরুন">
+              <Button variant="ghost" size="icon" onClick={() => setActiveTab("tasks")} title={t("nav.return_main")}>
                 <X className="h-5 w-5" />
               </Button>
             )}
