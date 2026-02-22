@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_numbers: {
+        Row: {
+          blocked_by: string
+          country_code: string
+          created_at: string
+          id: string
+          mobile_number: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_by: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          mobile_number: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_by?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          mobile_number?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      broadcast_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sender_id: string
+          target_role: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          target_role?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          target_role?: string | null
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          blocked_by: string | null
+          created_at: string
+          id: string
+          is_blocked: boolean
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          blocked_by?: string | null
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          blocked_by?: string | null
+          created_at?: string
+          id?: string
+          is_blocked?: boolean
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       login_notifications: {
         Row: {
           created_at: string
@@ -41,6 +119,45 @@ export type Database = {
           is_read?: boolean
           message?: string
           target_user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          is_broadcast: boolean
+          is_deleted_by_admin: boolean
+          media_url: string | null
+          message_type: string
+          receiver_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean
+          is_deleted_by_admin?: boolean
+          media_url?: string | null
+          message_type?: string
+          receiver_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean
+          is_deleted_by_admin?: boolean
+          media_url?: string | null
+          message_type?: string
+          receiver_id?: string | null
+          sender_id?: string
         }
         Relationships: []
       }
@@ -104,6 +221,92 @@ export type Database = {
         }
         Relationships: []
       }
+      task_reports: {
+        Row: {
+          admin_feedback: string | null
+          created_at: string
+          id: string
+          pdf_url: string | null
+          report_content: string
+          report_number: number
+          status: string
+          submitted_by: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_feedback?: string | null
+          created_at?: string
+          id?: string
+          pdf_url?: string | null
+          report_content: string
+          report_number?: number
+          status?: string
+          submitted_by: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_feedback?: string | null
+          created_at?: string
+          id?: string
+          pdf_url?: string | null
+          report_content?: string
+          report_number?: number
+          status?: string
+          submitted_by?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_reports_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          admin_note: string | null
+          assigned_by: string
+          assigned_to: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          assigned_by: string
+          assigned_to: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          assigned_by?: string
+          assigned_to?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           created_at: string
@@ -121,6 +324,69 @@ export type Database = {
           created_at?: string
           id?: string
           team_member_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_locations: {
+        Row: {
+          id: string
+          is_online: boolean
+          last_seen_at: string
+          latitude: number | null
+          longitude: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_online?: boolean
+          last_seen_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_restrictions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          reason: string | null
+          restricted_by: string
+          restriction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          restricted_by: string
+          restriction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          restricted_by?: string
+          restriction_type?: string
           user_id?: string
         }
         Relationships: []
