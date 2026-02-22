@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, 
+  ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, Wallet,
   LogOut, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import TaskSection from "@/components/admin/TaskSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import ReportSection from "@/components/admin/ReportSection";
 import LocationSection from "@/components/admin/LocationSection";
+import CollectionReportSection from "@/components/admin/CollectionReportSection";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -68,6 +69,7 @@ const SuperAdminDashboard = () => {
     { id: "tasks", label: "টাস্ক", icon: ClipboardList },
     { id: "users", label: "ইউজার", icon: Users },
     { id: "reports", label: "রিপোর্ট", icon: FileText },
+    { id: "collections", label: "কালেকশন", icon: Wallet },
     { id: "location", label: "লোকেশন", icon: MapPin },
   ];
 
@@ -159,6 +161,9 @@ const SuperAdminDashboard = () => {
           </TabsContent>
           <TabsContent value="reports">
             <ReportSection userId={session.user.id} />
+          </TabsContent>
+          <TabsContent value="collections">
+            <CollectionReportSection />
           </TabsContent>
           <TabsContent value="location">
             <LocationSection />
