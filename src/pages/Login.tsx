@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, User, Phone } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,14 +19,23 @@ const loginSchema = z.object({
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
+type InputType = "empty" | "username" | "mobile";
+
+function detectInputType(value: string): InputType {
+  if (!value.trim()) return "empty";
+  if (/^[+]?\d+$/.test(value.trim())) return "mobile";
+  return "username";
+}
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [inputType, setInputType] = useState<InputType>("empty");
   const [notification, setNotification] = useState<{ message: string; duration: number } | null>(null);
   const [showOkButton, setShowOkButton] = useState(false);
+  const [notifId, setNotifId] = useState<string | null>(null);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -48,67 +58,46 @@ const Login = () => {
         duration: notif.display_duration_seconds || 10,
       });
       setShowOkButton(false);
-
-      // Show OK button after duration
-      setTimeout(() => {
-        setShowOkButton(true);
-      }, (notif.display_duration_seconds || 10) * 1000);
-
-      // Mark as read when dismissed
+      setTimeout(() => setShowOkButton(true), (notif.display_duration_seconds || 10) * 1000);
       return notif.id;
     }
     return null;
   }, []);
 
-  const [notifId, setNotifId] = useState<string | null>(null);
-
   const dismissNotification = async () => {
     if (notifId) {
-      await supabase
-        .from("login_notifications")
-        .update({ is_read: true })
-        .eq("id", notifId);
+      await supabase.from("login_notifications").update({ is_read: true }).eq("id", notifId);
     }
     setNotification(null);
     navigate("/dashboard");
   };
 
+  const resolveEmail = async (loginId: string): Promise<string | null> => {
+    const trimmed = loginId.trim();
+    const type = detectInputType(trimmed);
+
+    if (type === "username") {
+      return `${trimmed}@myzmessage.app`;
+    }
+
+    // Mobile number - try exact match, then with +880 prefix
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .or(`mobile_number.eq.${trimmed},mobile_number.eq.+880${trimmed}`)
+      .maybeSingle();
+
+    if (profile) return `${profile.username}@myzmessage.app`;
+    return null;
+  };
+
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      // Determine if login_id is username or mobile
-      let email = data.login_id;
-      if (!email.includes("@")) {
-        // Could be username or mobile number
-        if (/^[a-zA-Z0-9]+$/.test(data.login_id)) {
-          email = `${data.login_id}@myzmessage.app`;
-        } else {
-          // Try to find by mobile number
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("username")
-            .eq("mobile_number", data.login_id)
-            .maybeSingle();
-
-          if (!profile) {
-            // Try with common country codes
-            const { data: profileWithCode } = await supabase
-              .from("profiles")
-              .select("username")
-              .or(`mobile_number.eq.+880${data.login_id},mobile_number.eq.${data.login_id}`)
-              .maybeSingle();
-
-            if (profileWithCode) {
-              email = `${profileWithCode.username}@myzmessage.app`;
-            } else {
-              toast({ title: "ত্রুটি", description: "ইউজার পাওয়া যায়নি", variant: "destructive" });
-              setLoading(false);
-              return;
-            }
-          } else {
-            email = `${profile.username}@myzmessage.app`;
-          }
-        }
+      const email = await resolveEmail(data.login_id);
+      if (!email) {
+        toast({ title: "ত্রুটি", description: "ইউজার পাওয়া যায়নি", variant: "destructive" });
+        return;
       }
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -117,11 +106,10 @@ const Login = () => {
       });
 
       if (authError) {
-        toast({ title: "ত্রুটি", description: "ইউজারনেম বা পাসওয়ার্ড ভুল", variant: "destructive" });
+        toast({ title: "ত্রুটি", description: "ইউজারনেম/মোবাইল বা পাসওয়ার্ড ভুল", variant: "destructive" });
         return;
       }
 
-      // Check if account is active
       const { data: profile } = await supabase
         .from("profiles")
         .select("is_active, username")
@@ -132,14 +120,13 @@ const Login = () => {
         await supabase.auth.signOut();
         toast({
           title: "অ্যাকাউন্ট নিষ্ক্রিয়",
-          description: "আপনার অ্যাকাউন্ট এখনো সক্রিয় হয়নি। অ্যাডমিনের কাছ থেকে OTP নিন।",
+          description: "অ্যাডমিনের কাছ থেকে OTP নিয়ে অ্যাকাউন্ট সক্রিয় করুন।",
           variant: "destructive",
         });
         navigate("/verify-otp", { state: { username: profile?.username } });
         return;
       }
 
-      // Check for notifications
       const nId = await checkNotifications(authData.user.id);
       if (nId) {
         setNotifId(nId);
@@ -156,12 +143,12 @@ const Login = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={logo} alt="মাইজমেসেজ" className="h-16 w-16 drop-shadow-lg" />
-        <h1 className="text-2xl font-bold text-primary">লগইন</h1>
+        <img src={logo} alt="মাইজমেসেজ" className="h-14 w-14 drop-shadow-lg md:h-20 md:w-20" />
+        <h1 className="text-2xl font-bold text-primary md:text-3xl">লগইন</h1>
         <p className="text-sm text-muted-foreground">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
       </div>
 
-      <div className="w-full max-w-sm rounded-xl border bg-card p-6 shadow-md">
+      <div className="w-full max-w-sm rounded-xl border bg-card p-5 shadow-md md:max-w-md md:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -169,9 +156,27 @@ const Login = () => {
               name="login_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ইউজারনেম বা মোবাইল নম্বর</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>ইউজারনেম বা মোবাইল</FormLabel>
+                    {inputType !== "empty" && (
+                      <Badge variant="secondary" className="gap-1 text-xs font-normal">
+                        {inputType === "username" ? (
+                          <><User className="h-3 w-3" /> ইউজারনেম</>
+                        ) : (
+                          <><Phone className="h-3 w-3" /> মোবাইল</>
+                        )}
+                      </Badge>
+                    )}
+                  </div>
                   <FormControl>
-                    <Input placeholder="ইউজারনেম অথবা মোবাইল নম্বর" {...field} />
+                    <Input
+                      placeholder="ইউজারনেম অথবা মোবাইল নম্বর"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setInputType(detectInputType(e.target.value));
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -212,25 +217,19 @@ const Login = () => {
           </form>
         </Form>
 
-        <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
-          <div>
-            অ্যাকাউন্ট নেই?{" "}
-            <Link to="/register" className="font-medium text-primary hover:underline">
-              রেজিস্ট্রেশন করুন
-            </Link>
-          </div>
-          <div>
-            OTP দিতে হবে?{" "}
-            <Link to="/verify-otp" className="font-medium text-primary hover:underline">
-              ভেরিফাই করুন
-            </Link>
-          </div>
+        <div className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:justify-between">
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            রেজিস্ট্রেশন করুন
+          </Link>
+          <Link to="/verify-otp" className="font-medium text-primary hover:underline">
+            OTP ভেরিফাই
+          </Link>
         </div>
       </div>
 
       {/* Admin Notification Popup */}
       <Dialog open={!!notification} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="mx-4 sm:max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle className="text-center text-primary">📢 নির্দেশনা</DialogTitle>
             <DialogDescription className="sr-only">অ্যাডমিনের নির্দেশনা</DialogDescription>
