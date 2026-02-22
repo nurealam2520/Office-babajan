@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +24,7 @@ import CollectionReportSection from "@/components/admin/CollectionReportSection"
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [role, setRole] = useState<"super_admin" | "admin" | null>(null);
   const [session, setSession] = useState<any>(null);
   const [profileName, setProfileName] = useState("");
@@ -45,7 +48,7 @@ const SuperAdminDashboard = () => {
       if (isSuperAdmin) setRole("super_admin");
       else if (isAdmin) setRole("admin");
       else {
-        toast({ title: "অনুমতি নেই", variant: "destructive" });
+        toast({ title: t("permission_denied"), variant: "destructive" });
         navigate("/dashboard");
         return;
       }
@@ -64,13 +67,13 @@ const SuperAdminDashboard = () => {
   if (!role || !session) return null;
 
   const tabs = [
-    ...(role === "super_admin" ? [{ id: "otp", label: "OTP", icon: ShieldCheck }] : []),
-    { id: "messages", label: "মেসেজ", icon: MessageSquare },
-    { id: "tasks", label: "টাস্ক", icon: ClipboardList },
-    { id: "users", label: "ইউজার", icon: Users },
-    { id: "reports", label: "রিপোর্ট", icon: FileText },
-    { id: "collections", label: "কালেকশন", icon: Wallet },
-    { id: "location", label: "লোকেশন", icon: MapPin },
+    ...(role === "super_admin" ? [{ id: "otp", label: t("nav.otp"), icon: ShieldCheck }] : []),
+    { id: "messages", label: t("nav.messages"), icon: MessageSquare },
+    { id: "tasks", label: t("nav.tasks"), icon: ClipboardList },
+    { id: "users", label: t("nav.users"), icon: Users },
+    { id: "reports", label: t("nav.reports"), icon: FileText },
+    { id: "collections", label: t("nav.collection"), icon: Wallet },
+    { id: "location", label: t("nav.location"), icon: MapPin },
   ];
 
   return (
@@ -81,14 +84,15 @@ const SuperAdminDashboard = () => {
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" />
             <span className="text-lg font-bold text-foreground">
-              {profileName || (role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন")}
+              {profileName || (role === "super_admin" ? t("role.super_admin") : t("role.admin"))}
             </span>
           </div>
           <div className="flex items-center gap-1">
+            <LanguageToggle />
             <ThemeToggle />
             {role !== "super_admin" && <NotificationBell userId={session.user.id} />}
             {activeTab !== (role === "super_admin" ? "otp" : "messages") && (
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab(role === "super_admin" ? "otp" : "messages")} title="মূল ট্যাবে ফিরুন">
+              <Button variant="ghost" size="icon" onClick={() => setActiveTab(role === "super_admin" ? "otp" : "messages")} title={t("nav.return_main")}>
                 <X className="h-5 w-5" />
               </Button>
             )}
