@@ -1,26 +1,21 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, 
-  LogOut, Menu, X 
+import {
+  ShieldCheck, MessageSquare, ClipboardList, LogOut, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import NotificationBell from "@/components/NotificationBell";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import OtpSection from "@/components/admin/OtpSection";
 import MessageSection from "@/components/admin/MessageSection";
 import TaskSection from "@/components/admin/TaskSection";
-import UserManagementSection from "@/components/admin/UserManagementSection";
-import ReportSection from "@/components/admin/ReportSection";
-import LocationSection from "@/components/admin/LocationSection";
+import NotificationBell from "@/components/NotificationBell";
 
-const SuperAdminDashboard = () => {
+const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [role, setRole] = useState<"super_admin" | "admin" | null>(null);
   const [session, setSession] = useState<any>(null);
+  const [verified, setVerified] = useState(false);
   const [activeTab, setActiveTab] = useState("messages");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,15 +30,13 @@ const SuperAdminDashboard = () => {
         .select("role")
         .eq("user_id", s.user.id);
 
-      const isSuperAdmin = roles?.some(r => r.role === "super_admin");
-      const isAdmin = roles?.some(r => r.role === "admin");
-      
-      if (isSuperAdmin) setRole("super_admin");
-      else if (isAdmin) setRole("admin");
-      else {
+      const isManager = roles?.some(r => r.role === "manager");
+      if (!isManager) {
         toast({ title: "অনুমতি নেই", variant: "destructive" });
         navigate("/dashboard");
+        return;
       }
+      setVerified(true);
     };
     checkAccess();
   }, [navigate, toast]);
@@ -53,30 +46,23 @@ const SuperAdminDashboard = () => {
     navigate("/login");
   };
 
-  if (!role || !session) return null;
+  if (!verified || !session) return null;
 
   const tabs = [
-    ...(role === "super_admin" ? [{ id: "otp", label: "OTP", icon: ShieldCheck }] : []),
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
     { id: "tasks", label: "টাস্ক", icon: ClipboardList },
-    { id: "users", label: "ইউজার", icon: Users },
-    { id: "reports", label: "রিপোর্ট", icon: FileText },
-    { id: "location", label: "লোকেশন", icon: MapPin },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" />
-            <h1 className="text-lg font-bold text-foreground">
-              {role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন"} প্যানেল
-            </h1>
+            <h1 className="text-lg font-bold text-foreground">ম্যানেজার প্যানেল</h1>
           </div>
           <div className="flex items-center gap-1">
-            {role !== "super_admin" && <NotificationBell userId={session.user.id} />}
+            <NotificationBell userId={session.user.id} />
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -89,8 +75,7 @@ const SuperAdminDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Desktop Tabs */}
-          <TabsList className="mb-4 hidden w-full justify-start gap-1 overflow-x-auto md:flex">
+          <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
             {tabs.map(tab => (
               <TabsTrigger key={tab.id} value={tab.id} className="gap-2">
                 <tab.icon className="h-4 w-4" />
@@ -99,7 +84,6 @@ const SuperAdminDashboard = () => {
             ))}
           </TabsList>
 
-          {/* Mobile Menu */}
           {mobileMenuOpen && (
             <div className="mb-4 grid grid-cols-2 gap-2 md:hidden">
               {tabs.map(tab => (
@@ -116,7 +100,6 @@ const SuperAdminDashboard = () => {
             </div>
           )}
 
-          {/* Mobile current tab indicator */}
           <div className="mb-4 flex items-center gap-2 md:hidden">
             {(() => {
               const t = tabs.find(t => t.id === activeTab);
@@ -130,25 +113,11 @@ const SuperAdminDashboard = () => {
             })()}
           </div>
 
-          {role === "super_admin" && (
-            <TabsContent value="otp">
-              <OtpSection />
-            </TabsContent>
-          )}
           <TabsContent value="messages">
-            <MessageSection userId={session.user.id} role={role} />
+            <MessageSection userId={session.user.id} role="admin" />
           </TabsContent>
           <TabsContent value="tasks">
-            <TaskSection userId={session.user.id} role={role} />
-          </TabsContent>
-          <TabsContent value="users">
-            <UserManagementSection userId={session.user.id} role={role} />
-          </TabsContent>
-          <TabsContent value="reports">
-            <ReportSection userId={session.user.id} />
-          </TabsContent>
-          <TabsContent value="location">
-            <LocationSection />
+            <TaskSection userId={session.user.id} role="admin" />
           </TabsContent>
         </Tabs>
       </div>
@@ -156,4 +125,4 @@ const SuperAdminDashboard = () => {
   );
 };
 
-export default SuperAdminDashboard;
+export default ManagerDashboard;
