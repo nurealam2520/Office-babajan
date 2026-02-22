@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { Megaphone, MessageSquare, Send } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Megaphone, MessageSquare, Send, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import ChatView from "./ChatView";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin";
+  role: "super_admin" | "admin" | "manager";
 }
 
 const MessageSection = ({ userId, role }: Props) => {
@@ -20,18 +20,18 @@ const MessageSection = ({ userId, role }: Props) => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-
-  // Selected conversation
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
-  // New message dialog
   const [newMsgOpen, setNewMsgOpen] = useState(false);
   const [newMsgTo, setNewMsgTo] = useState("");
-
-  // Broadcast
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [broadcastContent, setBroadcastContent] = useState("");
-  const [broadcastTarget, setBroadcastTarget] = useState(role === "admin" ? "all_except_super" : "all");
+  const [broadcastTarget, setBroadcastTarget] = useState(role === "super_admin" ? "all" : "all_except_super");
+
+  // Voice broadcast
+  const [broadcastRecording, setBroadcastRecording] = useState(false);
+  const [broadcastMediaRecorder, setBroadcastMediaRecorder] = useState<MediaRecorder | null>(null);
+  const broadcastChunksRef = useRef<Blob[]>([]);
+  const [broadcastVoiceUrl, setBroadcastVoiceUrl] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -51,24 +51,71 @@ const MessageSection = ({ userId, role }: Props) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getProfileName = (uid: string) => {
-    const p = profiles.find(p => p.user_id === uid);
-    return p ? p.full_name : uid.slice(0, 8);
-  };
-
   const sendBroadcast = async () => {
-    if (!broadcastContent.trim()) return;
+    if (!broadcastContent.trim() && !broadcastVoiceUrl) return;
+    const content = broadcastVoiceUrl
+      ? `🎤 ভয়েস ব্রডকাস্ট${broadcastContent.trim() ? `\n${broadcastContent.trim()}` : ""}`
+      : broadcastContent.trim();
+
     const { error } = await supabase.from("broadcast_messages").insert({
       sender_id: userId,
-      content: broadcastContent,
+      content,
       target_role: broadcastTarget,
     });
+
+    if (broadcastVoiceUrl) {
+      // Also save as a message for voice playback
+      await supabase.from("messages").insert({
+        sender_id: userId,
+        content,
+        message_type: "voice",
+        media_url: broadcastVoiceUrl,
+        is_broadcast: true,
+      });
+    }
+
     if (error) {
       toast({ title: "ত্রুটি", description: "ব্রডকাস্ট পাঠাতে সমস্যা", variant: "destructive" });
     } else {
       toast({ title: "সফল", description: "ব্রডকাস্ট পাঠানো হয়েছে" });
       setBroadcastContent("");
+      setBroadcastVoiceUrl(null);
       setBroadcastOpen(false);
+    }
+  };
+
+  const startBroadcastRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      broadcastChunksRef.current = [];
+      recorder.ondataavailable = (e) => { broadcastChunksRef.current.push(e.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(broadcastChunksRef.current, { type: "audio/webm" });
+        const path = `${userId}/broadcast_${Date.now()}.webm`;
+        const { error } = await supabase.storage.from("message-media").upload(path, blob);
+        if (error) {
+          toast({ title: "ত্রুটি", description: "ভয়েস আপলোড ব্যর্থ", variant: "destructive" });
+          return;
+        }
+        const { data } = supabase.storage.from("message-media").getPublicUrl(path);
+        setBroadcastVoiceUrl(data.publicUrl);
+        toast({ title: "ভয়েস রেকর্ড হয়েছে" });
+      };
+      recorder.start();
+      setBroadcastMediaRecorder(recorder);
+      setBroadcastRecording(true);
+    } catch {
+      toast({ title: "ত্রুটি", description: "মাইক্রোফোন অ্যাক্সেস দিন", variant: "destructive" });
+    }
+  };
+
+  const stopBroadcastRecording = () => {
+    if (broadcastMediaRecorder) {
+      broadcastMediaRecorder.stop();
+      setBroadcastRecording(false);
+      setBroadcastMediaRecorder(null);
     }
   };
 
@@ -88,6 +135,7 @@ const MessageSection = ({ userId, role }: Props) => {
   });
 
   const selectedProfile = profiles.find(p => p.user_id === selectedUserId);
+  const showLocation = role === "super_admin" || role === "admin";
 
   if (loading) {
     return <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>;
@@ -95,7 +143,6 @@ const MessageSection = ({ userId, role }: Props) => {
 
   return (
     <div className="space-y-3">
-      {/* Toolbar */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">মেসেজ</h2>
         <Button size="sm" variant="secondary" onClick={() => setBroadcastOpen(true)} className="gap-2">
@@ -103,9 +150,7 @@ const MessageSection = ({ userId, role }: Props) => {
         </Button>
       </div>
 
-      {/* Chat Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] rounded-lg border bg-card overflow-hidden" style={{ height: "70vh" }}>
-        {/* Conversation list */}
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] rounded-lg border bg-card overflow-hidden shadow-sm" style={{ height: "70vh" }}>
         <ConversationList
           userId={userId}
           role={role}
@@ -114,9 +159,8 @@ const MessageSection = ({ userId, role }: Props) => {
           selectedUserId={selectedUserId}
           onSelectUser={setSelectedUserId}
           onNewMessage={() => setNewMsgOpen(true)}
+          showLocation={showLocation}
         />
-
-        {/* Chat area */}
         <div className="flex flex-col">
           {selectedUserId && selectedProfile ? (
             <ChatView
@@ -126,10 +170,10 @@ const MessageSection = ({ userId, role }: Props) => {
             />
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
-              <MessageSquare className="h-16 w-16" />
-              <p>কনভার্সেশন সিলেক্ট করুন বা নতুন মেসেজ শুরু করুন</p>
-              <Button size="sm" onClick={() => setNewMsgOpen(true)} className="gap-2">
-                <MessageSquare className="h-4 w-4" /> নতুন মেসেজ
+              <MessageSquare className="h-12 w-12 opacity-30" />
+              <p className="text-sm">কনভার্সেশন সিলেক্ট করুন</p>
+              <Button size="sm" onClick={() => setNewMsgOpen(true)} className="gap-2 text-xs">
+                <MessageSquare className="h-3.5 w-3.5" /> নতুন মেসেজ
               </Button>
             </div>
           )}
@@ -169,7 +213,7 @@ const MessageSection = ({ userId, role }: Props) => {
       </Dialog>
 
       {/* Broadcast Dialog */}
-      <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
+      <Dialog open={broadcastOpen} onOpenChange={o => { setBroadcastOpen(o); if (!o) { setBroadcastVoiceUrl(null); setBroadcastRecording(false); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>ব্রডকাস্ট মেসেজ</DialogTitle>
@@ -200,11 +244,38 @@ const MessageSection = ({ userId, role }: Props) => {
               placeholder="ব্রডকাস্ট মেসেজ লিখুন..."
               value={broadcastContent}
               onChange={e => setBroadcastContent(e.target.value)}
-              rows={4}
+              rows={3}
             />
+
+            {/* Voice recording for broadcast */}
+            <div className="flex items-center gap-2">
+              {broadcastRecording ? (
+                <Button size="sm" variant="destructive" onClick={stopBroadcastRecording} className="gap-2">
+                  <Square className="h-3.5 w-3.5" /> রেকর্ড বন্ধ করুন
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={startBroadcastRecording} className="gap-2">
+                  <Mic className="h-3.5 w-3.5" /> ভয়েস রেকর্ড
+                </Button>
+              )}
+              {broadcastRecording && (
+                <span className="text-xs text-destructive animate-pulse flex items-center gap-1">
+                  <span>●</span> রেকর্ডিং...
+                </span>
+              )}
+            </div>
+            {broadcastVoiceUrl && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">রেকর্ড করা ভয়েস:</p>
+                <audio controls src={broadcastVoiceUrl} className="w-full h-8" />
+                <Button size="sm" variant="ghost" onClick={() => setBroadcastVoiceUrl(null)} className="text-xs h-6">
+                  ভয়েস সরান
+                </Button>
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button onClick={sendBroadcast} className="gap-2">
+            <Button onClick={sendBroadcast} disabled={!broadcastContent.trim() && !broadcastVoiceUrl} className="gap-2">
               <Send className="h-4 w-4" /> পাঠান
             </Button>
           </DialogFooter>

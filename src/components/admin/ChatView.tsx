@@ -155,8 +155,8 @@ const ChatView = ({ userId, otherUserId, otherUserName }: Props) => {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b px-4 py-3">
-        <h3 className="font-semibold text-foreground">{otherUserName}</h3>
+      <div className="border-b px-3 py-2.5 bg-card">
+        <h3 className="text-sm font-semibold text-foreground">{otherUserName}</h3>
       </div>
 
       {/* Messages */}
@@ -170,7 +170,7 @@ const ChatView = ({ userId, otherUserId, otherUserName }: Props) => {
             const isMine = msg.sender_id === userId;
             return (
               <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                <div className={`max-w-[75%] rounded-2xl px-3 py-1.5 shadow-sm ${
                   isMine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                 }`}>
                   {msg.message_type === "image" && msg.media_url && (
@@ -180,9 +180,9 @@ const ChatView = ({ userId, otherUserId, otherUserName }: Props) => {
                     <audio controls src={msg.media_url} className="max-w-full" />
                   )}
                   {msg.message_type === "text" && (
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    <p className="text-xs whitespace-pre-wrap">{msg.content}</p>
                   )}
-                  <p className={`text-[10px] mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                  <p className={`text-[9px] mt-0.5 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                     {new Date(msg.created_at).toLocaleString("bn-BD")}
                   </p>
                 </div>
