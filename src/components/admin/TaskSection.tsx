@@ -83,7 +83,8 @@ const TaskSection = ({ userId, role }: Props) => {
     if (stored) setSavedTasks(JSON.parse(stored));
   }, []);
 
-  const getProfileName = (uid: string) => {
+  const getProfileName = (uid: string | null | undefined) => {
+    if (!uid) return "অজানা";
     const p = profiles.find(p => p.user_id === uid);
     return p ? p.full_name : uid.slice(0, 8);
   };
