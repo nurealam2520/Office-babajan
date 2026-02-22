@@ -71,6 +71,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [restrictions, setRestrictions] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSubTab, setActiveSubTab] = useState("all");
@@ -88,18 +89,30 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: p }, { data: r }] = await Promise.all([
+    const [{ data: p }, { data: r }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_restrictions").select("*").eq("is_active", true),
+      supabase.from("user_roles").select("*"),
     ]);
     setProfiles(p || []);
     setRestrictions(r || []);
+    setUserRoles(roles || []);
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const getRestriction = (uid: string) => restrictions.find(r => r.user_id === uid);
+
+  const getUserRole = (uid: string): string => {
+    const r = userRoles.find(r => r.user_id === uid);
+    return r?.role || "member";
+  };
+
+  const isUpperRole = (uid: string) => {
+    const r = getUserRole(uid);
+    return r === "super_admin" || r === "admin";
+  };
 
   const applyRestriction = async (type: string, targetUser: any) => {
     const durationMs = getDurationMs(duration);
@@ -256,31 +269,46 @@ const UserManagementSection = ({ userId, role }: Props) => {
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      {restriction ? (
-                        (role === "super_admin" || role === "admin") && (
-                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
-                            <ShieldOff className="h-3 w-3" /> সরান
-                          </Button>
-                        )
-                      ) : (
-                        (role === "super_admin" || role === "admin") && (
-                          <>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" title="ব্যান করুন"
-                              onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
-                              <Ban className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
-                              onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
-                              <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
-                            </Button>
-                            {role === "super_admin" && (
-                              <Button variant="ghost" size="icon" className="h-7 w-7" title="স্থায়ীভাবে ডিলিট"
-                                onClick={() => setDeleteConfirm(user)}>
-                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      {/* অ্যাডমিন/সুপার অ্যাডমিনদের উপর কোনো অ্যাকশন নেওয়া যাবে না */}
+                      {!isUpperRole(user.user_id) && (
+                        <>
+                          {restriction ? (
+                            (role === "super_admin" || role === "admin" || role === "manager") && (
+                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
+                                <ShieldOff className="h-3 w-3" /> সরান
                               </Button>
-                            )}
-                          </>
-                        )
+                            )
+                          ) : (
+                            <>
+                              {/* সুপার অ্যাডমিন ও অ্যাডমিন: ব্যান + রেস্ট্রিকশন + ডিলিট */}
+                              {(role === "super_admin" || role === "admin") && (
+                                <>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="ব্যান করুন"
+                                    onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
+                                    <Ban className="h-3.5 w-3.5 text-destructive" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
+                                    onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
+                                    <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
+                                  </Button>
+                                  {role === "super_admin" && (
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" title="স্থায়ীভাবে ডিলিট"
+                                      onClick={() => setDeleteConfirm(user)}>
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              {/* ম্যানেজার: শুধু রেস্ট্রিকশন */}
+                              {role === "manager" && (
+                                <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
+                                  onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
+                                  <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
+                                </Button>
+                              )}
+                            </>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
