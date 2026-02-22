@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShieldCheck, MessageSquare, ClipboardList, LogOut, Menu, X,
+  ShieldCheck, MessageSquare, ClipboardList, FileText, LogOut, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import MessageSection from "@/components/admin/MessageSection";
 import TaskSection from "@/components/admin/TaskSection";
+import ReportSection from "@/components/admin/ReportSection";
 import NotificationBell from "@/components/NotificationBell";
 
 const ManagerDashboard = () => {
@@ -51,6 +52,7 @@ const ManagerDashboard = () => {
   const tabs = [
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
     { id: "tasks", label: "টাস্ক", icon: ClipboardList },
+    { id: "reports", label: "রিপোর্ট", icon: FileText },
   ];
 
   return (
@@ -114,10 +116,13 @@ const ManagerDashboard = () => {
           </div>
 
           <TabsContent value="messages">
-            <MessageSection userId={session.user.id} role="admin" />
+            <MessageSection userId={session.user.id} role="manager" />
           </TabsContent>
           <TabsContent value="tasks">
-            <TaskSection userId={session.user.id} role="admin" />
+            <TaskSection userId={session.user.id} role="manager" />
+          </TabsContent>
+          <TabsContent value="reports">
+            <ReportSection userId={session.user.id} />
           </TabsContent>
         </Tabs>
       </div>
