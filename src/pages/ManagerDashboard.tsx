@@ -12,6 +12,7 @@ import TaskSection from "@/components/admin/TaskSection";
 import ReportSection from "@/components/admin/ReportSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import NotificationBell from "@/components/NotificationBell";
+import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const ManagerDashboard = () => {
@@ -136,6 +137,7 @@ const ManagerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+      <PopupNotification userId={session.user.id} />
     </div>
   );
 };

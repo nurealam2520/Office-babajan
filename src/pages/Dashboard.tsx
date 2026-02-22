@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
+import PopupNotification from "@/components/PopupNotification";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
+      {userId && <PopupNotification userId={userId} />}
     </div>
   );
 };
