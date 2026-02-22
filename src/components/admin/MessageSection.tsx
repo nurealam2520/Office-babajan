@@ -144,57 +144,9 @@ const MessageSection = ({ userId, role }: Props) => {
     return <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>;
   }
 
-  const MobileConversationLayout = () => {
-    // On mobile: show list OR chat, not both
-    if (isMobile) {
-      if (selectedUserId && selectedProfile) {
-        return (
-          <div className="flex h-full flex-col">
-            <div className="flex items-center gap-2 border-b px-2 py-1.5 bg-card">
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSelectedUserId(null)}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h3 className="text-sm font-semibold text-foreground">{selectedProfile.full_name}</h3>
-            </div>
-            <div className="flex-1">
-              <ChatView userId={userId} otherUserId={selectedUserId} otherUserName={selectedProfile.full_name} />
-            </div>
-          </div>
-        );
-      }
-      return (
-        <ConversationList
-          userId={userId} role={role} profiles={profiles} userRoles={userRoles}
-          selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
-          onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
-        />
-      );
-    }
-
-    // Desktop: two-column
-    return (
-      <div className="grid h-full grid-cols-[280px_1fr]">
-        <ConversationList
-          userId={userId} role={role} profiles={profiles} userRoles={userRoles}
-          selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
-          onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
-        />
-        <div className="flex flex-col">
-          {selectedUserId && selectedProfile ? (
-            <ChatView userId={userId} otherUserId={selectedUserId} otherUserName={selectedProfile.full_name} />
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
-              <MessageSquare className="h-12 w-12 opacity-30" />
-              <p className="text-sm">কনভার্সেশন সিলেক্ট করুন</p>
-              <Button size="sm" onClick={() => setNewMsgOpen(true)} className="gap-2 text-xs">
-                <MessageSquare className="h-3.5 w-3.5" /> নতুন মেসেজ
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  // Mobile: show list OR chat; Desktop: two-column side by side
+  const showMobileChat = isMobile && selectedUserId && selectedProfile;
+  const showMobileList = isMobile && !selectedUserId;
 
   return (
     <div className="space-y-3">
@@ -206,7 +158,51 @@ const MessageSection = ({ userId, role }: Props) => {
       </div>
 
       <div className="rounded-lg border bg-card overflow-hidden shadow-sm" style={{ height: "70vh" }}>
-        <MobileConversationLayout />
+        {isMobile ? (
+          showMobileChat ? (
+            <div className="flex h-full flex-col">
+              <div className="flex items-center gap-2 border-b px-2 py-1.5 bg-muted/50">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setSelectedUserId(null)}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="text-[10px] font-semibold text-primary">{selectedProfile!.full_name.charAt(0)}</span>
+                </div>
+                <h3 className="text-sm font-semibold text-foreground">{selectedProfile!.full_name}</h3>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ChatView userId={userId} otherUserId={selectedUserId!} otherUserName={selectedProfile!.full_name} hideHeader />
+              </div>
+            </div>
+          ) : (
+            <ConversationList
+              userId={userId} role={role} profiles={profiles} userRoles={userRoles}
+              selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
+              onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
+            />
+          )
+        ) : (
+          <div className="grid h-full grid-cols-[280px_1fr]">
+            <ConversationList
+              userId={userId} role={role} profiles={profiles} userRoles={userRoles}
+              selectedUserId={selectedUserId} onSelectUser={setSelectedUserId}
+              onNewMessage={() => setNewMsgOpen(true)} showLocation={showLocation}
+            />
+            <div className="flex flex-col">
+              {selectedUserId && selectedProfile ? (
+                <ChatView userId={userId} otherUserId={selectedUserId} otherUserName={selectedProfile.full_name} />
+              ) : (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
+                  <MessageSquare className="h-12 w-12 opacity-30" />
+                  <p className="text-sm">কনভার্সেশন সিলেক্ট করুন</p>
+                  <Button size="sm" onClick={() => setNewMsgOpen(true)} className="gap-2 text-xs">
+                    <MessageSquare className="h-3.5 w-3.5" /> নতুন মেসেজ
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* New Message Dialog */}
