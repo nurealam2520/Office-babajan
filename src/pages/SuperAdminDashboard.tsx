@@ -78,13 +78,9 @@ const SuperAdminDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" />
-            <button
-              onClick={() => navigate("/dashboard", { state: { stayHere: true } })}
-              className="text-lg font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
-              title="ড্যাশবোর্ডে ফিরে যান"
-            >
+            <span className="text-lg font-bold text-foreground">
               {profileName || (role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন")}
-            </button>
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
