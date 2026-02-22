@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, 
-  LogOut, Menu, X 
+  LogOut, Menu, X, Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "@/components/NotificationBell";
@@ -71,6 +71,9 @@ const SuperAdminDashboard = () => {
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/dashboard")} title="ড্যাশবোর্ডে ফিরে যান">
+              <Home className="h-4 w-4" />
+            </Button>
             <ShieldCheck className="h-6 w-6 text-primary" />
             <h1 className="text-lg font-bold text-foreground">
               {role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন"} প্যানেল
