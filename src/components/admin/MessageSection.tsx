@@ -22,20 +22,30 @@ const MessageSection = ({ userId, role }: Props) => {
   const [loading, setLoading] = useState(true);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [broadcastContent, setBroadcastContent] = useState("");
-  const [broadcastTarget, setBroadcastTarget] = useState("all");
+  const [broadcastTarget, setBroadcastTarget] = useState(role === "admin" ? "all_except_super" : "all");
   const [directOpen, setDirectOpen] = useState(false);
   const [directTo, setDirectTo] = useState("");
   const [directContent, setDirectContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [userRoles, setUserRoles] = useState<Record<string, string[]>>({});
+
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: msgs }, { data: profs }] = await Promise.all([
+    const [{ data: msgs }, { data: profs }, { data: roles }] = await Promise.all([
       supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("profiles").select("user_id, full_name, username"),
+      supabase.from("user_roles").select("user_id, role"),
     ]);
     setMessages(msgs || []);
     setProfiles(profs || []);
+    // Build role map
+    const roleMap: Record<string, string[]> = {};
+    (roles || []).forEach(r => {
+      if (!roleMap[r.user_id]) roleMap[r.user_id] = [];
+      roleMap[r.user_id].push(r.role);
+    });
+    setUserRoles(roleMap);
     setLoading(false);
   }, []);
 
@@ -173,10 +183,20 @@ const MessageSection = ({ userId, role }: Props) => {
                 <SelectValue placeholder="প্রাপক নির্বাচন" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">সবাই</SelectItem>
-                <SelectItem value="member">শুধু মেম্বার</SelectItem>
-                <SelectItem value="manager">শুধু ম্যানেজার</SelectItem>
-                <SelectItem value="admin">শুধু অ্যাডমিন</SelectItem>
+                {role === "super_admin" ? (
+                  <>
+                    <SelectItem value="all">সবাই</SelectItem>
+                    <SelectItem value="member">শুধু মেম্বার</SelectItem>
+                    <SelectItem value="manager">শুধু ম্যানেজার</SelectItem>
+                    <SelectItem value="admin">শুধু অ্যাডমিন</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="all_except_super">সবাই (সুপার অ্যাডমিন ছাড়া)</SelectItem>
+                    <SelectItem value="member">শুধু মেম্বার</SelectItem>
+                    <SelectItem value="manager">শুধু ম্যানেজার</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
             <Textarea
@@ -206,11 +226,29 @@ const MessageSection = ({ userId, role }: Props) => {
                 <SelectValue placeholder="প্রাপক নির্বাচন করুন" />
               </SelectTrigger>
               <SelectContent>
-                {profiles.map(p => (
-                  <SelectItem key={p.user_id} value={p.user_id}>
-                    {p.full_name} (@{p.username})
-                  </SelectItem>
-                ))}
+                {profiles
+                  .filter(p => {
+                    const pRoles = userRoles[p.user_id] || [];
+                    const isSuperAdmin = pRoles.includes("super_admin");
+                    // Admin can message super_admin; but hide self
+                    if (p.user_id === userId) return false;
+                    // Admin role: can message anyone
+                    if (role === "admin") return true;
+                    // Super admin: can message anyone
+                    if (role === "super_admin") return true;
+                    return !isSuperAdmin; // fallback
+                  })
+                  .map(p => {
+                    const pRoles = userRoles[p.user_id] || [];
+                    const roleLabel = pRoles.includes("super_admin") ? "সুপার অ্যাডমিন" 
+                      : pRoles.includes("admin") ? "অ্যাডমিন"
+                      : pRoles.includes("manager") ? "ম্যানেজার" : "মেম্বার";
+                    return (
+                      <SelectItem key={p.user_id} value={p.user_id}>
+                        {p.full_name} (@{p.username}) — {roleLabel}
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
             <Textarea
