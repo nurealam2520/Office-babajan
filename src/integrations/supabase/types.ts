@@ -65,6 +65,36 @@ export type Database = {
         }
         Relationships: []
       }
+      collections: {
+        Row: {
+          amount: number
+          collection_date: string
+          created_at: string
+          description: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          collection_date?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          collection_date?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           blocked_by: string | null
@@ -259,6 +289,7 @@ export type Database = {
           admin_feedback: string | null
           created_at: string
           id: string
+          image_urls: string[] | null
           pdf_url: string | null
           report_content: string
           report_number: number
@@ -271,6 +302,7 @@ export type Database = {
           admin_feedback?: string | null
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           pdf_url?: string | null
           report_content: string
           report_number?: number
@@ -283,6 +315,7 @@ export type Database = {
           admin_feedback?: string | null
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           pdf_url?: string | null
           report_content?: string
           report_number?: number
