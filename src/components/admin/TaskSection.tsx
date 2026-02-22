@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, ClipboardList, RefreshCw, Clock, Save, Users, MessageSquare, AlertTriangle, Eye, FileText, Image } from "lucide-react";
+import { Plus, ClipboardList, RefreshCw, Clock, Save, Users, MessageSquare, AlertTriangle, Eye, FileText, Image, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +42,8 @@ const TaskSection = ({ userId, role }: Props) => {
   const [reassignTo, setReassignTo] = useState("");
   const [detailOpen, setDetailOpen] = useState<{ open: boolean; task: any }>({ open: false, task: null });
   const [taskReports, setTaskReports] = useState<any[]>([]);
+  const [logOpen, setLogOpen] = useState(false);
+  const [allReports, setAllReports] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -198,11 +200,25 @@ const TaskSection = ({ userId, role }: Props) => {
     setTaskReports(data || []);
   };
 
+  const openTaskLog = async () => {
+    setLogOpen(true);
+    const { data } = await supabase
+      .from("task_reports")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setAllReports(data || []);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">টাস্ক ম্যানেজমেন্ট</h2>
         <div className="flex gap-2">
+          {role === "super_admin" && (
+            <Button size="sm" variant="outline" onClick={openTaskLog} className="gap-1.5 text-xs">
+              <List className="h-3.5 w-3.5" /> সকল লগ
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => setSavedTasksOpen(true)} className="gap-1.5 text-xs">
             <Save className="h-3.5 w-3.5" /> টাস্ক লিস্ট
           </Button>
@@ -491,6 +507,77 @@ const TaskSection = ({ userId, role }: Props) => {
           <DialogFooter>
             <Button onClick={reassignTask} disabled={!reassignTo}>রিঅ্যাসাইন</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Task Activity Log Dialog - Super Admin Only */}
+      <Dialog open={logOpen} onOpenChange={setLogOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <List className="h-5 w-5 text-primary" /> সকল টাস্ক কার্যকলাপ লগ
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 pr-4">
+              {tasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">কোন টাস্ক নেই</p>
+              ) : (
+                tasks.map(task => {
+                  const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
+                  const reports = allReports.filter(r => r.task_id === task.id);
+                  return (
+                    <Card key={task.id} className={task.status === "completed" ? "opacity-70" : ""}>
+                      <CardContent className="p-3 space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-semibold">{task.title}</p>
+                            {task.description && <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>}
+                          </div>
+                          <Badge variant={statusMap[task.status]?.variant || "secondary"} className="text-[10px] shrink-0">
+                            {statusMap[task.status]?.label || task.status}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                          <span>👤 প্রাপক: {getProfileName(task.assigned_to)}</span>
+                          <span>📋 প্রেরক: {getProfileName(task.assigned_by)}</span>
+                          <span>📆 তৈরি: {new Date(task.created_at).toLocaleDateString("bn-BD")}</span>
+                          {task.due_date && (
+                            <span className={timeInfo?.overdue && task.status !== "completed" ? "text-destructive font-medium" : ""}>
+                              ⏰ সময়সীমা: {new Date(task.due_date).toLocaleString("bn-BD")}
+                              {timeInfo && task.status !== "completed" && ` (${timeInfo.text})`}
+                            </span>
+                          )}
+                        </div>
+                        {task.admin_note && (
+                          <p className="text-xs bg-muted rounded p-1.5 italic">💬 {task.admin_note}</p>
+                        )}
+                        {reports.length > 0 && (
+                          <div className="border-t pt-2 space-y-1.5">
+                            <p className="text-[10px] font-medium text-muted-foreground">রিপোর্ট ({reports.length}):</p>
+                            {reports.map(r => (
+                              <div key={r.id} className="bg-muted/50 rounded p-2 text-xs space-y-1">
+                                <div className="flex justify-between">
+                                  <span>#{r.report_number}</span>
+                                  <Badge variant={r.status === "approved" ? "default" : r.status === "not_approved" ? "destructive" : "secondary"} className="text-[9px] h-4">
+                                    {r.status === "approved" ? "অনুমোদিত" : r.status === "not_approved" ? "অননুমোদিত" : r.status === "resubmit" ? "পুনরায় জমা" : "অপেক্ষমাণ"}
+                                  </Badge>
+                                </div>
+                                <p className="text-muted-foreground line-clamp-2">{r.report_content}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  {new Date(r.created_at).toLocaleString("bn-BD")} · {getProfileName(r.submitted_by)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

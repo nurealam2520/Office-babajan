@@ -181,10 +181,17 @@ const MyTasks = ({ userId }: Props) => {
       {completedTasks.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">সম্পন্ন টাস্ক ({completedTasks.length})</h3>
-          {completedTasks.slice(0, 3).map(task => (
+          {completedTasks.map(task => (
             <Card key={task.id} className="opacity-60">
               <CardContent className="py-3 flex items-center justify-between">
-                <span className="text-sm">{task.title}</span>
+                <div>
+                  <span className="text-sm">{task.title}</span>
+                  {task.due_date && (
+                    <p className="text-[10px] text-muted-foreground">
+                      📅 {new Date(task.due_date).toLocaleDateString("bn-BD")}
+                    </p>
+                  )}
+                </div>
                 <Badge variant="outline" className="text-[10px]">সম্পন্ন</Badge>
               </CardContent>
             </Card>
