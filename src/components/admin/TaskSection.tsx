@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, ClipboardList, RefreshCw, Clock, Save, Users, MessageSquare, AlertTriangle } from "lucide-react";
+import { Plus, ClipboardList, RefreshCw, Clock, Save, Users, MessageSquare, AlertTriangle, Eye, FileText, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +29,7 @@ const TaskSection = ({ userId, role }: Props) => {
   const { toast } = useToast();
   const [tasks, setTasks] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
+  const [userRoles, setUserRoles] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", description: "", due_date: "" });
@@ -38,17 +40,40 @@ const TaskSection = ({ userId, role }: Props) => {
   const [newDueDate, setNewDueDate] = useState("");
   const [reassignOpen, setReassignOpen] = useState<{ open: boolean; task: any }>({ open: false, task: null });
   const [reassignTo, setReassignTo] = useState("");
+  const [detailOpen, setDetailOpen] = useState<{ open: boolean; task: any }>({ open: false, task: null });
+  const [taskReports, setTaskReports] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: t }, { data: p }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: r }] = await Promise.all([
       supabase.from("tasks").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("user_id, full_name, username"),
+      supabase.from("user_roles").select("user_id, role"),
     ]);
-    setTasks(t || []);
+
+    const roleMap: Record<string, string[]> = {};
+    (r || []).forEach((role: any) => {
+      if (!roleMap[role.user_id]) roleMap[role.user_id] = [];
+      roleMap[role.user_id].push(role.role);
+    });
+    setUserRoles(roleMap);
+
+    // Filter tasks based on role visibility
+    let filteredTasks = t || [];
+    if (role === "admin") {
+      // Admin can't see super_admin's tasks
+      const superAdminIds = Object.entries(roleMap).filter(([_, roles]) => roles.includes("super_admin")).map(([uid]) => uid);
+      filteredTasks = filteredTasks.filter(task => !superAdminIds.includes(task.assigned_by) || task.assigned_by === userId);
+    } else if (role === "manager") {
+      // Manager can't see admin's or super_admin's assigned tasks (only their own and tasks assigned to them)
+      const adminIds = Object.entries(roleMap).filter(([_, roles]) => roles.includes("admin") || roles.includes("super_admin")).map(([uid]) => uid);
+      filteredTasks = filteredTasks.filter(task => !adminIds.includes(task.assigned_by) || task.assigned_by === userId);
+    }
+
+    setTasks(filteredTasks);
     setProfiles(p || []);
     setLoading(false);
-  }, []);
+  }, [userId, role]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -84,7 +109,6 @@ const TaskSection = ({ userId, role }: Props) => {
     if (error) {
       toast({ title: "ত্রুটি", variant: "destructive" });
     } else {
-      // Send notifications with reference_id for popup
       for (const task of (insertedTasks || [])) {
         await supabase.from("notifications").insert({
           user_id: task.assigned_to,
@@ -163,6 +187,16 @@ const TaskSection = ({ userId, role }: Props) => {
     }
   };
 
+  const openTaskDetail = async (task: any) => {
+    setDetailOpen({ open: true, task });
+    const { data } = await supabase
+      .from("task_reports")
+      .select("*")
+      .eq("task_id", task.id)
+      .order("created_at", { ascending: false });
+    setTaskReports(data || []);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -194,7 +228,8 @@ const TaskSection = ({ userId, role }: Props) => {
           {tasks.map(task => {
             const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
             return (
-              <Card key={task.id} className={timeInfo?.overdue && task.status !== "completed" ? "border-destructive/50" : ""}>
+              <Card key={task.id} className={`cursor-pointer hover:shadow-md transition-shadow ${timeInfo?.overdue && task.status !== "completed" ? "border-destructive/50" : ""}`}
+                onClick={() => openTaskDetail(task)}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-sm">{task.title}</CardTitle>
@@ -204,7 +239,7 @@ const TaskSection = ({ userId, role }: Props) => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
+                  {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>👤 {getProfileName(task.assigned_to)}</span>
                     {task.due_date && (
@@ -228,22 +263,8 @@ const TaskSection = ({ userId, role }: Props) => {
                       <Progress value={timeInfo.percent} className="h-1" />
                     </div>
                   )}
-                  <div className="flex gap-1.5 pt-1">
-                    {task.due_date && task.status !== "completed" && (
-                      <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2"
-                        onClick={() => { setExtendOpen({ open: true, task }); setNewDueDate(""); }}>
-                        <Clock className="h-3 w-3 mr-1" /> সময় বাড়ান
-                      </Button>
-                    )}
-                    {task.status !== "completed" && (
-                      <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2"
-                        onClick={() => { setReassignOpen({ open: true, task }); setReassignTo(""); }}>
-                        <Users className="h-3 w-3 mr-1" /> রিঅ্যাসাইন
-                      </Button>
-                    )}
-                  </div>
                   <p className="text-[10px] text-muted-foreground">
-                    তৈরি: {new Date(task.created_at).toLocaleDateString("bn-BD")}
+                    অ্যাসাইন: {getProfileName(task.assigned_by)} · {new Date(task.created_at).toLocaleDateString("bn-BD")}
                   </p>
                 </CardContent>
               </Card>
@@ -251,6 +272,104 @@ const TaskSection = ({ userId, role }: Props) => {
           })}
         </div>
       )}
+
+      {/* Task Detail Dialog */}
+      <Dialog open={detailOpen.open} onOpenChange={o => setDetailOpen({ open: o, task: o ? detailOpen.task : null })}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              {detailOpen.task?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1">
+            <div className="space-y-4 pr-4">
+              {/* Task info */}
+              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant={statusMap[detailOpen.task?.status]?.variant || "secondary"}>
+                    {statusMap[detailOpen.task?.status]?.label || detailOpen.task?.status}
+                  </Badge>
+                  {detailOpen.task?.due_date && (
+                    <span className="text-xs text-muted-foreground">
+                      📅 সময়সীমা: {new Date(detailOpen.task.due_date).toLocaleString("bn-BD")}
+                    </span>
+                  )}
+                </div>
+                {detailOpen.task?.description && (
+                  <p className="text-sm whitespace-pre-wrap">{detailOpen.task.description}</p>
+                )}
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>👤 অ্যাসাইন: {getProfileName(detailOpen.task?.assigned_to)}</span>
+                  <span>📋 দ্বারা: {getProfileName(detailOpen.task?.assigned_by)}</span>
+                </div>
+                {detailOpen.task?.admin_note && (
+                  <p className="text-xs bg-muted rounded p-2 italic">💬 নোট: {detailOpen.task.admin_note}</p>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2 flex-wrap">
+                {detailOpen.task?.due_date && detailOpen.task?.status !== "completed" && (
+                  <Button size="sm" variant="outline" className="text-xs gap-1"
+                    onClick={(e) => { e.stopPropagation(); setExtendOpen({ open: true, task: detailOpen.task }); setNewDueDate(""); }}>
+                    <Clock className="h-3 w-3" /> সময় বাড়ান
+                  </Button>
+                )}
+                {detailOpen.task?.status !== "completed" && (
+                  <Button size="sm" variant="outline" className="text-xs gap-1"
+                    onClick={(e) => { e.stopPropagation(); setReassignOpen({ open: true, task: detailOpen.task }); setReassignTo(""); }}>
+                    <Users className="h-3 w-3" /> রিঅ্যাসাইন
+                  </Button>
+                )}
+                {role === "super_admin" && detailOpen.task?.assigned_by !== userId && (
+                  <Badge variant="outline" className="text-[10px]">সুপার অ্যাডমিন মডিফাই করতে পারবে</Badge>
+                )}
+              </div>
+
+              {/* Reports section */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-primary" /> রিপোর্ট ({taskReports.length})
+                </h3>
+                {taskReports.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">কোন রিপোর্ট জমা হয়নি</p>
+                ) : (
+                  taskReports.map(report => (
+                    <Card key={report.id}>
+                      <CardContent className="p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium">রিপোর্ট #{report.report_number}</span>
+                          <Badge variant={report.status === "approved" ? "default" : report.status === "not_approved" ? "destructive" : "secondary"} className="text-[10px]">
+                            {report.status === "approved" ? "অনুমোদিত" : report.status === "not_approved" ? "অননুমোদিত" : report.status === "resubmit" ? "পুনরায় জমা" : "অপেক্ষমাণ"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">{report.report_content}</p>
+                        {/* Report images */}
+                        {report.image_urls && report.image_urls.length > 0 && (
+                          <div className="grid grid-cols-4 gap-2">
+                            {report.image_urls.map((url: string, i: number) => (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                <img src={url} alt={`ছবি ${i + 1}`} className="rounded-lg border object-cover aspect-square w-full hover:opacity-80 transition-opacity" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                        {report.admin_feedback && (
+                          <p className="text-xs bg-muted rounded p-2 italic">💬 {report.admin_feedback}</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground">
+                          জমা: {new Date(report.created_at).toLocaleString("bn-BD")} · 👤 {getProfileName(report.submitted_by)}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Task Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
