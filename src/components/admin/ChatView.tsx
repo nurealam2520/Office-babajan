@@ -10,9 +10,10 @@ interface Props {
   userId: string;
   otherUserId: string;
   otherUserName: string;
+  hideHeader?: boolean;
 }
 
-const ChatView = ({ userId, otherUserId, otherUserName }: Props) => {
+const ChatView = ({ userId, otherUserId, otherUserName, hideHeader = false }: Props) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
@@ -155,9 +156,11 @@ const ChatView = ({ userId, otherUserId, otherUserName }: Props) => {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b px-3 py-2.5 bg-card">
-        <h3 className="text-sm font-semibold text-foreground">{otherUserName}</h3>
-      </div>
+      {!hideHeader && (
+        <div className="border-b px-3 py-2.5 bg-card">
+          <h3 className="text-sm font-semibold text-foreground">{otherUserName}</h3>
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
