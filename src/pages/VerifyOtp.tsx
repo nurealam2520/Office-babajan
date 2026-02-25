@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { ShieldCheck, Clock, Loader2 } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { ShieldCheck, Clock, Loader2, X } from "lucide-react";
+import shahzadaLogo from "@/assets/shahzada-logo.png";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Input } from "@/components/ui/input";
@@ -45,9 +45,12 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 relative">
+      <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => navigate("/")}>
+        <X className="h-5 w-5" />
+      </Button>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={logo} alt="মাইজমেসেজ" className="h-14 w-14 drop-shadow-lg md:h-20 md:w-20" />
+        <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg md:h-20 md:w-20 border-2 border-primary/20" />
         <h1 className="text-2xl font-bold text-primary md:text-3xl">OTP ভেরিফিকেশন</h1>
       </div>
 

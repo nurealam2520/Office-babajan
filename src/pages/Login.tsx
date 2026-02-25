@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, LogIn, User, Phone } from "lucide-react";
+import { Eye, EyeOff, LogIn, User, Phone, X } from "lucide-react";
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -115,6 +115,9 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 relative">
+      <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => navigate("/")}>
+        <X className="h-5 w-5" />
+      </Button>
       <div className="absolute top-4 right-4">
         <LanguageToggle />
       </div>

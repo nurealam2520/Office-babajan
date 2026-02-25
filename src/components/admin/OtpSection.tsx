@@ -3,6 +3,7 @@ import { Copy, Check, RefreshCw, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,6 +15,8 @@ interface PendingUser {
   created_at: string;
   otp_code: string | null;
   otp_created_at: string | null;
+  selectedRole: string;
+  selectedGroup: string;
 }
 
 const OtpSection = () => {
@@ -21,14 +24,20 @@ const OtpSection = () => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, full_name, username, mobile_number, created_at")
-      .eq("is_active", false)
-      .order("created_at", { ascending: false });
+    const [{ data: profiles }, { data: biz }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("user_id, full_name, username, mobile_number, created_at")
+        .eq("is_active", false)
+        .order("created_at", { ascending: false }),
+      supabase.from("businesses").select("id, name, slug").eq("is_active", true),
+    ]);
+
+    if (biz) setBusinesses(biz);
 
     if (!profiles?.length) {
       setPendingUsers([]);
@@ -55,11 +64,17 @@ const OtpSection = () => {
       ...p,
       otp_code: otpMap.get(p.user_id)?.code || null,
       otp_created_at: otpMap.get(p.user_id)?.created_at || null,
+      selectedRole: "member",
+      selectedGroup: "",
     })));
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchPendingUsers(); }, [fetchPendingUsers]);
+
+  const updateUserSelection = (userId: string, field: "selectedRole" | "selectedGroup", value: string) => {
+    setPendingUsers(prev => prev.map(u => u.user_id === userId ? { ...u, [field]: value } : u));
+  };
 
   const copyOtp = (userId: string, otp: string) => {
     navigator.clipboard.writeText(otp);
@@ -68,8 +83,25 @@ const OtpSection = () => {
     toast({ title: "কপি হয়েছে", description: `OTP: ${otp}` });
   };
 
-  const regenerateOtp = async (userId: string) => {
-    const { data, error } = await supabase.rpc("generate_otp", { _user_id: userId });
+  const regenerateOtp = async (user: PendingUser) => {
+    // Assign role and group before generating OTP
+    if (user.selectedGroup) {
+      await supabase.from("profiles").update({ business_id: user.selectedGroup }).eq("user_id", user.user_id);
+    }
+
+    // Check if role already exists, if not insert
+    const roleToAssign = user.selectedRole as "manager" | "member";
+    const { data: existingRoles } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", user.user_id)
+      .eq("role", roleToAssign);
+
+    if (!existingRoles?.length) {
+      await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign });
+    }
+
+    const { data, error } = await supabase.rpc("generate_otp", { _user_id: user.user_id });
     if (error) {
       toast({ title: "ত্রুটি", description: "OTP তৈরি করতে সমস্যা", variant: "destructive" });
       return;
@@ -132,6 +164,36 @@ const OtpSection = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">📱 {user.mobile_number}</p>
+
+                  {/* Role Selection */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">রোল</label>
+                      <Select value={user.selectedRole} onValueChange={(v) => updateUserSelection(user.user_id, "selectedRole", v)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="রোল নির্বাচন" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manager">ম্যানেজার</SelectItem>
+                          <SelectItem value="member">ইউসার</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">গ্রুপ</label>
+                      <Select value={user.selectedGroup} onValueChange={(v) => updateUserSelection(user.user_id, "selectedGroup", v)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="গ্রুপ নির্বাচন" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {businesses.map(b => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
                   {user.otp_code ? (
                     <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
                       <span className="font-mono text-2xl font-bold tracking-[0.3em] text-primary">
@@ -141,14 +203,21 @@ const OtpSection = () => {
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyOtp(user.user_id, user.otp_code!)}>
                           {copiedId === user.user_id ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => regenerateOtp(user.user_id)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => regenerateOtp(user)}>
                           <RefreshCw className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <Button variant="outline" size="sm" className="w-full" onClick={() => regenerateOtp(user.user_id)}>
-                      <RefreshCw className="mr-2 h-4 w-4" /> OTP তৈরি করুন
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={!user.selectedGroup}
+                      onClick={() => regenerateOtp(user)}
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      {!user.selectedGroup ? "আগে গ্রুপ নির্বাচন করুন" : "OTP তৈরি করুন"}
                     </Button>
                   )}
                 </CardContent>
