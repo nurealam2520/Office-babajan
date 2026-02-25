@@ -18,6 +18,10 @@ import UserManagementSection from "@/components/admin/UserManagementSection";
 import ReportSection from "@/components/admin/ReportSection";
 import LocationSection from "@/components/admin/LocationSection";
 import CollectionReportSection from "@/components/admin/CollectionReportSection";
+import AttendanceSection from "@/components/office/AttendanceSection";
+import TaskCalendarSection from "@/components/office/TaskCalendarSection";
+import TaskDeadlineSection from "@/components/office/TaskDeadlineSection";
+import TaskStatusSection from "@/components/office/TaskStatusSection";
 import { useBusiness } from "@/contexts/BusinessContext";
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 
@@ -329,32 +333,16 @@ const SuperAdminDashboard = () => {
                   <ReportSection userId={session.user.id} />
                 )}
                 {activeView === "office-attendance" && (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                    <Users className="h-16 w-16 mb-4 opacity-30" />
-                    <p className="text-lg font-medium">অ্যাটেন্ডেন্স</p>
-                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
-                  </div>
+                  <AttendanceSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
                 )}
                 {activeView === "office-calendar" && (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                    <CalendarDays className="h-16 w-16 mb-4 opacity-30" />
-                    <p className="text-lg font-medium">টাস্ক ক্যালেন্ডার</p>
-                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
-                  </div>
+                  <TaskCalendarSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
                 )}
                 {activeView === "office-deadline" && (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                    <Clock className="h-16 w-16 mb-4 opacity-30" />
-                    <p className="text-lg font-medium">ডেডলাইন</p>
-                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
-                  </div>
+                  <TaskDeadlineSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
                 )}
                 {activeView === "office-status" && (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                    <FileText className="h-16 w-16 mb-4 opacity-30" />
-                    <p className="text-lg font-medium">টাস্ক স্ট্যাটাস</p>
-                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
-                  </div>
+                  <TaskStatusSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
                 )}
               </>
             )}
