@@ -16,10 +16,12 @@ import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { currentBusiness, getLoginPath, getAppName, businessSlug } = useBusiness();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -32,7 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate("/login"); return; }
+      if (!session) { navigate(getLoginPath()); return; }
       setUserId(session.user.id);
 
       const { data: roles } = await supabase
@@ -104,7 +106,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/login");
+    navigate(getLoginPath());
   };
 
   if (!userId) return null;
@@ -127,7 +129,7 @@ const Dashboard = () => {
             </div>
             <div className="hidden sm:block">
               <p className="text-sm font-bold text-foreground leading-none">
-                {profile?.full_name || t("nav.dashboard")}
+                {profile?.full_name || getAppName()}
               </p>
               {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
             </div>

@@ -65,6 +65,39 @@ export type Database = {
         }
         Relationships: []
       }
+      businesses: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          slug: string
+          theme_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          slug: string
+          theme_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          theme_color?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       collections: {
         Row: {
           amount: number
@@ -250,6 +283,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          business_id: string | null
           country_code: string
           created_at: string
           full_name: string
@@ -261,6 +295,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          business_id?: string | null
           country_code?: string
           created_at?: string
           full_name: string
@@ -272,6 +307,7 @@ export type Database = {
           username: string
         }
         Update: {
+          business_id?: string | null
           country_code?: string
           created_at?: string
           full_name?: string
@@ -282,7 +318,15 @@ export type Database = {
           user_id?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       task_reports: {
         Row: {
@@ -508,6 +552,7 @@ export type Database = {
     }
     Functions: {
       generate_otp: { Args: { _user_id: string }; Returns: string }
+      get_user_business_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
