@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { Eye, EyeOff, UserPlus, X } from "lucide-react";
+import shahzadaLogo from "@/assets/shahzada-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -88,9 +88,12 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8 relative">
+      <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => navigate("/")}>
+        <X className="h-5 w-5" />
+      </Button>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={logo} alt="মাইজমেসেজ" className="h-16 w-16 drop-shadow-lg" />
+        <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg border-2 border-primary/20" />
         <h1 className="text-2xl font-bold text-primary">রেজিস্ট্রেশন</h1>
         <p className="text-sm text-muted-foreground">নতুন অ্যাকাউন্ট তৈরি করুন</p>
       </div>

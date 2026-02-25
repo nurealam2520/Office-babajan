@@ -174,6 +174,27 @@ const SuperAdminDashboard = () => {
             <UserManagementSection userId={session.user.id} role={role} />
           </TabsContent>
           <TabsContent value="reports">
+            {/* Business Switcher Bar */}
+            <div className="mb-4 flex gap-2">
+              <Button
+                variant={!selectedAdminBusiness ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedAdminBusiness(null)}
+              >
+                সব
+              </Button>
+              {allBusinesses.map(b => (
+                <Button
+                  key={b.id}
+                  variant={selectedAdminBusiness?.id === b.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedAdminBusiness(b)}
+                  style={selectedAdminBusiness?.id === b.id ? { backgroundColor: b.theme_color || undefined } : { borderColor: b.theme_color || undefined, color: b.theme_color || undefined }}
+                >
+                  {b.name}
+                </Button>
+              ))}
+            </div>
             <ReportSection userId={session.user.id} />
           </TabsContent>
           <TabsContent value="collections">
