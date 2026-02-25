@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   userId: string;
+  businessId?: string | null;
 }
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -21,7 +22,7 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   resubmit: { label: "পুনরায় জমা", variant: "destructive" },
 };
 
-const MyTasks = ({ userId }: Props) => {
+const MyTasks = ({ userId, businessId }: Props) => {
   const { toast } = useToast();
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,14 +33,20 @@ const MyTasks = ({ userId }: Props) => {
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from("tasks")
       .select("*")
       .eq("assigned_to", userId)
       .order("created_at", { ascending: false });
+    
+    if (businessId) {
+      query = query.eq("business_id", businessId);
+    }
+    
+    const { data } = await query;
     setTasks(data || []);
     setLoading(false);
-  }, [userId]);
+  }, [userId, businessId]);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
@@ -70,7 +77,6 @@ const MyTasks = ({ userId }: Props) => {
     setSubmitting(true);
 
     try {
-      // Upload images
       const imageUrls: string[] = [];
       for (const file of reportImages) {
         const path = `${userId}/${reportOpen.task.id}_${Date.now()}_${file.name}`;
@@ -81,7 +87,6 @@ const MyTasks = ({ userId }: Props) => {
         }
       }
 
-      // Accept task if pending
       if (reportOpen.task.status === "pending") {
         await supabase.from("tasks").update({ status: "in_progress" }).eq("id", reportOpen.task.id);
       }
@@ -218,7 +223,6 @@ const MyTasks = ({ userId }: Props) => {
               rows={5}
             />
 
-            {/* Image Upload */}
             <div className="space-y-2">
               <p className="text-sm font-medium">ছবি সংযুক্ত করুন (সর্বোচ্চ ৫টি)</p>
               <Input

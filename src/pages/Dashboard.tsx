@@ -262,13 +262,13 @@ const Dashboard = () => {
           </div>
 
           <TabsContent value="tasks">
-            <MyTasks userId={userId} />
+            <MyTasks userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="messages">
-            <MemberMessages userId={userId} />
+            <MemberMessages userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="collection">
-            <CollectionSection userId={userId} />
+            <CollectionSection userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="team">
             <TeamSection userId={userId} />

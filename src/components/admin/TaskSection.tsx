@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Props {
   userId: string;
   role: "super_admin" | "admin" | "manager";
+  businessId?: string | null;
 }
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -25,7 +26,7 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   resubmit: { label: "পুনরায় জমা", variant: "destructive" },
 };
 
-const TaskSection = ({ userId, role }: Props) => {
+const TaskSection = ({ userId, role, businessId }: Props) => {
   const { toast } = useToast();
   const [tasks, setTasks] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -106,6 +107,7 @@ const TaskSection = ({ userId, role }: Props) => {
       title: newTask.title,
       description: newTask.description || null,
       due_date: newTask.due_date || null,
+      business_id: businessId || null,
     }));
 
     const { data: insertedTasks, error } = await supabase.from("tasks").insert(inserts).select("id, assigned_to");

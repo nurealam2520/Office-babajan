@@ -168,7 +168,7 @@ const SuperAdminDashboard = () => {
             <MessageSection userId={session.user.id} role={role} />
           </TabsContent>
           <TabsContent value="tasks">
-            <TaskSection userId={session.user.id} role={role} />
+            <TaskSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="users">
             <UserManagementSection userId={session.user.id} role={role} />
