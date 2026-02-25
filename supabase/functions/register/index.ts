@@ -127,14 +127,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Assign default role as member
-    await supabaseAdmin.from("user_roles").insert({
-      user_id: userId,
-      role: "member",
-    });
-
-    // Generate OTP
-    const { data: otpCode } = await supabaseAdmin.rpc("generate_otp", { _user_id: userId });
+    // Note: Role and OTP will be assigned by admin later via OTP management
 
     return new Response(
       JSON.stringify({
