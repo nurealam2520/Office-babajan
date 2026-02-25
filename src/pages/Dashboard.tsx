@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight,
+  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight, CalendarCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import MemberMessages from "@/components/member/MemberMessages";
 import CollectionSection from "@/components/member/CollectionSection";
 import TeamSection from "@/components/member/TeamSection";
 import NotificationCenter from "@/components/member/NotificationCenter";
+import MemberAttendance from "@/components/member/MemberAttendance";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -108,6 +109,7 @@ const Dashboard = () => {
 
   const tabs = [
     { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
+    { id: "attendance", label: "অ্যাটেন্ডেন্স", icon: CalendarCheck },
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
     { id: "collection", label: "কালেকশন", icon: Wallet },
     { id: "team", label: "টিম", icon: Users },
@@ -248,6 +250,9 @@ const Dashboard = () => {
 
           <TabsContent value="tasks">
             <MyTasks userId={userId} businessId={activeBusiness?.id || null} />
+          </TabsContent>
+          <TabsContent value="attendance">
+            <MemberAttendance userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="messages">
             <MemberMessages userId={userId} businessId={activeBusiness?.id || null} />
