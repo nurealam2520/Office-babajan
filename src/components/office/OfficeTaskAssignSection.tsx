@@ -53,11 +53,13 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: t }, { data: p }, { data: r }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: r }, { data: ub }] = await Promise.all([
       supabase.from("tasks").select("*").eq("business_id", businessId || "").order("created_at", { ascending: false }),
       supabase.from("profiles").select("user_id, full_name, username"),
       supabase.from("user_roles").select("user_id, role"),
+      businessId ? supabase.from("user_businesses").select("user_id").eq("business_id", businessId) : Promise.resolve({ data: [] }),
     ]);
+    const businessUserIds = new Set((ub || []).map((x: any) => x.user_id));
 
     const roleMap: Record<string, string[]> = {};
     (r || []).forEach((ro: any) => {
@@ -73,7 +75,9 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
     }
 
     setTasks(filteredTasks);
-    setProfiles(p || []);
+    // Only keep profiles of users in this business group
+    const groupProfiles = businessId ? (p || []).filter((pr: any) => businessUserIds.has(pr.user_id)) : (p || []);
+    setProfiles(groupProfiles);
     setLoading(false);
   }, [userId, role, businessId]);
 
@@ -84,7 +88,7 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
     return p ? p.full_name : "—";
   };
 
-  // Get office members (users assigned to this business)
+  // Get office members (already filtered by business group)
   const officeMembers = profiles.filter(p => {
     const roles = userRoles[p.user_id] || [];
     return !roles.includes("super_admin") && !roles.includes("admin");

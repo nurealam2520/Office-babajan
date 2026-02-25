@@ -48,11 +48,13 @@ const TaskSection = ({ userId, role, businessId }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: t }, { data: p }, { data: r }] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: r }, { data: ub }] = await Promise.all([
       supabase.from("tasks").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("user_id, full_name, username"),
       supabase.from("user_roles").select("user_id, role"),
+      businessId ? supabase.from("user_businesses").select("user_id").eq("business_id", businessId) : Promise.resolve({ data: [] }),
     ]);
+    const businessUserIds = new Set((ub || []).map((x: any) => x.user_id));
 
     const roleMap: Record<string, string[]> = {};
     (r || []).forEach((role: any) => {
@@ -74,7 +76,9 @@ const TaskSection = ({ userId, role, businessId }: Props) => {
     }
 
     setTasks(filteredTasks);
-    setProfiles(p || []);
+    // Only show users belonging to this business group
+    const groupProfiles = businessId ? (p || []).filter((pr: any) => businessUserIds.has(pr.user_id)) : (p || []);
+    setProfiles(groupProfiles);
     setLoading(false);
   }, [userId, role]);
 
