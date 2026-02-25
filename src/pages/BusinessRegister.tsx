@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { countries } from "@/lib/countries";
 import { useBusiness } from "@/contexts/BusinessContext";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const registerSchema = z.object({
   full_name: z.string().trim().min(2, "নাম কমপক্ষে ২ অক্ষরের হতে হবে").max(100),
@@ -29,7 +28,6 @@ type RegisterForm = z.infer<typeof registerSchema>;
 const BusinessRegister = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
   const { currentBusiness, getLoginPath, getAppName, businessSlug } = useBusiness();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,14 +45,14 @@ const BusinessRegister = () => {
       });
 
       if (error || !result?.success) {
-        toast({ title: t("error"), description: result?.error || "রেজিস্ট্রেশনে সমস্যা হয়েছে", variant: "destructive" });
+        toast({ title: "ত্রুটি", description: result?.error || "রেজিস্ট্রেশনে সমস্যা হয়েছে", variant: "destructive" });
         return;
       }
 
-      toast({ title: t("success"), description: result.message });
+      toast({ title: "সফল!", description: result.message });
       navigate(`/${businessSlug}/verify-otp`, { state: { username: data.username } });
     } catch {
-      toast({ title: t("error"), description: t("login.server_error"), variant: "destructive" });
+      toast({ title: "ত্রুটি", description: "সার্ভারে সমস্যা", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -136,7 +134,7 @@ const BusinessRegister = () => {
             </div>
             <Button type="submit" className="w-full font-semibold" size="lg" disabled={loading} style={{ backgroundColor: themeColor }}>
               <UserPlus className="h-4 w-4" />
-              {loading ? t("wait") : "রেজিস্ট্রেশন করুন"}
+              {loading ? "অপেক্ষা করুন..." : "রেজিস্ট্রেশন করুন"}
             </Button>
           </form>
         </Form>

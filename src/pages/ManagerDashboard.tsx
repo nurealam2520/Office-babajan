@@ -15,13 +15,10 @@ import CollectionReportSection from "@/components/admin/CollectionReportSection"
 import NotificationBell from "@/components/NotificationBell";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
-import LanguageToggle from "@/components/LanguageToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
@@ -41,7 +38,7 @@ const ManagerDashboard = () => {
 
       const isManager = roles?.some(r => r.role === "manager");
       if (!isManager) {
-        toast({ title: t("permission_denied"), variant: "destructive" });
+        toast({ title: "অনুমতি নেই", variant: "destructive" });
         navigate("/dashboard");
         return;
       }
@@ -61,11 +58,11 @@ const ManagerDashboard = () => {
   if (!verified || !session) return null;
 
   const tabs = [
-    { id: "messages", label: t("nav.messages"), icon: MessageSquare },
-    { id: "tasks", label: t("nav.tasks"), icon: ClipboardList },
-    { id: "users", label: t("nav.users"), icon: Users },
-    { id: "reports", label: t("nav.reports"), icon: FileText },
-    { id: "collections", label: t("nav.collection"), icon: Wallet },
+    { id: "messages", label: "মেসেজ", icon: MessageSquare },
+    { id: "tasks", label: "টাস্ক", icon: ClipboardList },
+    { id: "users", label: "ইউজার", icon: Users },
+    { id: "reports", label: "রিপোর্ট", icon: FileText },
+    { id: "collections", label: "কালেকশন", icon: Wallet },
   ];
 
   return (
@@ -75,15 +72,14 @@ const ManagerDashboard = () => {
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" />
             <span className="text-lg font-bold text-foreground">
-              {profileName || t("role.manager")}
+              {profileName || "ম্যানেজার প্যানেল"}
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <LanguageToggle />
             <ThemeToggle />
             <NotificationBell userId={session.user.id} />
             {activeTab !== "messages" && (
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab("messages")} title={t("nav.return_main")}>
+              <Button variant="ghost" size="icon" onClick={() => setActiveTab("messages")} title="মূল ট্যাবে ফিরুন">
                 <X className="h-5 w-5" />
               </Button>
             )}
@@ -126,12 +122,12 @@ const ManagerDashboard = () => {
 
           <div className="mb-4 flex items-center gap-2 md:hidden">
             {(() => {
-              const t = tabs.find(t => t.id === activeTab);
-              if (!t) return null;
+              const currentTab = tabs.find(t => t.id === activeTab);
+              if (!currentTab) return null;
               return (
                 <Button variant="secondary" size="sm" className="gap-2 pointer-events-none">
-                  <t.icon className="h-4 w-4" />
-                  {t.label}
+                  <currentTab.icon className="h-4 w-4" />
+                  {currentTab.label}
                 </Button>
               );
             })()}

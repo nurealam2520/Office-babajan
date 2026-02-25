@@ -1,19 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useBusiness } from "@/contexts/BusinessContext";
-import LanguageToggle from "@/components/LanguageToggle";
 
 const BusinessIndex = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const { currentBusiness, getLoginPath, getRegisterPath, getAppName } = useBusiness();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 relative">
-      <div className="absolute top-4 right-4">
-        <LanguageToggle />
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-10 flex flex-col items-center gap-4">
         {currentBusiness?.logo_url ? (
           <img src={currentBusiness.logo_url} alt={getAppName()} className="h-28 w-28 drop-shadow-lg rounded-full object-cover" />
@@ -32,7 +26,7 @@ const BusinessIndex = () => {
           {getAppName()}
         </h1>
         <p className="text-lg text-muted-foreground">
-          {t("app.tagline")}
+          নিরাপদ অভ্যন্তরীণ মেসেজিং প্ল্যাটফর্ম
         </p>
       </div>
 
@@ -43,7 +37,7 @@ const BusinessIndex = () => {
           style={{ backgroundColor: currentBusiness?.theme_color }}
           onClick={() => navigate(getLoginPath())}
         >
-          {t("index.login")}
+          লগইন করুন
         </Button>
         <Button
           size="lg"
@@ -52,7 +46,7 @@ const BusinessIndex = () => {
           style={{ borderColor: currentBusiness?.theme_color, color: currentBusiness?.theme_color }}
           onClick={() => navigate(getRegisterPath())}
         >
-          {t("index.register")}
+          রেজিস্ট্রেশন করুন
         </Button>
       </div>
     </div>
