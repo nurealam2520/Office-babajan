@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ShieldCheck, MessageSquare, ClipboardList, Users, MapPin, FileText, Wallet,
-  LogOut, Menu, X, KeyRound, UserCog
+  LogOut, Menu, X, KeyRound, UserCog, CalendarDays, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import CollectionReportSection from "@/components/admin/CollectionReportSection"
 import { useBusiness } from "@/contexts/BusinessContext";
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "messages" | "tasks" | "reports" | "collections" | "location";
+type ActiveView = "home" | "otp" | "users" | "messages" | "tasks" | "reports" | "collections" | "location" | "office-daily-task" | "office-daily-report" | "office-attendance" | "office-calendar" | "office-deadline" | "office-status";
 type BusinessTab = "dorbar" | "office";
 
 const SuperAdminDashboard = () => {
@@ -147,6 +147,15 @@ const SuperAdminDashboard = () => {
     { id: "reports" as ActiveView, label: "রিপোর্ট", icon: FileText },
     { id: "collections" as ActiveView, label: "কালেকশন", icon: Wallet },
     { id: "location" as ActiveView, label: "লোকেশন", icon: MapPin },
+  ];
+
+  const officeSubTabs = [
+    { id: "office-daily-task" as ActiveView, label: "ডেইলি টাস্ক", icon: ClipboardList },
+    { id: "office-daily-report" as ActiveView, label: "ডেইলি রিপোর্ট", icon: FileText },
+    { id: "office-attendance" as ActiveView, label: "অ্যাটেন্ডেন্স", icon: Users },
+    { id: "office-calendar" as ActiveView, label: "টাস্ক ক্যালেন্ডার", icon: CalendarDays },
+    { id: "office-deadline" as ActiveView, label: "ডেডলাইন", icon: Clock },
+    { id: "office-status" as ActiveView, label: "টাস্ক স্ট্যাটাস", icon: FileText },
   ];
 
   return (
@@ -294,13 +303,60 @@ const SuperAdminDashboard = () => {
               </>
             )}
 
-            {/* Office Content - Empty for now */}
-            {activeBusinessTab === "office" && activeView === "home" && (
-              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                <ShieldCheck className="h-16 w-16 mb-4 opacity-30" />
-                <p className="text-lg font-medium">অফিস অ্যাপ শীঘ্রই আসছে</p>
-                <p className="text-sm">এই সেকশনটি পরবর্তীতে সক্রিয় হবে</p>
-              </div>
+            {/* Office Content */}
+            {activeBusinessTab === "office" && (
+              <>
+                {activeView === "home" && (
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+                    {officeSubTabs.map(tab => (
+                      <Button
+                        key={tab.id}
+                        variant="outline"
+                        className="h-20 flex-col gap-2 text-sm font-medium hover:bg-primary/10 hover:border-primary/30"
+                        onClick={() => setActiveView(tab.id)}
+                      >
+                        <tab.icon className="h-6 w-6 text-primary" />
+                        {tab.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+
+                {activeView === "office-daily-task" && (
+                  <TaskSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
+                )}
+                {activeView === "office-daily-report" && (
+                  <ReportSection userId={session.user.id} />
+                )}
+                {activeView === "office-attendance" && (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <Users className="h-16 w-16 mb-4 opacity-30" />
+                    <p className="text-lg font-medium">অ্যাটেন্ডেন্স</p>
+                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
+                  </div>
+                )}
+                {activeView === "office-calendar" && (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <CalendarDays className="h-16 w-16 mb-4 opacity-30" />
+                    <p className="text-lg font-medium">টাস্ক ক্যালেন্ডার</p>
+                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
+                  </div>
+                )}
+                {activeView === "office-deadline" && (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <Clock className="h-16 w-16 mb-4 opacity-30" />
+                    <p className="text-lg font-medium">ডেডলাইন</p>
+                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
+                  </div>
+                )}
+                {activeView === "office-status" && (
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <FileText className="h-16 w-16 mb-4 opacity-30" />
+                    <p className="text-lg font-medium">টাস্ক স্ট্যাটাস</p>
+                    <p className="text-sm">এই ফিচারটি শীঘ্রই আসছে</p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
