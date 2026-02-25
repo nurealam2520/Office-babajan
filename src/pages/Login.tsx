@@ -12,13 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
-import LanguageToggle from "@/components/LanguageToggle";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [inputType, setInputType] = useState<"empty" | "username" | "mobile">("empty");
@@ -27,8 +24,8 @@ const Login = () => {
   const [notifId, setNotifId] = useState<string | null>(null);
 
   const loginSchema = z.object({
-    login_id: z.string().trim().min(1, t("login.provide_username_or_mobile")),
-    password: z.string().min(1, t("login.provide_password")),
+    login_id: z.string().trim().min(1, "ইউজারনেম বা মোবাইল নম্বর দিন"),
+    password: z.string().min(1, "পাসওয়ার্ড দিন"),
   });
 
   type LoginForm = z.infer<typeof loginSchema>;
@@ -89,25 +86,25 @@ const Login = () => {
     try {
       const email = await resolveEmail(data.login_id);
       if (!email) {
-        toast({ title: t("error"), description: t("login.user_not_found"), variant: "destructive" });
+        toast({ title: "ত্রুটি", description: "ইউজার পাওয়া যায়নি", variant: "destructive" });
         return;
       }
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password: data.password });
       if (authError) {
-        toast({ title: t("error"), description: t("login.wrong_credentials"), variant: "destructive" });
+        toast({ title: "ত্রুটি", description: "ইউজারনেম/মোবাইল বা পাসওয়ার্ড ভুল", variant: "destructive" });
         return;
       }
       const { data: profile } = await supabase.from("profiles").select("is_active, username").eq("user_id", authData.user.id).maybeSingle();
       if (!profile?.is_active) {
         await supabase.auth.signOut();
-        toast({ title: t("login.account_inactive"), description: t("login.activate_account"), variant: "destructive" });
+        toast({ title: "অ্যাকাউন্ট নিষ্ক্রিয়", description: "অ্যাডমিনের কাছ থেকে OTP নিয়ে অ্যাকাউন্ট সক্রিয় করুন।", variant: "destructive" });
         navigate("/verify-otp", { state: { username: profile?.username } });
         return;
       }
       const nId = await checkNotifications(authData.user.id);
       if (nId) { setNotifId(nId); } else { navigate("/dashboard"); }
     } catch {
-      toast({ title: t("error"), description: t("login.server_error"), variant: "destructive" });
+      toast({ title: "ত্রুটি", description: "সার্ভারে সমস্যা", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -118,13 +115,10 @@ const Login = () => {
       <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => navigate("/")}>
         <X className="h-5 w-5" />
       </Button>
-      <div className="absolute top-4 right-4">
-        <LanguageToggle />
-      </div>
       <div className="mb-6 flex flex-col items-center gap-2">
         <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg md:h-20 md:w-20 border-2 border-primary/20" />
         <h1 className="text-2xl font-bold text-primary md:text-3xl">Shahzada's Hub</h1>
-        <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
+        <p className="text-sm text-muted-foreground">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
       </div>
 
       <div className="w-full max-w-sm rounded-xl border bg-card p-5 shadow-md md:max-w-md md:p-8">
@@ -136,20 +130,20 @@ const Login = () => {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>{t("login.username_or_mobile")}</FormLabel>
+                    <FormLabel>ইউজারনেম বা মোবাইল</FormLabel>
                     {inputType !== "empty" && (
                       <Badge variant="secondary" className="gap-1 text-xs font-normal">
                         {inputType === "username" ? (
-                          <><User className="h-3 w-3" /> {t("login.username")}</>
+                          <><User className="h-3 w-3" /> ইউজারনেম</>
                         ) : (
-                          <><Phone className="h-3 w-3" /> {t("login.mobile")}</>
+                          <><Phone className="h-3 w-3" /> মোবাইল</>
                         )}
                       </Badge>
                     )}
                   </div>
                   <FormControl>
                     <Input
-                      placeholder={t("login.username_or_mobile_placeholder")}
+                      placeholder="ইউজারনেম অথবা মোবাইল নম্বর"
                       {...field}
                       onChange={(e) => { field.onChange(e); setInputType(detectInputType(e.target.value)); }}
                     />
@@ -163,10 +157,10 @@ const Login = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("login.password")}</FormLabel>
+                  <FormLabel>পাসওয়ার্ড</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type={showPassword ? "text" : "password"} placeholder={t("login.password_placeholder")} {...field} />
+                      <Input type={showPassword ? "text" : "password"} placeholder="পাসওয়ার্ড দিন" {...field} />
                       <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -178,26 +172,26 @@ const Login = () => {
             />
             <Button type="submit" className="w-full font-semibold" size="lg" disabled={loading}>
               <LogIn className="h-4 w-4" />
-              {loading ? t("wait") : t("login.button")}
+              {loading ? "অপেক্ষা করুন..." : "লগইন করুন"}
             </Button>
           </form>
         </Form>
         <div className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:justify-between">
-          <Link to="/register" className="font-medium text-primary hover:underline">{t("login.register_link")}</Link>
-          <Link to="/verify-otp" className="font-medium text-primary hover:underline">{t("login.otp_link")}</Link>
+          <Link to="/register" className="font-medium text-primary hover:underline">রেজিস্ট্রেশন করুন</Link>
+          <Link to="/verify-otp" className="font-medium text-primary hover:underline">OTP ভেরিফাই</Link>
         </div>
       </div>
 
       <Dialog open={!!notification} onOpenChange={() => {}}>
         <DialogContent className="mx-4 sm:max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle className="text-center text-primary">{t("login.instruction")}</DialogTitle>
-            <DialogDescription className="sr-only">{t("login.admin_instruction")}</DialogDescription>
+            <DialogTitle className="text-center text-primary">📢 নির্দেশনা</DialogTitle>
+            <DialogDescription className="sr-only">অ্যাডমিনের নির্দেশনা</DialogDescription>
           </DialogHeader>
           <div className="py-4 text-center text-foreground whitespace-pre-wrap leading-relaxed">{notification?.message}</div>
           {showOkButton && (
             <div className="flex justify-center">
-              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold">{t("ok")}</Button>
+              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold">ঠিক আছে</Button>
             </div>
           )}
         </DialogContent>

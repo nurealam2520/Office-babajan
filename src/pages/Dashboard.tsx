@@ -14,13 +14,10 @@ import TeamSection from "@/components/member/TeamSection";
 import NotificationCenter from "@/components/member/NotificationCenter";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
-import LanguageToggle from "@/components/LanguageToggle";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useBusiness } from "@/contexts/BusinessContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const { currentBusiness, getLoginPath, getAppName, businessSlug, userBusinesses, activeBusiness, setActiveBusiness, loadUserBusinesses } = useBusiness();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -54,10 +51,8 @@ const Dashboard = () => {
         .maybeSingle();
       setProfile(data);
 
-      // Load user's assigned businesses for switching
       loadUserBusinesses(session.user.id);
 
-      // Get active task count & overdue
       const { data: activeTasks } = await supabase
         .from("tasks")
         .select("id, due_date, status")
@@ -66,14 +61,12 @@ const Dashboard = () => {
       setTaskCount(activeTasks?.length || 0);
       setOverdueCount(activeTasks?.filter(t => t.due_date && new Date(t.due_date).getTime() < Date.now()).length || 0);
 
-      // Unread messages
       const { count: msgCount } = await supabase
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", session.user.id);
       setUnreadMsgCount(msgCount || 0);
 
-      // Today's collection
       const today = new Date().toISOString().split("T")[0];
       const { data: todayCols } = await supabase
         .from("collections")
@@ -85,7 +78,6 @@ const Dashboard = () => {
     checkAuth();
   }, [navigate]);
 
-  // Real-time updates for tasks
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
@@ -115,15 +107,14 @@ const Dashboard = () => {
   if (!userId) return null;
 
   const tabs = [
-    { id: "tasks", label: t("nav.tasks"), icon: ClipboardList, badge: taskCount },
-    { id: "messages", label: t("nav.messages"), icon: MessageSquare },
-    { id: "collection", label: t("nav.collection"), icon: Wallet },
-    { id: "team", label: t("nav.team"), icon: Users },
+    { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
+    { id: "messages", label: "মেসেজ", icon: MessageSquare },
+    { id: "collection", label: "কালেকশন", icon: Wallet },
+    { id: "team", label: "টিম", icon: Users },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
@@ -138,7 +129,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Status Micro-Hero - Desktop */}
           <div className="hidden sm:flex items-center gap-3">
             <button
               onClick={() => setActiveTab("tasks")}
@@ -147,8 +137,8 @@ const Dashboard = () => {
               }`}
             >
               {overdueCount > 0 ? <AlertTriangle className="h-3 w-3" /> : <ClipboardList className="h-3 w-3" />}
-              {taskCount > 0 ? `${taskCount} ${t("stats.tasks")}` : t("stats.no_tasks")}
-              {overdueCount > 0 && <span className="font-bold">({overdueCount} {t("stats.overdue")})</span>}
+              {taskCount > 0 ? `${taskCount} টাস্ক` : "কোন টাস্ক নেই"}
+              {overdueCount > 0 && <span className="font-bold">({overdueCount} ওভারডিউ)</span>}
             </button>
             {unreadMsgCount > 0 && (
               <button
@@ -156,7 +146,7 @@ const Dashboard = () => {
                 className="flex items-center gap-1.5 rounded-full bg-accent/15 text-accent-foreground px-3 py-1 text-xs font-medium"
               >
                 <MessageSquare className="h-3 w-3" />
-                {unreadMsgCount} {t("stats.messages")}
+                {unreadMsgCount} মেসেজ
               </button>
             )}
             {todayCollection > 0 && (
@@ -171,11 +161,10 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            <LanguageToggle />
             <ThemeToggle />
             <NotificationCenter userId={userId} />
             {activeTab !== "tasks" && (
-              <Button variant="ghost" size="icon" onClick={() => setActiveTab("tasks")} title={t("nav.return_main")}>
+              <Button variant="ghost" size="icon" onClick={() => setActiveTab("tasks")} title="মূল ট্যাবে ফিরুন">
                 <X className="h-5 w-5" />
               </Button>
             )}
@@ -189,7 +178,6 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Business Switcher for multi-group users */}
       {userBusinesses.length > 1 && (
         <div className="sticky top-[57px] z-30 border-b bg-card/95 backdrop-blur">
           <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2">
@@ -218,7 +206,6 @@ const Dashboard = () => {
           </div>
         )}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Desktop Tabs */}
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
             {tabs.map(tab => (
               <TabsTrigger key={tab.id} value={tab.id} className="gap-2">
@@ -229,7 +216,6 @@ const Dashboard = () => {
             ))}
           </TabsList>
 
-          {/* Mobile Menu */}
           {mobileMenuOpen && (
             <div className="mb-4 grid grid-cols-2 gap-2 md:hidden">
               {tabs.map(tab => (
@@ -247,15 +233,14 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Mobile current tab */}
           <div className="mb-4 flex items-center gap-2 md:hidden">
             {(() => {
-              const t = tabs.find(t => t.id === activeTab);
-              if (!t) return null;
+              const currentTab = tabs.find(t => t.id === activeTab);
+              if (!currentTab) return null;
               return (
                 <Button variant="secondary" size="sm" className="gap-2 pointer-events-none">
-                  <t.icon className="h-4 w-4" />
-                  {t.label}
+                  <currentTab.icon className="h-4 w-4" />
+                  {currentTab.label}
                 </Button>
               );
             })()}

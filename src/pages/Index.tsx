@@ -1,19 +1,13 @@
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "@/contexts/LanguageContext";
-import LanguageToggle from "@/components/LanguageToggle";
 import { LogIn, UserPlus, ShieldCheck } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 relative">
-      <div className="absolute top-4 right-4">
-        <LanguageToggle />
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-10 flex flex-col items-center gap-4">
         <img
           src={shahzadaLogo}
@@ -31,11 +25,11 @@ const Index = () => {
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Button size="lg" className="w-full text-lg font-semibold shadow-md gap-2" onClick={() => navigate("/login")}>
           <LogIn className="h-5 w-5" />
-          {t("index.login")}
+          লগইন করুন
         </Button>
         <Button size="lg" variant="outline" className="w-full text-lg font-semibold gap-2" onClick={() => navigate("/register")}>
           <UserPlus className="h-5 w-5" />
-          {t("index.register")}
+          রেজিস্ট্রেশন করুন
         </Button>
         <Button size="lg" variant="secondary" className="w-full text-lg font-semibold gap-2" onClick={() => navigate("/verify-otp")}>
           <ShieldCheck className="h-5 w-5" />

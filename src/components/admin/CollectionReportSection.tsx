@@ -7,11 +7,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const CollectionReportSection = () => {
-  const { t, language } = useLanguage();
-  const locale = language === "bn" ? "bn-BD" : "en-US";
+  const locale = "bn-BD";
   const [collections, setCollections] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +30,7 @@ const CollectionReportSection = () => {
 
   const getProfileName = (uid: string) => {
     const p = profiles.find(pr => pr.user_id === uid);
-    return p ? p.full_name : uid?.slice(0, 8) || t("unknown");
+    return p ? p.full_name : uid?.slice(0, 8) || "অজানা";
   };
 
   const today = new Date().toISOString().split("T")[0];
@@ -57,35 +55,35 @@ const CollectionReportSection = () => {
   collections.filter(c => c.collection_date >= threeDaysStr).forEach(c => { userTotals.set(c.user_id, (userTotals.get(c.user_id) || 0) + parseFloat(c.amount)); });
   const top15 = Array.from(userTotals.entries()).sort((a, b) => b[1] - a[1]).slice(0, 15);
 
-  if (loading) return <div className="py-12 text-center text-muted-foreground">{t("loading")}</div>;
+  if (loading) return <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-primary" /> {t("collection_report.title")}
+          <Wallet className="h-5 w-5 text-primary" /> কালেকশন রিপোর্ট
         </h2>
         <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="mr-2 h-4 w-4" /> {t("refresh")}
+          <RefreshCw className="mr-2 h-4 w-4" /> রিফ্রেশ
         </Button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <Card className="bg-primary/10 border-primary/20">
           <CardContent className="py-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("collection_report.grand_total")}</p>
+            <p className="text-xs text-muted-foreground">সর্বমোট</p>
             <p className="text-xl font-bold text-primary">৳{totalAll.toLocaleString(locale)}</p>
           </CardContent>
         </Card>
         <Card className="bg-accent/10 border-accent/20">
           <CardContent className="py-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("collection_report.today")}</p>
+            <p className="text-xs text-muted-foreground">আজকের</p>
             <p className="text-xl font-bold text-accent-foreground">৳{todayTotal.toLocaleString(locale)}</p>
           </CardContent>
         </Card>
         <Card className="bg-secondary/50 border-secondary">
           <CardContent className="py-4 text-center">
-            <p className="text-xs text-muted-foreground">{t("collection_report.this_month")}</p>
+            <p className="text-xs text-muted-foreground">এই মাসের</p>
             <p className="text-xl font-bold text-secondary-foreground">৳{monthTotal.toLocaleString(locale)}</p>
           </CardContent>
         </Card>
@@ -94,10 +92,10 @@ const CollectionReportSection = () => {
       <Tabs value={viewMode} onValueChange={v => setViewMode(v as any)}>
         <TabsList className="w-full">
           <TabsTrigger value="daily" className="flex-1 gap-1.5">
-            <CalendarDays className="h-4 w-4" /> {t("collection_report.daily")}
+            <CalendarDays className="h-4 w-4" /> দৈনিক
           </TabsTrigger>
           <TabsTrigger value="monthly" className="flex-1 gap-1.5">
-            <TrendingUp className="h-4 w-4" /> {t("collection_report.monthly")}
+            <TrendingUp className="h-4 w-4" /> মাসিক
           </TabsTrigger>
         </TabsList>
         <TabsContent value="daily">
@@ -106,13 +104,13 @@ const CollectionReportSection = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("collection_report.date")}</TableHead>
-                    <TableHead className="text-right">{t("collection_report.amount")}</TableHead>
+                    <TableHead>তারিখ</TableHead>
+                    <TableHead className="text-right">পরিমাণ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {dailyBreakdown.length === 0 ? (
-                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">{t("no_data")}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">কোন তথ্য নেই</TableCell></TableRow>
                   ) : dailyBreakdown.map(([date, amt]) => (
                     <TableRow key={date}>
                       <TableCell>{new Date(date).toLocaleDateString(locale)}</TableCell>
@@ -130,13 +128,13 @@ const CollectionReportSection = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("collection_report.month")}</TableHead>
-                    <TableHead className="text-right">{t("collection_report.amount")}</TableHead>
+                    <TableHead>মাস</TableHead>
+                    <TableHead className="text-right">পরিমাণ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {monthlyBreakdown.length === 0 ? (
-                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">{t("no_data")}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">কোন তথ্য নেই</TableCell></TableRow>
                   ) : monthlyBreakdown.map(([month, amt]) => (
                     <TableRow key={month}>
                       <TableCell>{month}</TableCell>
@@ -154,7 +152,7 @@ const CollectionReportSection = () => {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
-            {t("collection_report.top15_title")}
+            গত ৩ দিনে সর্বোচ্চ কালেকশন (টপ ১৫)
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -162,13 +160,13 @@ const CollectionReportSection = () => {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
-                <TableHead>{t("collection_report.name")}</TableHead>
-                <TableHead className="text-right">{t("collection_report.amount")}</TableHead>
+                <TableHead>নাম</TableHead>
+                <TableHead className="text-right">পরিমাণ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {top15.length === 0 ? (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">{t("no_data")}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">কোন তথ্য নেই</TableCell></TableRow>
               ) : top15.map(([uid, amt], i) => (
                 <TableRow key={uid}>
                   <TableCell className="font-medium">{(i + 1).toLocaleString(locale)}</TableCell>
