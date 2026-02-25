@@ -18,6 +18,11 @@ interface BusinessContextType {
   allBusinesses: Business[];
   selectedAdminBusiness: Business | null;
   setSelectedAdminBusiness: (b: Business | null) => void;
+  // Member multi-group switching
+  userBusinesses: Business[];
+  activeBusiness: Business | null;
+  setActiveBusiness: (b: Business) => void;
+  loadUserBusinesses: (userId: string) => void;
   getLoginPath: () => string;
   getRegisterPath: () => string;
   getDashboardPath: () => string;
@@ -32,6 +37,8 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedAdminBusiness, setSelectedAdminBusiness] = useState<Business | null>(null);
+  const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
+  const [activeBusiness, setActiveBusiness] = useState<Business | null>(null);
 
   // Detect business slug from URL
   const pathParts = location.pathname.split("/").filter(Boolean);
@@ -51,6 +58,23 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     fetchBusinesses();
   }, []);
 
+  const loadUserBusinesses = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_businesses")
+      .select("business_id")
+      .eq("user_id", userId);
+    
+    if (data && allBusinesses.length > 0) {
+      const bizIds = data.map(d => d.business_id);
+      const matched = allBusinesses.filter(b => bizIds.includes(b.id));
+      setUserBusinesses(matched);
+      // Set first as active if not already set
+      if (!activeBusiness && matched.length > 0) {
+        setActiveBusiness(matched[0]);
+      }
+    }
+  };
+
   const getLoginPath = () => businessSlug ? `/${businessSlug}/login` : "/login";
   const getRegisterPath = () => businessSlug ? `/${businessSlug}/register` : "/register";
   const getDashboardPath = () => businessSlug ? `/${businessSlug}/dashboard` : "/dashboard";
@@ -68,6 +92,10 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
       allBusinesses,
       selectedAdminBusiness,
       setSelectedAdminBusiness,
+      userBusinesses,
+      activeBusiness,
+      setActiveBusiness,
+      loadUserBusinesses,
       getLoginPath,
       getRegisterPath,
       getDashboardPath,

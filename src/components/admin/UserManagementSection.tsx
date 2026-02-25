@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { Ban, Trash2, ShieldOff, Search, Eye, MessageSquareOff, Clock, ArrowLeft, Info } from "lucide-react";
+import { Ban, Trash2, ShieldOff, Search, Eye, MessageSquareOff, Clock, ArrowLeft, Info, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -86,17 +88,23 @@ const UserManagementSection = ({ userId, role }: Props) => {
   });
   const [userMessages, setUserMessages] = useState<any[]>([]);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [groupDialog, setGroupDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
+  const [userGroupIds, setUserGroupIds] = useState<string[]>([]);
+  const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([]);
+  const [savingGroups, setSavingGroups] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: p }, { data: r }, { data: roles }] = await Promise.all([
+    const [{ data: p }, { data: r }, { data: roles }, { data: biz }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_restrictions").select("*").eq("is_active", true),
       supabase.from("user_roles").select("*"),
+      supabase.from("businesses").select("id, name").eq("is_active", true),
     ]);
     setProfiles(p || []);
     setRestrictions(r || []);
     setUserRoles(roles || []);
+    setBusinesses(biz || []);
     setLoading(false);
   }, []);
 
@@ -158,6 +166,41 @@ const UserManagementSection = ({ userId, role }: Props) => {
     await supabase.from("user_restrictions").update({ is_active: false }).eq("id", restrictionId);
     toast({ title: "সফল", description: "নিষেধাজ্ঞা তুলে নেওয়া হয়েছে" });
     fetchData();
+  };
+
+  const openGroupDialog = async (user: any) => {
+    setGroupDialog({ open: true, user });
+    const { data } = await supabase
+      .from("user_businesses")
+      .select("business_id")
+      .eq("user_id", user.user_id);
+    setUserGroupIds(data?.map(d => d.business_id) || []);
+  };
+
+  const toggleGroup = (bizId: string) => {
+    setUserGroupIds(prev => prev.includes(bizId) ? prev.filter(id => id !== bizId) : [...prev, bizId]);
+  };
+
+  const saveGroups = async () => {
+    if (!groupDialog.user) return;
+    setSavingGroups(true);
+    const uid = groupDialog.user.user_id;
+
+    // Delete all existing
+    await supabase.from("user_businesses").delete().eq("user_id", uid);
+
+    // Insert new
+    if (userGroupIds.length > 0) {
+      await supabase.from("user_businesses").insert(
+        userGroupIds.map(bizId => ({ user_id: uid, business_id: bizId, assigned_by: userId }))
+      );
+      // Update primary business_id on profile
+      await supabase.from("profiles").update({ business_id: userGroupIds[0] }).eq("user_id", uid);
+    }
+
+    setSavingGroups(false);
+    setGroupDialog({ open: false, user: null });
+    toast({ title: "সফল", description: "গ্রুপ আপডেট হয়েছে" });
   };
 
   const viewConversations = async (user: any) => {
@@ -268,10 +311,16 @@ const UserManagementSection = ({ userId, role }: Props) => {
                     </div>
                     <div className="flex gap-1 shrink-0">
                       {(role === "super_admin" || role === "admin") && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="কথোপকথন দেখুন"
-                          onClick={() => viewConversations(user)}>
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="গ্রুপ ম্যানেজ"
+                            onClick={() => openGroupDialog(user)}>
+                            <Building2 className="h-3.5 w-3.5 text-primary" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="কথোপকথন দেখুন"
+                            onClick={() => viewConversations(user)}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
                       )}
                       {/* অ্যাডমিন/সুপার অ্যাডমিনদের উপর কোনো অ্যাকশন নেওয়া যাবে না */}
                       {!isProtectedFromAction(user.user_id) && (
@@ -481,6 +530,44 @@ const UserManagementSection = ({ userId, role }: Props) => {
               ))
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Management Dialog */}
+      <Dialog open={groupDialog.open} onOpenChange={o => setGroupDialog(p => ({ ...p, open: o }))}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>গ্রুপ ম্যানেজমেন্ট</DialogTitle>
+            <DialogDescription>
+              {groupDialog.user?.full_name} (@{groupDialog.user?.username}) — গ্রুপ অ্যাসাইন/পরিবর্তন করুন
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {businesses.map(b => (
+              <div key={b.id} className="flex items-center gap-2">
+                <Checkbox
+                  id={`grp-${b.id}`}
+                  checked={userGroupIds.includes(b.id)}
+                  onCheckedChange={() => toggleGroup(b.id)}
+                />
+                <Label htmlFor={`grp-${b.id}`} className="text-sm cursor-pointer">{b.name}</Label>
+              </div>
+            ))}
+            {userGroupIds.length > 1 && (
+              <p className="text-[11px] text-primary">
+                ✅ {userGroupIds.length}টি গ্রুপে থাকবে — ড্যাশবোর্ডে সুইচ করতে পারবে
+              </p>
+            )}
+            {userGroupIds.length === 0 && (
+              <p className="text-[11px] text-destructive">⚠️ কমপক্ষে একটি গ্রুপ সিলেক্ট করুন</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGroupDialog({ open: false, user: null })}>বাতিল</Button>
+            <Button onClick={saveGroups} disabled={savingGroups || userGroupIds.length === 0}>
+              {savingGroups ? "সেভ হচ্ছে..." : "সেভ করুন"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

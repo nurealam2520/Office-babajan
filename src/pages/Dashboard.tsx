@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2,
+  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { currentBusiness, getLoginPath, getAppName, businessSlug } = useBusiness();
+  const { currentBusiness, getLoginPath, getAppName, businessSlug, userBusinesses, activeBusiness, setActiveBusiness, loadUserBusinesses } = useBusiness();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -53,6 +53,9 @@ const Dashboard = () => {
         .eq("user_id", session.user.id)
         .maybeSingle();
       setProfile(data);
+
+      // Load user's assigned businesses for switching
+      loadUserBusinesses(session.user.id);
 
       // Get active task count & overdue
       const { data: activeTasks } = await supabase
@@ -186,7 +189,34 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Business Switcher for multi-group users */}
+      {userBusinesses.length > 1 && (
+        <div className="sticky top-[57px] z-30 border-b bg-card/95 backdrop-blur">
+          <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2">
+            <ArrowLeftRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground shrink-0">গ্রুপ:</span>
+            {userBusinesses.map(b => (
+              <Button
+                key={b.id}
+                variant={activeBusiness?.id === b.id ? "default" : "outline"}
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setActiveBusiness(b)}
+                style={activeBusiness?.id === b.id ? { backgroundColor: b.theme_color || undefined } : { borderColor: b.theme_color || undefined, color: b.theme_color || undefined }}
+              >
+                {b.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto max-w-5xl px-4 py-4">
+        {activeBusiness && userBusinesses.length > 1 && (
+          <div className="mb-3 rounded-lg border px-3 py-2 text-xs text-muted-foreground" style={{ borderColor: activeBusiness.theme_color || undefined }}>
+            📌 বর্তমান গ্রুপ: <span className="font-semibold text-foreground">{activeBusiness.name}</span> — শুধু এই গ্রুপের কাজ দেখাচ্ছে
+          </div>
+        )}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Desktop Tabs */}
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
