@@ -20,6 +20,8 @@ import UserManagementSection from "@/components/admin/UserManagementSection";
 import ReportSection from "@/components/admin/ReportSection";
 import LocationSection from "@/components/admin/LocationSection";
 import CollectionReportSection from "@/components/admin/CollectionReportSection";
+import { useBusiness } from "@/contexts/BusinessContext";
+import shahzadaLogo from "@/assets/shahzada-logo.png";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +32,8 @@ const SuperAdminDashboard = () => {
   const [profileName, setProfileName] = useState("");
   const [activeTab, setActiveTab] = useState("messages");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const { allBusinesses, selectedAdminBusiness, setSelectedAdminBusiness } = useBusiness();
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -55,6 +59,12 @@ const SuperAdminDashboard = () => {
 
       const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", s.user.id).maybeSingle();
       if (prof) setProfileName(prof.full_name);
+
+      // Show welcome popup for super_admin/admin
+      if (isSuperAdmin || isAdmin) {
+        setShowWelcome(true);
+        setTimeout(() => setShowWelcome(false), 5000);
+      }
     };
     checkAccess();
   }, [navigate, toast]);
@@ -82,7 +92,7 @@ const SuperAdminDashboard = () => {
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-primary" />
+            <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-8 w-8 rounded-full object-cover" />
             <span className="text-lg font-bold text-foreground">
               {profileName || (role === "super_admin" ? t("role.super_admin") : t("role.admin"))}
             </span>
@@ -175,6 +185,23 @@ const SuperAdminDashboard = () => {
         </Tabs>
       </div>
       <PopupNotification userId={session.user.id} />
+
+      {/* Welcome Popup */}
+      {showWelcome && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowWelcome(false)}
+        >
+          <div className="mx-4 max-w-sm rounded-2xl bg-card p-8 text-center shadow-2xl border animate-in fade-in zoom-in-95 duration-300">
+            <img src={shahzadaLogo} alt="" className="mx-auto mb-4 h-20 w-20 rounded-full object-cover shadow-lg border-2 border-primary/30" />
+            <p className="text-lg font-semibold text-foreground leading-relaxed">
+              সম্মানিত শাহজাদা সৈয়দ সহিদউদ্দীন,<br />
+              আপনার কর্মক্ষেত্রে স্বাগতম!
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">স্ক্রিনে ট্যাপ করুন অথবা ৫ সেকেন্ড অপেক্ষা করুন</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

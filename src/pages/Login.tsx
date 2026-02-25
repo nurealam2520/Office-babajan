@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LogIn, User, Phone } from "lucide-react";
-import logo from "@/assets/logo.png";
+import shahzadaLogo from "@/assets/shahzada-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -119,8 +119,8 @@ const Login = () => {
         <LanguageToggle />
       </div>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={logo} alt={t("app.name")} className="h-14 w-14 drop-shadow-lg md:h-20 md:w-20" />
-        <h1 className="text-2xl font-bold text-primary md:text-3xl">The Sahid App</h1>
+        <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg md:h-20 md:w-20 border-2 border-primary/20" />
+        <h1 className="text-2xl font-bold text-primary md:text-3xl">Shahzada's Hub</h1>
         <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
       </div>
 

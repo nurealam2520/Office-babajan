@@ -57,7 +57,7 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
 
   const getAppName = () => {
     if (currentBusiness) return currentBusiness.name;
-    return "The Sahid App";
+    return "Shahzada's Hub";
   };
 
   return (
