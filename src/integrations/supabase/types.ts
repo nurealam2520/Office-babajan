@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          business_id: string | null
+          check_in: string
+          check_out: string | null
+          created_at: string
+          id: string
+          note: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          check_in?: string
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          check_in?: string
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocked_numbers: {
         Row: {
           blocked_by: string
