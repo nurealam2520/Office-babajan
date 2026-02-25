@@ -48,8 +48,10 @@ const TaskSection = ({ userId, role, businessId }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const taskQuery = supabase.from("tasks").select("*").order("created_at", { ascending: false });
+    if (businessId) taskQuery.eq("business_id", businessId);
     const [{ data: t }, { data: p }, { data: r }, { data: ub }] = await Promise.all([
-      supabase.from("tasks").select("*").order("created_at", { ascending: false }),
+      taskQuery,
       supabase.from("profiles").select("user_id, full_name, username"),
       supabase.from("user_roles").select("user_id, role"),
       businessId ? supabase.from("user_businesses").select("user_id").eq("business_id", businessId) : Promise.resolve({ data: [] }),
@@ -80,7 +82,7 @@ const TaskSection = ({ userId, role, businessId }: Props) => {
     const groupProfiles = businessId ? (p || []).filter((pr: any) => businessUserIds.has(pr.user_id)) : (p || []);
     setProfiles(groupProfiles);
     setLoading(false);
-  }, [userId, role]);
+  }, [userId, role, businessId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
