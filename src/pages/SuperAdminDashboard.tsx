@@ -87,6 +87,14 @@ const SuperAdminDashboard = () => {
     checkAccess();
   }, [navigate, toast]);
 
+  // Set default business on mount when allBusinesses loads
+  useEffect(() => {
+    if (allBusinesses.length > 0 && !selectedAdminBusiness) {
+      const defaultBiz = allBusinesses.find(b => b.slug === activeBusinessTab);
+      if (defaultBiz) setSelectedAdminBusiness(defaultBiz);
+    }
+  }, [allBusinesses, selectedAdminBusiness, activeBusinessTab, setSelectedAdminBusiness]);
+
   const fetchStats = async () => {
     // Pending OTP users
     const { count: otpCount } = await supabase
