@@ -22,6 +22,7 @@ import AttendanceSection from "@/components/office/AttendanceSection";
 import TaskCalendarSection from "@/components/office/TaskCalendarSection";
 import TaskDeadlineSection from "@/components/office/TaskDeadlineSection";
 import TaskStatusSection from "@/components/office/TaskStatusSection";
+import OfficeTaskAssignSection from "@/components/office/OfficeTaskAssignSection";
 import { useBusiness } from "@/contexts/BusinessContext";
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 
@@ -327,7 +328,7 @@ const SuperAdminDashboard = () => {
                 )}
 
                 {activeView === "office-daily-task" && (
-                  <TaskSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
+                  <OfficeTaskAssignSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
                 )}
                 {activeView === "office-daily-report" && (
                   <ReportSection userId={session.user.id} />
