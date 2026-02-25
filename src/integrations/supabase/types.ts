@@ -465,6 +465,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_businesses: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          business_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          business_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          business_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_businesses_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_locations: {
         Row: {
           id: string
