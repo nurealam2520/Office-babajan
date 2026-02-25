@@ -14,9 +14,9 @@ const Index = () => {
         <LanguageToggle />
       </div>
       <div className="mb-10 flex flex-col items-center gap-4">
-        <img src={logo} alt={t("app.name")} className="h-28 w-28 drop-shadow-lg" />
+        <img src={logo} alt="The Sahid App" className="h-28 w-28 drop-shadow-lg" />
         <h1 className="text-4xl font-extrabold tracking-tight text-primary">
-          {t("app.name")}
+          The Sahid App
         </h1>
         <p className="text-lg text-muted-foreground">
           {t("app.tagline")}

@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { full_name, username, password, mobile_number, country_code } = await req.json();
+    const { full_name, username, password, mobile_number, country_code, business_slug } = await req.json();
 
     // Validation
     if (!full_name || !username || !password || !mobile_number || !country_code) {
@@ -95,6 +95,18 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id;
 
+    // Resolve business_id from slug if provided
+    let businessId: string | null = null;
+    if (business_slug) {
+      const { data: biz } = await supabaseAdmin
+        .from("businesses")
+        .select("id")
+        .eq("slug", business_slug)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (biz) businessId = biz.id;
+    }
+
     // Create profile
     const { error: profileError } = await supabaseAdmin.from("profiles").insert({
       user_id: userId,
@@ -103,6 +115,7 @@ Deno.serve(async (req) => {
       mobile_number: fullMobile,
       country_code,
       is_active: false,
+      ...(businessId ? { business_id: businessId } : {}),
     });
 
     if (profileError) {

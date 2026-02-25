@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LogIn, User, Phone } from "lucide-react";
-import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,12 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 import LanguageToggle from "@/components/LanguageToggle";
 
-const Login = () => {
+const BusinessLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { currentBusiness, getRegisterPath, getDashboardPath, getAppName, businessSlug } = useBusiness();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [inputType, setInputType] = useState<"empty" | "username" | "mobile">("empty");
@@ -68,7 +69,7 @@ const Login = () => {
       await supabase.from("login_notifications").update({ is_read: true }).eq("id", notifId);
     }
     setNotification(null);
-    navigate("/dashboard");
+    navigate(getDashboardPath());
   };
 
   const resolveEmail = async (loginId: string): Promise<string | null> => {
@@ -97,15 +98,31 @@ const Login = () => {
         toast({ title: t("error"), description: t("login.wrong_credentials"), variant: "destructive" });
         return;
       }
-      const { data: profile } = await supabase.from("profiles").select("is_active, username").eq("user_id", authData.user.id).maybeSingle();
-      if (!profile?.is_active) {
-        await supabase.auth.signOut();
-        toast({ title: t("login.account_inactive"), description: t("login.activate_account"), variant: "destructive" });
-        navigate("/verify-otp", { state: { username: profile?.username } });
-        return;
+
+      // Check if user belongs to this business
+      if (currentBusiness) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_active, username, business_id")
+          .eq("user_id", authData.user.id)
+          .maybeSingle();
+
+        if (profile?.business_id !== currentBusiness.id) {
+          await supabase.auth.signOut();
+          toast({ title: t("error"), description: "আপনি এই গ্রুপের সদস্য নন", variant: "destructive" });
+          return;
+        }
+
+        if (!profile?.is_active) {
+          await supabase.auth.signOut();
+          toast({ title: t("login.account_inactive"), description: t("login.activate_account"), variant: "destructive" });
+          navigate(`/${businessSlug}/verify-otp`, { state: { username: profile?.username } });
+          return;
+        }
       }
+
       const nId = await checkNotifications(authData.user.id);
-      if (nId) { setNotifId(nId); } else { navigate("/dashboard"); }
+      if (nId) { setNotifId(nId); } else { navigate(getDashboardPath()); }
     } catch {
       toast({ title: t("error"), description: t("login.server_error"), variant: "destructive" });
     } finally {
@@ -113,14 +130,27 @@ const Login = () => {
     }
   };
 
+  const themeColor = currentBusiness?.theme_color;
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 relative">
       <div className="absolute top-4 right-4">
         <LanguageToggle />
       </div>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={logo} alt={t("app.name")} className="h-14 w-14 drop-shadow-lg md:h-20 md:w-20" />
-        <h1 className="text-2xl font-bold text-primary md:text-3xl">The Sahid App</h1>
+        {currentBusiness?.logo_url ? (
+          <img src={currentBusiness.logo_url} alt={getAppName()} className="h-14 w-14 drop-shadow-lg md:h-20 md:w-20 rounded-full object-cover" />
+        ) : (
+          <div
+            className="h-14 w-14 md:h-20 md:w-20 rounded-full flex items-center justify-center text-2xl md:text-3xl font-bold text-white drop-shadow-lg"
+            style={{ backgroundColor: themeColor || "hsl(var(--primary))" }}
+          >
+            {getAppName().charAt(0)}
+          </div>
+        )}
+        <h1 className="text-2xl font-bold md:text-3xl" style={{ color: themeColor }}>
+          {getAppName()}
+        </h1>
         <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
       </div>
 
@@ -173,28 +203,38 @@ const Login = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full font-semibold" size="lg" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full font-semibold"
+              size="lg"
+              disabled={loading}
+              style={{ backgroundColor: themeColor }}
+            >
               <LogIn className="h-4 w-4" />
               {loading ? t("wait") : t("login.button")}
             </Button>
           </form>
         </Form>
         <div className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:justify-between">
-          <Link to="/register" className="font-medium text-primary hover:underline">{t("login.register_link")}</Link>
-          <Link to="/verify-otp" className="font-medium text-primary hover:underline">{t("login.otp_link")}</Link>
+          <Link to={getRegisterPath()} className="font-medium hover:underline" style={{ color: themeColor }}>
+            {t("login.register_link")}
+          </Link>
+          <Link to={`/${businessSlug}/verify-otp`} className="font-medium hover:underline" style={{ color: themeColor }}>
+            {t("login.otp_link")}
+          </Link>
         </div>
       </div>
 
       <Dialog open={!!notification} onOpenChange={() => {}}>
         <DialogContent className="mx-4 sm:max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle className="text-center text-primary">{t("login.instruction")}</DialogTitle>
+            <DialogTitle className="text-center" style={{ color: themeColor }}>{t("login.instruction")}</DialogTitle>
             <DialogDescription className="sr-only">{t("login.admin_instruction")}</DialogDescription>
           </DialogHeader>
           <div className="py-4 text-center text-foreground whitespace-pre-wrap leading-relaxed">{notification?.message}</div>
           {showOkButton && (
             <div className="flex justify-center">
-              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold">{t("ok")}</Button>
+              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold" style={{ backgroundColor: themeColor }}>{t("ok")}</Button>
             </div>
           )}
         </DialogContent>
@@ -203,4 +243,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default BusinessLogin;
