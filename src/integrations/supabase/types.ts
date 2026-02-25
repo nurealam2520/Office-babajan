@@ -101,6 +101,7 @@ export type Database = {
       collections: {
         Row: {
           amount: number
+          business_id: string | null
           collection_date: string
           created_at: string
           description: string | null
@@ -110,6 +111,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          business_id?: string | null
           collection_date?: string
           created_at?: string
           description?: string | null
@@ -119,6 +121,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          business_id?: string | null
           collection_date?: string
           created_at?: string
           description?: string | null
@@ -126,7 +129,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "collections_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -383,6 +394,7 @@ export type Database = {
           admin_note: string | null
           assigned_by: string
           assigned_to: string
+          business_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -395,6 +407,7 @@ export type Database = {
           admin_note?: string | null
           assigned_by: string
           assigned_to: string
+          business_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -407,6 +420,7 @@ export type Database = {
           admin_note?: string | null
           assigned_by?: string
           assigned_to?: string
+          business_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -415,7 +429,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {

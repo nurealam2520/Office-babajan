@@ -11,9 +11,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   userId: string;
+  businessId?: string | null;
 }
 
-const CollectionSection = ({ userId }: Props) => {
+const CollectionSection = ({ userId, businessId }: Props) => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const [collections, setCollections] = useState<any[]>([]);
@@ -25,14 +26,20 @@ const CollectionSection = ({ userId }: Props) => {
 
   const fetchCollections = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from("collections")
       .select("*")
       .eq("user_id", userId)
       .order("collection_date", { ascending: false });
+    
+    if (businessId) {
+      query = query.eq("business_id", businessId);
+    }
+    
+    const { data } = await query;
     setCollections(data || []);
     setLoading(false);
-  }, [userId]);
+  }, [userId, businessId]);
 
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
@@ -43,6 +50,7 @@ const CollectionSection = ({ userId }: Props) => {
       amount: parseFloat(amount),
       description: description || null,
       collection_date: collectionDate,
+      business_id: businessId || null,
     });
     if (error) {
       toast({ title: t("error"), variant: "destructive" });

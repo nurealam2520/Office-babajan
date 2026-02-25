@@ -10,9 +10,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   userId: string;
+  businessId?: string | null;
 }
 
-const MemberMessages = ({ userId }: Props) => {
+const MemberMessages = ({ userId, businessId }: Props) => {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [admins, setAdmins] = useState<any[]>([]);
