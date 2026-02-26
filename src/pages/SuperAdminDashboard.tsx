@@ -163,7 +163,7 @@ const SuperAdminDashboard = () => {
   ];
 
   const officeSubTabs = [
-    { id: "office-daily-task" as ActiveView, label: "এসাইন টাস্ক", icon: ClipboardList },
+    { id: "office-daily-task" as ActiveView, label: "অ্যাসাইন টাস্ক", icon: ClipboardList },
     { id: "office-daily-report" as ActiveView, label: "ডেইলি রিপোর্ট", icon: FileText },
     { id: "office-attendance" as ActiveView, label: "অ্যাটেন্ডেন্স", icon: Users },
     { id: "office-calendar" as ActiveView, label: "টাস্ক ক্যালেন্ডার", icon: CalendarDays },
