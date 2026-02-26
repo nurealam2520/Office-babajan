@@ -16,6 +16,7 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [deadlineFilter, setDeadlineFilter] = useState<"all" | "overdue" | "upcoming">("all");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -62,13 +63,19 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Card className="border-destructive/30">
+        <Card
+          className={`cursor-pointer transition-all ${deadlineFilter === "overdue" ? "ring-2 ring-destructive shadow-md" : "border-destructive/30 hover:shadow-md"}`}
+          onClick={() => setDeadlineFilter(deadlineFilter === "overdue" ? "all" : "overdue")}
+        >
           <CardContent className="py-3 text-center">
             <p className="text-xs text-muted-foreground">সময় শেষ</p>
             <p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all ${deadlineFilter === "upcoming" ? "ring-2 ring-primary shadow-md" : "hover:shadow-md"}`}
+          onClick={() => setDeadlineFilter(deadlineFilter === "upcoming" ? "all" : "upcoming")}
+        >
           <CardContent className="py-3 text-center">
             <p className="text-xs text-muted-foreground">আসন্ন</p>
             <p className="text-2xl font-bold text-primary">{upcomingTasks.length}</p>
@@ -82,7 +89,7 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
         <Card><CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground"><Clock className="h-12 w-12" /><p>কোন ডেডলাইন নেই</p></CardContent></Card>
       ) : (
         <div className="space-y-2">
-          {tasks.map(task => {
+          {(deadlineFilter === "overdue" ? overdueTasks : deadlineFilter === "upcoming" ? upcomingTasks : tasks).map(task => {
             const info = getTimeInfo(task.due_date);
             return (
               <Card

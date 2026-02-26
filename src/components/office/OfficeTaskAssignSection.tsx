@@ -211,7 +211,7 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          এসাইন টাস্ক
+          অ্যাসাইন টাস্ক
         </h2>
         <div className="flex gap-1.5">
           <Button size="sm" onClick={() => setShowCreate(!showCreate)} className="gap-1.5 text-xs">
@@ -223,33 +223,27 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
         </div>
       </div>
 
-      {/* Clickable stats */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      {/* Clickable stats - pill style */}
+      <div className="grid grid-cols-5 gap-1.5">
         {[
-          { label: "মোট", value: stats.total, color: "bg-muted", filterVal: "all" },
-          { label: "অপেক্ষমাণ", value: stats.pending, color: "bg-yellow-100 dark:bg-yellow-900/30", filterVal: "pending" },
-          { label: "চলমান", value: stats.in_progress, color: "bg-blue-100 dark:bg-blue-900/30", filterVal: "in_progress" },
-          { label: "সম্পন্ন", value: stats.completed, color: "bg-green-100 dark:bg-green-900/30", filterVal: "completed" },
-          { label: "ওভারডিউ", value: stats.overdue, color: "bg-red-100 dark:bg-red-900/30", filterVal: "overdue" },
-        ].map(s => (
-          <button
-            key={s.label}
-            className={`rounded-lg px-2.5 py-1.5 text-center min-w-[60px] transition-all ${s.color} ${
-              (s.filterVal === "overdue" ? statusFilter === "all" : statusFilter === s.filterVal) ? "ring-2 ring-primary shadow-sm" : "hover:shadow-md"
-            }`}
-            onClick={() => {
-              if (s.filterVal === "overdue") {
-                // For overdue, we don't have a direct status filter, so use "all" and let the list handle it
-                setStatusFilter("all");
-              } else {
-                setStatusFilter(s.filterVal);
-              }
-            }}
-          >
-            <p className="text-base font-bold">{s.value}</p>
-            <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
-          </button>
-        ))}
+          { label: "মোট", value: stats.total, filterVal: "all", active: "bg-primary text-primary-foreground", inactive: "bg-muted hover:bg-muted/80" },
+          { label: "অপেক্ষমাণ", value: stats.pending, filterVal: "pending", active: "bg-yellow-500 text-white", inactive: "bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50" },
+          { label: "চলমান", value: stats.in_progress, filterVal: "in_progress", active: "bg-blue-500 text-white", inactive: "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50" },
+          { label: "সম্পন্ন", value: stats.completed, filterVal: "completed", active: "bg-green-500 text-white", inactive: "bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50" },
+          { label: "ওভারডিউ", value: stats.overdue, filterVal: "overdue", active: "bg-destructive text-destructive-foreground", inactive: "bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50" },
+        ].map(s => {
+          const isActive = statusFilter === s.filterVal;
+          return (
+            <button
+              key={s.label}
+              className={`rounded-xl py-2 text-center transition-all duration-200 ${isActive ? s.active + " shadow-md scale-[1.02]" : s.inactive}`}
+              onClick={() => setStatusFilter(isActive ? "all" : s.filterVal)}
+            >
+              <p className="text-lg font-bold leading-none">{s.value}</p>
+              <p className={`text-[9px] mt-0.5 leading-tight ${isActive ? "opacity-90" : "text-muted-foreground"}`}>{s.label}</p>
+            </button>
+          );
+        })}
       </div>
 
       {/* Inline Create Form */}
