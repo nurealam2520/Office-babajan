@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { ClipboardList, Clock, AlertTriangle, FileText, Send } from "lucide-react";
+import { ClipboardList, Clock, AlertTriangle, FileText, Send, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,8 @@ const MyTasks = ({ userId, businessId }: Props) => {
   const [reportContent, setReportContent] = useState("");
   const [reportImages, setReportImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "deadline">("date");
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -120,15 +122,61 @@ const MyTasks = ({ userId, businessId }: Props) => {
 
   if (loading) return <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>;
 
-  const activeTasks = tasks.filter(t => t.status !== "completed");
+  const allActive = tasks.filter(t => t.status !== "completed");
+  const activeTasks = statusFilter === "all" ? allActive : allActive.filter(t => {
+    if (statusFilter === "overdue") return t.due_date && new Date(t.due_date).getTime() < Date.now();
+    return t.status === statusFilter;
+  });
+
+  // Sort
+  if (sortBy === "deadline") {
+    activeTasks.sort((a, b) => {
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    });
+  }
+
   const completedTasks = tasks.filter(t => t.status === "completed");
+
+  const filterOptions = [
+    { value: "all", label: "সব" },
+    { value: "pending", label: "অপেক্ষমাণ" },
+    { value: "in_progress", label: "চলমান" },
+    { value: "resubmit", label: "পুনরায়" },
+    { value: "overdue", label: "ওভারডিউ" },
+  ];
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold flex items-center gap-2">
-        <ClipboardList className="h-5 w-5 text-primary" /> আমার টাস্ক
-        <Badge variant="secondary" className="ml-auto">{activeTasks.length} সক্রিয়</Badge>
-      </h2>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <ClipboardList className="h-5 w-5 text-primary" /> আমার টাস্ক
+          <Badge variant="secondary">{allActive.length} সক্রিয়</Badge>
+        </h2>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {filterOptions.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setStatusFilter(opt.value)}
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                statusFilter === opt.value
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+          <button
+            onClick={() => setSortBy(sortBy === "date" ? "deadline" : "date")}
+            className="rounded-full px-2.5 py-1 text-[10px] font-medium bg-muted text-muted-foreground hover:bg-muted/80 flex items-center gap-1"
+          >
+            <Filter className="h-3 w-3" />
+            {sortBy === "deadline" ? "ডেডলাইন" : "তারিখ"}
+          </button>
+        </div>
+      </div>
 
       {activeTasks.length === 0 ? (
         <Card>
