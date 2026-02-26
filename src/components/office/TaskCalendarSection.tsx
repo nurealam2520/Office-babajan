@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
+import TaskDetailDialog from "./TaskDetailDialog";
 
 interface Props {
   userId: string;
@@ -25,6 +26,7 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [loading, setLoading] = useState(true);
   const [statsFilter, setStatsFilter] = useState<"none" | "total" | "overdue" | "completed">("none");
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -85,7 +87,11 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
   const renderTaskCard = (task: any) => {
     const timeInfo = task.due_date ? getTimeInfo(task.due_date) : null;
     return (
-      <Card key={task.id} className={timeInfo?.overdue && task.status !== "completed" ? "border-destructive/40" : ""}>
+      <Card
+        key={task.id}
+        className={`cursor-pointer hover:shadow-md transition-all ${timeInfo?.overdue && task.status !== "completed" ? "border-destructive/40" : ""}`}
+        onClick={() => setSelectedTask(task)}
+      >
         <CardContent className="py-3 space-y-1.5">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">{task.title}</p>
@@ -94,16 +100,13 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">👤 {getProfileName(task.assigned_to)}</p>
-          {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
+          {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
           {task.due_date && (
-            <p className="text-[10px] text-muted-foreground">
-              📅 {new Date(task.due_date).toLocaleDateString("bn-BD", { day: "numeric", month: "short", year: "numeric" })}
-            </p>
-          )}
-          {timeInfo && task.status !== "completed" && (
-            <div className="flex items-center gap-1.5 text-[10px]">
-              {timeInfo.overdue ? <AlertTriangle className="h-3 w-3 text-destructive" /> : <Clock className="h-3 w-3 text-muted-foreground" />}
-              <span className={timeInfo.overdue ? "text-destructive font-medium" : "text-muted-foreground"}>{timeInfo.text}</span>
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+              <span>📅 {new Date(task.due_date).toLocaleDateString("bn-BD", { day: "numeric", month: "short" })}</span>
+              {timeInfo && task.status !== "completed" && (
+                <span className={timeInfo.overdue ? "text-destructive font-medium" : ""}>{timeInfo.text}</span>
+              )}
             </div>
           )}
         </CardContent>
@@ -123,13 +126,13 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
       </div>
 
       {/* Clickable Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         <Card
           className={`cursor-pointer transition-all ${statsFilter === "total" ? "ring-2 ring-primary" : "hover:shadow-md"}`}
           onClick={() => handleStatsClick("total")}
         >
-          <CardContent className="py-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground">মোট টাস্ক</p>
+          <CardContent className="py-2 text-center">
+            <p className="text-[10px] text-muted-foreground">মোট</p>
             <p className="text-xl font-bold text-foreground">{totalWithDue}</p>
           </CardContent>
         </Card>
@@ -137,7 +140,7 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
           className={`cursor-pointer transition-all ${statsFilter === "overdue" ? "ring-2 ring-destructive" : overdue > 0 ? "border-destructive/30 hover:shadow-md" : "hover:shadow-md"}`}
           onClick={() => handleStatsClick("overdue")}
         >
-          <CardContent className="py-2.5 text-center">
+          <CardContent className="py-2 text-center">
             <p className="text-[10px] text-muted-foreground">ওভারডিউ</p>
             <p className={`text-xl font-bold ${overdue > 0 ? "text-destructive" : "text-foreground"}`}>{overdue}</p>
           </CardContent>
@@ -146,34 +149,30 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
           className={`cursor-pointer transition-all ${statsFilter === "completed" ? "ring-2 ring-primary" : "hover:shadow-md"}`}
           onClick={() => handleStatsClick("completed")}
         >
-          <CardContent className="py-2.5 text-center">
+          <CardContent className="py-2 text-center">
             <p className="text-[10px] text-muted-foreground">সম্পন্ন</p>
             <p className="text-xl font-bold text-primary">{completed}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtered task list from stats click */}
+      {/* Filtered task list */}
       {statsFilter !== "none" && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">
               {statsFilter === "total" && `সকল টাস্ক (${filteredTasks.length})`}
-              {statsFilter === "overdue" && `ওভারডিউ টাস্ক (${filteredTasks.length})`}
-              {statsFilter === "completed" && `সম্পন্ন টাস্ক (${filteredTasks.length})`}
+              {statsFilter === "overdue" && `ওভারডিউ (${filteredTasks.length})`}
+              {statsFilter === "completed" && `সম্পন্ন (${filteredTasks.length})`}
             </h3>
             <Button variant="ghost" size="sm" onClick={() => setStatsFilter("none")}>
               <X className="h-4 w-4" />
             </Button>
           </div>
           {filteredTasks.length === 0 ? (
-            <Card>
-              <CardContent className="py-6 text-center text-sm text-muted-foreground">কোন টাস্ক নেই</CardContent>
-            </Card>
+            <Card><CardContent className="py-6 text-center text-sm text-muted-foreground">কোন টাস্ক নেই</CardContent></Card>
           ) : (
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {filteredTasks.map(renderTaskCard)}
-            </div>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">{filteredTasks.map(renderTaskCard)}</div>
           )}
         </div>
       )}
@@ -182,7 +181,7 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
       {statsFilter === "none" && (
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
-            <CardContent className="p-3 flex justify-center">
+            <CardContent className="p-2 sm:p-3 flex justify-center">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -192,23 +191,33 @@ const TaskCalendarSection = ({ userId, businessId }: Props) => {
               />
             </CardContent>
           </Card>
-
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-muted-foreground">
-              {selectedDate ? new Date(selectedDate).toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "তারিখ সিলেক্ট করুন"}
+              {selectedDate ? new Date(selectedDate).toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long" }) : "তারিখ সিলেক্ট করুন"}
               {allOnDate.length > 0 && <span className="ml-1 text-foreground font-semibold">({allOnDate.length})</span>}
             </h3>
             {loading ? (
               <p className="text-sm text-muted-foreground">লোড হচ্ছে...</p>
             ) : allOnDate.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-sm text-muted-foreground">এই তারিখে কোন টাস্ক নেই</CardContent>
-              </Card>
+              <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">এই তারিখে কোন টাস্ক নেই</CardContent></Card>
             ) : (
-              allOnDate.map(renderTaskCard)
+              <div className="space-y-2">{allOnDate.map(renderTaskCard)}</div>
             )}
           </div>
         </div>
+      )}
+
+      {/* Task Detail Dialog */}
+      {selectedTask && (
+        <TaskDetailDialog
+          task={selectedTask}
+          open={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdated={() => { setSelectedTask(null); fetchData(); }}
+          getProfileName={getProfileName}
+          canEdit
+          canDelete
+        />
       )}
     </div>
   );

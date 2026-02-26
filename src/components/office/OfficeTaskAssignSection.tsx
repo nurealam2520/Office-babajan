@@ -207,15 +207,15 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
 
   return (
     <div className="space-y-4">
-      {/* Header with stats strip */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          অফিস টাস্ক অ্যাসাইন
+          এসাইন টাস্ক
         </h2>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => setShowCreate(!showCreate)} className="gap-1.5">
-            <Plus className="h-4 w-4" /> টাস্ক দাও
+        <div className="flex gap-1.5">
+          <Button size="sm" onClick={() => setShowCreate(!showCreate)} className="gap-1.5 text-xs">
+            <Plus className="h-4 w-4" /> নতুন টাস্ক
           </Button>
           <Button size="icon" variant="ghost" onClick={fetchData}>
             <RefreshCw className="h-4 w-4" />
@@ -223,19 +223,32 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
         </div>
       </div>
 
-      {/* Quick stats */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      {/* Clickable stats */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
         {[
-          { label: "মোট", value: stats.total, color: "bg-muted" },
-          { label: "অপেক্ষমাণ", value: stats.pending, color: "bg-yellow-100 dark:bg-yellow-900/30" },
-          { label: "চলমান", value: stats.in_progress, color: "bg-blue-100 dark:bg-blue-900/30" },
-          { label: "সম্পন্ন", value: stats.completed, color: "bg-green-100 dark:bg-green-900/30" },
-          { label: "ওভারডিউ", value: stats.overdue, color: "bg-red-100 dark:bg-red-900/30" },
+          { label: "মোট", value: stats.total, color: "bg-muted", filterVal: "all" },
+          { label: "অপেক্ষমাণ", value: stats.pending, color: "bg-yellow-100 dark:bg-yellow-900/30", filterVal: "pending" },
+          { label: "চলমান", value: stats.in_progress, color: "bg-blue-100 dark:bg-blue-900/30", filterVal: "in_progress" },
+          { label: "সম্পন্ন", value: stats.completed, color: "bg-green-100 dark:bg-green-900/30", filterVal: "completed" },
+          { label: "ওভারডিউ", value: stats.overdue, color: "bg-red-100 dark:bg-red-900/30", filterVal: "overdue" },
         ].map(s => (
-          <div key={s.label} className={`rounded-lg px-3 py-2 text-center min-w-[70px] ${s.color}`}>
-            <p className="text-lg font-bold">{s.value}</p>
-            <p className="text-[10px] text-muted-foreground">{s.label}</p>
-          </div>
+          <button
+            key={s.label}
+            className={`rounded-lg px-2.5 py-1.5 text-center min-w-[60px] transition-all ${s.color} ${
+              (s.filterVal === "overdue" ? statusFilter === "all" : statusFilter === s.filterVal) ? "ring-2 ring-primary shadow-sm" : "hover:shadow-md"
+            }`}
+            onClick={() => {
+              if (s.filterVal === "overdue") {
+                // For overdue, we don't have a direct status filter, so use "all" and let the list handle it
+                setStatusFilter("all");
+              } else {
+                setStatusFilter(s.filterVal);
+              }
+            }}
+          >
+            <p className="text-base font-bold">{s.value}</p>
+            <p className="text-[9px] text-muted-foreground leading-tight">{s.label}</p>
+          </button>
         ))}
       </div>
 
