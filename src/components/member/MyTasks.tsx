@@ -46,7 +46,41 @@ const MyTasks = ({ userId, businessId }: Props) => {
     }
     
     const { data } = await query;
-    setTasks(data || []);
+
+    // Fetch report counts per task to know which are unreported
+    const taskIds = (data || []).map(t => t.id);
+    let reportMap: Record<string, number> = {};
+    if (taskIds.length > 0) {
+      const { data: reports } = await supabase
+        .from("task_reports")
+        .select("task_id")
+        .in("task_id", taskIds)
+        .eq("submitted_by", userId);
+      (reports || []).forEach(r => {
+        reportMap[r.task_id] = (reportMap[r.task_id] || 0) + 1;
+      });
+    }
+
+    // Categorize and sort: today's tasks first, new (pending) second, overdue/unreported in red
+    const today = new Date().toISOString().split("T")[0];
+    const enriched = (data || []).map(t => ({
+      ...t,
+      reportCount: reportMap[t.id] || 0,
+      isToday: t.created_at?.startsWith(today) || (t.due_date && t.due_date.startsWith(today)),
+      isOverdue: t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed",
+      isUnreported: (reportMap[t.id] || 0) === 0 && t.status !== "completed" && t.status !== "pending",
+      isNew: t.status === "pending",
+    }));
+
+    // Sort priority: overdue/unreported first, then today, then new, then rest
+    enriched.sort((a, b) => {
+      const aPri = (a.isOverdue || a.isUnreported) ? 0 : a.isToday ? 1 : a.isNew ? 2 : 3;
+      const bPri = (b.isOverdue || b.isUnreported) ? 0 : b.isToday ? 1 : b.isNew ? 2 : 3;
+      if (aPri !== bPri) return aPri - bPri;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    setTasks(enriched);
     setLoading(false);
   }, [userId, businessId]);
 
@@ -190,7 +224,7 @@ const MyTasks = ({ userId, businessId }: Props) => {
           {activeTasks.map(task => {
             const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
             return (
-              <Card key={task.id} className={timeInfo?.overdue ? "border-destructive/50" : ""}>
+              <Card key={task.id} className={`${(task.isOverdue || task.isUnreported) ? "border-destructive/50 bg-destructive/5" : task.isNew ? "border-primary/30 bg-primary/5" : ""}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-sm">{task.title}</CardTitle>

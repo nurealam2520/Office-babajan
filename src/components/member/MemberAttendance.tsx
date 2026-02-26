@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { CheckCircle, LogOut as LogOutIcon, Clock, MapPin } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { CheckCircle, LogOut as LogOutIcon, Clock, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,21 +10,29 @@ import { supabase } from "@/integrations/supabase/client";
 interface Props {
   userId: string;
   businessId: string | null;
+  autoCheckIn?: boolean;
+  onCheckedIn?: () => void;
 }
 
-const MemberAttendance = ({ userId, businessId }: Props) => {
+const OFFICE_HOURS = 8; // 8 hours standard office time
+
+const MemberAttendance = ({ userId, businessId, autoCheckIn, onCheckedIn }: Props) => {
   const { toast } = useToast();
   const [todayRecord, setTodayRecord] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [weekRecords, setWeekRecords] = useState<any[]>([]);
+  const [elapsed, setElapsed] = useState("");
+  const [isOvertime, setIsOvertime] = useState(false);
+  const [overtimeActive, setOvertimeActive] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoCheckInDone = useRef(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     const today = new Date().toISOString().split("T")[0];
 
-    // Today's record
     const { data: todayData } = await supabase
       .from("attendance")
       .select("*")
@@ -35,21 +43,57 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
 
     setTodayRecord(todayData?.[0] || null);
 
-    // Last 7 days
     const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0];
-    let weekQuery = supabase
+    const { data: week } = await supabase
       .from("attendance")
       .select("*")
       .eq("user_id", userId)
       .gte("created_at", weekAgo)
       .order("check_in", { ascending: false });
 
-    const { data: week } = await weekQuery;
     setWeekRecords(week || []);
     setLoading(false);
   }, [userId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Auto check-in from welcome overlay
+  useEffect(() => {
+    if (autoCheckIn && !autoCheckInDone.current && !loading && !todayRecord) {
+      autoCheckInDone.current = true;
+      handleCheckIn();
+    }
+  }, [autoCheckIn, loading, todayRecord]);
+
+  // Live timer
+  useEffect(() => {
+    if (todayRecord && !todayRecord.check_out) {
+      const update = () => {
+        const diff = Date.now() - new Date(todayRecord.check_in).getTime();
+        const hrs = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        setElapsed(`${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`);
+
+        if (hrs >= OFFICE_HOURS && !overtimeActive) {
+          setIsOvertime(true);
+        }
+      };
+      update();
+      timerRef.current = setInterval(update, 1000);
+      return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    } else {
+      setElapsed("");
+      setIsOvertime(false);
+    }
+  }, [todayRecord, overtimeActive]);
+
+  // Auto-close when office hours done and not overtime
+  useEffect(() => {
+    if (isOvertime && !overtimeActive && todayRecord && !todayRecord.check_out) {
+      handleAutoCheckOut();
+    }
+  }, [isOvertime, overtimeActive]);
 
   const handleCheckIn = async () => {
     setSubmitting(true);
@@ -62,8 +106,9 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
     if (error) {
       toast({ title: "চেক-ইন ব্যর্থ", variant: "destructive", description: error.message });
     } else {
-      toast({ title: "✅ চেক-ইন সফল", description: "আজকের উপস্থিতি রেকর্ড হয়েছে" });
+      toast({ title: "✅ চেক-ইন সফল", description: "অফিস আওয়ার শুরু হয়েছে" });
       setNote("");
+      onCheckedIn?.();
       fetchData();
     }
     setSubmitting(false);
@@ -79,10 +124,39 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
     if (error) {
       toast({ title: "চেক-আউট ব্যর্থ", variant: "destructive" });
     } else {
-      toast({ title: "👋 চেক-আউট সফল", description: "আজকের কাজ শেষ!" });
+      toast({ title: "👋 চেক-আউট সফল", description: overtimeActive ? "ওভারটাইম শেষ!" : "আজকের কাজ শেষ!" });
+      setOvertimeActive(false);
       fetchData();
     }
     setSubmitting(false);
+  };
+
+  const handleAutoCheckOut = async () => {
+    if (!todayRecord) return;
+    const { error } = await supabase
+      .from("attendance")
+      .update({ check_out: new Date().toISOString(), note: (todayRecord.note || "") + " [অটো চেক-আউট]" })
+      .eq("id", todayRecord.id);
+    if (!error) {
+      toast({ title: "⏰ অফিস আওয়ার শেষ!", description: "অটোমেটিক চেক-আউট হয়েছে। ওভারটাইমের জন্য বাটনে ক্লিক করুন।" });
+      fetchData();
+    }
+  };
+
+  const handleStartOvertime = async () => {
+    setOvertimeActive(true);
+    setIsOvertime(false);
+    // Re-open attendance for overtime
+    const { error } = await supabase.from("attendance").insert({
+      user_id: userId,
+      business_id: businessId,
+      status: "present",
+      note: "ওভারটাইম",
+    });
+    if (!error) {
+      toast({ title: "🔥 ওভারটাইম শুরু!", description: "ওভারটাইম কাউন্ট চলছে" });
+      fetchData();
+    }
   };
 
   const formatTime = (ts: string | null) => {
@@ -90,9 +164,8 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
     return new Date(ts).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" });
   };
 
-  const formatDate = (ts: string) => {
-    return new Date(ts).toLocaleDateString("bn-BD", { weekday: "short", day: "numeric", month: "short" });
-  };
+  const formatDate = (ts: string) =>
+    new Date(ts).toLocaleDateString("bn-BD", { weekday: "short", day: "numeric", month: "short" });
 
   const getDuration = (checkIn: string, checkOut: string | null) => {
     if (!checkOut) return "চলমান";
@@ -127,34 +200,27 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
                   rows={2}
                   className="text-sm"
                 />
-                <Button
-                  onClick={handleCheckIn}
-                  disabled={submitting}
-                  className="w-full gap-2"
-                  size="lg"
-                >
+                <Button onClick={handleCheckIn} disabled={submitting} className="w-full gap-2" size="lg">
                   <CheckCircle className="h-5 w-5" />
                   {submitting ? "চেক-ইন হচ্ছে..." : "চেক-ইন করুন"}
                 </Button>
               </>
             ) : !todayRecord.check_out ? (
               <>
+                {/* Live Timer */}
                 <div className="flex items-center justify-center gap-2 text-primary">
-                  <CheckCircle className="h-8 w-8" />
+                  <Timer className="h-6 w-6 animate-pulse" />
                 </div>
-                <p className="text-sm font-medium text-primary">আপনি অফিসে আছেন</p>
+                <p className="text-sm font-medium text-primary">
+                  {todayRecord.note === "ওভারটাইম" ? "🔥 ওভারটাইম চলছে" : "অফিস আওয়ার চলছে"}
+                </p>
+                <p className="text-3xl font-mono font-bold text-primary tabular-nums">{elapsed}</p>
                 <div className="flex justify-center gap-4 text-xs text-muted-foreground">
                   <span>ইন: {formatTime(todayRecord.check_in)}</span>
-                  <span>সময়কাল: {getDuration(todayRecord.check_in, null)}</span>
+                  <span>স্ট্যান্ডার্ড: {OFFICE_HOURS} ঘণ্টা</span>
                 </div>
                 {todayRecord.note && <p className="text-xs text-muted-foreground">📝 {todayRecord.note}</p>}
-                <Button
-                  onClick={handleCheckOut}
-                  disabled={submitting}
-                  variant="destructive"
-                  className="w-full gap-2"
-                  size="lg"
-                >
+                <Button onClick={handleCheckOut} disabled={submitting} variant="destructive" className="w-full gap-2" size="lg">
                   <LogOutIcon className="h-5 w-5" />
                   {submitting ? "চেক-আউট হচ্ছে..." : "চেক-আউট করুন"}
                 </Button>
@@ -172,6 +238,14 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
                 <Badge variant="outline" className="text-xs">
                   মোট: {getDuration(todayRecord.check_in, todayRecord.check_out)}
                 </Badge>
+
+                {/* Overtime button */}
+                {!overtimeActive && (
+                  <Button onClick={handleStartOvertime} variant="secondary" className="w-full gap-2 mt-2" size="lg">
+                    <Timer className="h-5 w-5" />
+                    ওভারটাইম শুরু করুন
+                  </Button>
+                )}
               </>
             )}
           </div>
@@ -193,6 +267,7 @@ const MemberAttendance = ({ userId, businessId }: Props) => {
                     <p className="text-[10px] text-muted-foreground">
                       {formatTime(r.check_in)} — {formatTime(r.check_out)}
                     </p>
+                    {r.note && <p className="text-[10px] text-muted-foreground">📝 {r.note}</p>}
                   </div>
                   <div className="text-right">
                     <Badge variant={r.check_out ? "outline" : "default"} className="text-[10px]">
