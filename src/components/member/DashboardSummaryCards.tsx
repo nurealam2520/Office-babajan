@@ -110,23 +110,43 @@ const DashboardSummaryCards = ({ userId, businessId, onNavigate, isOffice }: Pro
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
-      {cards.map((card) => (
-        <Card
-          key={card.label}
-          className="cursor-pointer hover:shadow-md transition-shadow border-border/50"
-          onClick={() => onNavigate?.(card.tab)}
-        >
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1.5">
-            <div className={`h-9 w-9 rounded-full ${card.bg} flex items-center justify-center`}>
-              <card.icon className={`h-4 w-4 ${card.color}`} />
+    <>
+      {/* Mobile: compact horizontal list */}
+      <div className="flex flex-col gap-1.5 mb-4 sm:hidden">
+        {cards.map((card) => (
+          <button
+            key={card.label}
+            onClick={() => onNavigate?.(card.tab)}
+            className="flex items-center gap-3 rounded-lg border border-border/50 px-3 py-2 text-left transition-colors hover:bg-muted/50"
+          >
+            <div className={`h-7 w-7 rounded-full ${card.bg} flex items-center justify-center shrink-0`}>
+              <card.icon className={`h-3.5 w-3.5 ${card.color}`} />
             </div>
-            <span className={`text-xl font-bold ${card.color}`}>{card.value}</span>
-            <span className="text-[10px] text-muted-foreground leading-tight">{card.label}</span>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            <span className="text-xs text-muted-foreground flex-1">{card.label}</span>
+            <span className={`text-sm font-bold ${card.color}`}>{card.value}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop: grid cards */}
+      <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+        {cards.map((card) => (
+          <Card
+            key={card.label}
+            className="cursor-pointer hover:shadow-md transition-shadow border-border/50"
+            onClick={() => onNavigate?.(card.tab)}
+          >
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1.5">
+              <div className={`h-9 w-9 rounded-full ${card.bg} flex items-center justify-center`}>
+                <card.icon className={`h-4 w-4 ${card.color}`} />
+              </div>
+              <span className={`text-xl font-bold ${card.color}`}>{card.value}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight">{card.label}</span>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </>
   );
 };
 
