@@ -7,9 +7,10 @@ interface Props {
   userId: string;
   businessId: string | null;
   onNavigate?: (tab: string) => void;
+  isOffice?: boolean;
 }
 
-const DashboardSummaryCards = ({ userId, businessId, onNavigate }: Props) => {
+const DashboardSummaryCards = ({ userId, businessId, onNavigate, isOffice }: Props) => {
   const [stats, setStats] = useState({
     activeTasks: 0,
     overdueTasks: 0,
@@ -90,14 +91,14 @@ const DashboardSummaryCards = ({ userId, businessId, onNavigate }: Props) => {
       bg: stats.todayAttendance ? "bg-primary/10" : "bg-muted",
       tab: "attendance",
     },
-    {
+    ...(!isOffice ? [{
       label: "আজকের কালেকশন",
       value: `৳${stats.todayCollection.toLocaleString("bn-BD")}`,
       icon: Wallet,
       color: "text-primary",
       bg: "bg-primary/10",
       tab: "collection",
-    },
+    }] : []),
     {
       label: "পেন্ডিং রিপোর্ট",
       value: stats.pendingReports,
