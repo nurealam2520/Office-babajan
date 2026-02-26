@@ -16,6 +16,7 @@ import MemberAttendance from "@/components/member/MemberAttendance";
 import AttendanceCalendar from "@/components/member/AttendanceCalendar";
 import ReportHistory from "@/components/member/ReportHistory";
 import DashboardSummaryCards from "@/components/member/DashboardSummaryCards";
+import OfficeWelcomeOverlay from "@/components/member/OfficeWelcomeOverlay";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -31,6 +32,10 @@ const Dashboard = () => {
   const [overdueCount, setOverdueCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
   const [todayCollection, setTodayCollection] = useState(0);
+  const [autoCheckIn, setAutoCheckIn] = useState(false);
+  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+
+  const isOffice = activeBusiness?.slug === "office";
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -78,6 +83,15 @@ const Dashboard = () => {
         .eq("user_id", session.user.id)
         .eq("collection_date", today);
       setTodayCollection(todayCols?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
+
+      // Check if already checked in today
+      const { data: todayAtt } = await supabase
+        .from("attendance")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .gte("created_at", today)
+        .limit(1);
+      setHasCheckedInToday((todayAtt?.length || 0) > 0);
     };
     checkAuth();
   }, [navigate]);
@@ -108,19 +122,36 @@ const Dashboard = () => {
     navigate(getLoginPath());
   };
 
+  const handleWelcomeAttendance = () => {
+    setActiveTab("attendance");
+    setAutoCheckIn(true);
+  };
+
   if (!userId) return null;
 
-  const tabs = [
+  // Filter tabs based on business
+  const allTabs = [
     { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "অ্যাটেন্ডেন্স", icon: CalendarCheck },
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
-    { id: "collection", label: "কালেকশন", icon: Wallet },
+    { id: "collection", label: "কালেকশন", icon: Wallet, hideForOffice: true },
     { id: "reports", label: "রিপোর্ট", icon: FileText },
     { id: "team", label: "টিম", icon: Users },
   ];
 
+  const tabs = isOffice ? allTabs.filter(t => !t.hideForOffice) : allTabs;
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Office Welcome Overlay */}
+      {isOffice && profile && (
+        <OfficeWelcomeOverlay
+          fullName={profile.full_name}
+          onStartAttendance={handleWelcomeAttendance}
+          hasCheckedInToday={hasCheckedInToday}
+        />
+      )}
+
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
@@ -155,7 +186,7 @@ const Dashboard = () => {
                 {unreadMsgCount} মেসেজ
               </button>
             )}
-            {todayCollection > 0 && (
+            {!isOffice && todayCollection > 0 && (
               <button
                 onClick={() => setActiveTab("collection")}
                 className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
@@ -258,16 +289,28 @@ const Dashboard = () => {
           </TabsContent>
           <TabsContent value="attendance">
             <div className="space-y-6">
-              <MemberAttendance userId={userId} businessId={activeBusiness?.id || null} />
+              <MemberAttendance
+                userId={userId}
+                businessId={activeBusiness?.id || null}
+                autoCheckIn={autoCheckIn}
+                onCheckedIn={() => {
+                  setAutoCheckIn(false);
+                  setHasCheckedInToday(true);
+                  // After check-in, switch to tasks tab
+                  setTimeout(() => setActiveTab("tasks"), 1500);
+                }}
+              />
               <AttendanceCalendar userId={userId} businessId={activeBusiness?.id || null} />
             </div>
           </TabsContent>
           <TabsContent value="messages">
             <MemberMessages userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
-          <TabsContent value="collection">
-            <CollectionSection userId={userId} businessId={activeBusiness?.id || null} />
-          </TabsContent>
+          {!isOffice && (
+            <TabsContent value="collection">
+              <CollectionSection userId={userId} businessId={activeBusiness?.id || null} />
+            </TabsContent>
+          )}
           <TabsContent value="reports">
             <ReportHistory userId={userId} />
           </TabsContent>
