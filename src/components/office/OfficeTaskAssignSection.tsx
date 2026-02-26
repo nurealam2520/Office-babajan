@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Plus, RefreshCw, Clock, Users, Send, ChevronDown, ChevronUp,
   AlertTriangle, FileText, CheckCircle2, Circle, Loader2, Calendar,
@@ -82,6 +82,27 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
   }, [userId, role, businessId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Realtime subscription for tasks
+  useEffect(() => {
+    if (!businessId) return;
+    const channel = supabase
+      .channel('office-tasks-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'tasks',
+        filter: `business_id=eq.${businessId}`,
+      }, () => {
+        fetchData();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [businessId, fetchData]);
+
+  // Track previous stats for animation
+  const prevStats = useRef({ total: 0, pending: 0, in_progress: 0, completed: 0, overdue: 0 });
+  const [animatingStats, setAnimatingStats] = useState<Set<string>>(new Set());
 
   const getName = (uid: string) => {
     const p = profiles.find(x => x.user_id === uid);
@@ -205,6 +226,28 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
     overdue: tasks.filter(t => t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed").length,
   };
 
+  // Detect stat changes for animation
+  useEffect(() => {
+    const changed = new Set<string>();
+    (Object.keys(stats) as (keyof typeof stats)[]).forEach(key => {
+      if (prevStats.current[key] !== stats[key]) changed.add(key);
+    });
+    if (changed.size > 0) {
+      setAnimatingStats(changed);
+      prevStats.current = { ...stats };
+      const timer = setTimeout(() => setAnimatingStats(new Set()), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [stats.total, stats.pending, stats.in_progress, stats.completed, stats.overdue]);
+
+  const statItems = [
+    { key: "total", label: "মোট", value: stats.total, filterVal: "all", active: "bg-primary text-primary-foreground shadow-lg", inactive: "bg-muted/60 border border-border hover:bg-muted" },
+    { key: "pending", label: "অপেক্ষমাণ", value: stats.pending, filterVal: "pending", active: "bg-yellow-500 text-white shadow-lg shadow-yellow-500/20", inactive: "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-900/40" },
+    { key: "in_progress", label: "চলমান", value: stats.in_progress, filterVal: "in_progress", active: "bg-blue-500 text-white shadow-lg shadow-blue-500/20", inactive: "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40" },
+    { key: "completed", label: "সম্পন্ন", value: stats.completed, filterVal: "completed", active: "bg-green-500 text-white shadow-lg shadow-green-500/20", inactive: "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40" },
+    { key: "overdue", label: "ওভারডিউ", value: stats.overdue, filterVal: "overdue", active: "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/20", inactive: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40" },
+  ];
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -223,24 +266,23 @@ const OfficeTaskAssignSection = ({ userId, role, businessId }: Props) => {
         </div>
       </div>
 
-      {/* Clickable stats - pill style */}
+      {/* Animated clickable stats */}
       <div className="grid grid-cols-5 gap-1.5">
-        {[
-          { label: "মোট", value: stats.total, filterVal: "all", active: "bg-primary text-primary-foreground", inactive: "bg-muted hover:bg-muted/80" },
-          { label: "অপেক্ষমাণ", value: stats.pending, filterVal: "pending", active: "bg-yellow-500 text-white", inactive: "bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/50" },
-          { label: "চলমান", value: stats.in_progress, filterVal: "in_progress", active: "bg-blue-500 text-white", inactive: "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50" },
-          { label: "সম্পন্ন", value: stats.completed, filterVal: "completed", active: "bg-green-500 text-white", inactive: "bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50" },
-          { label: "ওভারডিউ", value: stats.overdue, filterVal: "overdue", active: "bg-destructive text-destructive-foreground", inactive: "bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50" },
-        ].map(s => {
+        {statItems.map(s => {
           const isActive = statusFilter === s.filterVal;
+          const isAnimating = animatingStats.has(s.key);
           return (
             <button
-              key={s.label}
-              className={`rounded-xl py-2 text-center transition-all duration-200 ${isActive ? s.active + " shadow-md scale-[1.02]" : s.inactive}`}
+              key={s.key}
+              className={`rounded-xl py-2.5 text-center transition-all duration-300 ease-out ${
+                isActive ? s.active : s.inactive
+              } ${isAnimating ? "animate-scale-in" : ""}`}
               onClick={() => setStatusFilter(isActive ? "all" : s.filterVal)}
             >
-              <p className="text-lg font-bold leading-none">{s.value}</p>
-              <p className={`text-[9px] mt-0.5 leading-tight ${isActive ? "opacity-90" : "text-muted-foreground"}`}>{s.label}</p>
+              <p className={`text-lg font-bold leading-none transition-transform duration-300 ${isAnimating ? "scale-125" : "scale-100"}`}>
+                {s.value}
+              </p>
+              <p className={`text-[9px] mt-1 leading-tight font-medium ${isActive ? "opacity-90" : "text-muted-foreground"}`}>{s.label}</p>
             </button>
           );
         })}
