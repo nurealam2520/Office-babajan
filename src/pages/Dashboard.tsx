@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight, CalendarCheck,
+  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight, CalendarCheck, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,9 @@ import CollectionSection from "@/components/member/CollectionSection";
 import TeamSection from "@/components/member/TeamSection";
 import NotificationCenter from "@/components/member/NotificationCenter";
 import MemberAttendance from "@/components/member/MemberAttendance";
+import AttendanceCalendar from "@/components/member/AttendanceCalendar";
+import ReportHistory from "@/components/member/ReportHistory";
+import DashboardSummaryCards from "@/components/member/DashboardSummaryCards";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -112,6 +115,7 @@ const Dashboard = () => {
     { id: "attendance", label: "অ্যাটেন্ডেন্স", icon: CalendarCheck },
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
     { id: "collection", label: "কালেকশন", icon: Wallet },
+    { id: "reports", label: "রিপোর্ট", icon: FileText },
     { id: "team", label: "টিম", icon: Users },
   ];
 
@@ -207,6 +211,7 @@ const Dashboard = () => {
             📌 বর্তমান গ্রুপ: <span className="font-semibold text-foreground">{activeBusiness.name}</span> — শুধু এই গ্রুপের কাজ দেখাচ্ছে
           </div>
         )}
+        <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
             {tabs.map(tab => (
@@ -252,13 +257,19 @@ const Dashboard = () => {
             <MyTasks userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="attendance">
-            <MemberAttendance userId={userId} businessId={activeBusiness?.id || null} />
+            <div className="space-y-6">
+              <MemberAttendance userId={userId} businessId={activeBusiness?.id || null} />
+              <AttendanceCalendar userId={userId} businessId={activeBusiness?.id || null} />
+            </div>
           </TabsContent>
           <TabsContent value="messages">
             <MemberMessages userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
           <TabsContent value="collection">
             <CollectionSection userId={userId} businessId={activeBusiness?.id || null} />
+          </TabsContent>
+          <TabsContent value="reports">
+            <ReportHistory userId={userId} />
           </TabsContent>
           <TabsContent value="team">
             <TeamSection userId={userId} />
