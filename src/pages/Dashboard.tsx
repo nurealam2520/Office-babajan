@@ -158,11 +158,11 @@ const Dashboard = () => {
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <User className="h-4 w-4 text-primary" />
             </div>
-            <div className="hidden sm:block">
+            <div>
               <p className="text-sm font-bold text-foreground leading-none">
                 {profile?.full_name || getAppName()}
               </p>
-              {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
+              {profile && <p className="text-[10px] text-muted-foreground hidden sm:block">@{profile.username}</p>}
             </div>
           </div>
 
@@ -242,7 +242,7 @@ const Dashboard = () => {
             📌 বর্তমান গ্রুপ: <span className="font-semibold text-foreground">{activeBusiness.name}</span> — শুধু এই গ্রুপের কাজ দেখাচ্ছে
           </div>
         )}
-        <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} />
+        <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} isOffice={isOffice} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
             {tabs.map(tab => (
