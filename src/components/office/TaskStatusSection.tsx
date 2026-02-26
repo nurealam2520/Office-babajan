@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import TaskDetailDialog from "./TaskDetailDialog";
 
 interface Props {
   userId: string;
@@ -22,6 +23,7 @@ const TaskStatusSection = ({ userId, businessId }: Props) => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -39,14 +41,10 @@ const TaskStatusSection = ({ userId, businessId }: Props) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getProfileName = (uid: string) => {
-    const p = profiles.find(p => p.user_id === uid);
-    return p ? p.full_name : uid.slice(0, 8);
-  };
+  const getProfileName = (uid: string) => profiles.find(p => p.user_id === uid)?.full_name || uid.slice(0, 8);
 
   const filtered = filter === "all" ? tasks : tasks.filter(t => t.status === filter);
 
-  // Stats
   const counts = {
     all: tasks.length,
     pending: tasks.filter(t => t.status === "pending").length,
@@ -66,20 +64,20 @@ const TaskStatusSection = ({ userId, businessId }: Props) => {
         </Button>
       </div>
 
-      {/* Filter chips */}
-      <div className="flex flex-wrap gap-2">
+      {/* Filter chips - responsive */}
+      <div className="flex flex-wrap gap-1.5">
         {[
           { key: "all", label: "সব" },
           { key: "pending", label: "অপেক্ষমাণ" },
           { key: "in_progress", label: "চলছে" },
           { key: "completed", label: "সম্পন্ন" },
-          { key: "resubmit", label: "পুনরায় জমা" },
+          { key: "resubmit", label: "পুনরায়" },
         ].map(f => (
           <Button
             key={f.key}
             size="sm"
             variant={filter === f.key ? "default" : "outline"}
-            className="text-xs h-8"
+            className="text-xs h-7 px-2"
             onClick={() => setFilter(f.key)}
           >
             {f.label} ({counts[f.key as keyof typeof counts]})
@@ -90,50 +88,48 @@ const TaskStatusSection = ({ userId, businessId }: Props) => {
       {/* Stats bar */}
       {tasks.length > 0 && (
         <div className="flex h-3 rounded-full overflow-hidden">
-          {counts.completed > 0 && (
-            <div className="bg-green-500" style={{ width: `${(counts.completed / tasks.length) * 100}%` }} />
-          )}
-          {counts.in_progress > 0 && (
-            <div className="bg-blue-500" style={{ width: `${(counts.in_progress / tasks.length) * 100}%` }} />
-          )}
-          {counts.pending > 0 && (
-            <div className="bg-yellow-500" style={{ width: `${(counts.pending / tasks.length) * 100}%` }} />
-          )}
-          {counts.resubmit > 0 && (
-            <div className="bg-red-500" style={{ width: `${(counts.resubmit / tasks.length) * 100}%` }} />
-          )}
+          {counts.completed > 0 && <div className="bg-green-500" style={{ width: `${(counts.completed / tasks.length) * 100}%` }} />}
+          {counts.in_progress > 0 && <div className="bg-blue-500" style={{ width: `${(counts.in_progress / tasks.length) * 100}%` }} />}
+          {counts.pending > 0 && <div className="bg-yellow-500" style={{ width: `${(counts.pending / tasks.length) * 100}%` }} />}
+          {counts.resubmit > 0 && <div className="bg-red-500" style={{ width: `${(counts.resubmit / tasks.length) * 100}%` }} />}
         </div>
       )}
 
       {loading ? (
         <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
-            <FileText className="h-12 w-12" />
-            <p>কোন টাস্ক নেই</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground"><FileText className="h-12 w-12" /><p>কোন টাস্ক নেই</p></CardContent></Card>
       ) : (
         <div className="space-y-2">
           {filtered.map(task => (
-            <Card key={task.id}>
+            <Card key={task.id} className="cursor-pointer hover:shadow-md transition-all" onClick={() => setSelectedTask(task)}>
               <CardContent className="py-3 space-y-1">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">{task.title}</p>
-                  <Badge variant={statusMap[task.status]?.variant || "secondary"} className="text-[10px]">
+                  <p className="text-sm font-medium truncate flex-1 mr-2">{task.title}</p>
+                  <Badge variant={statusMap[task.status]?.variant || "secondary"} className="text-[10px] shrink-0">
                     {statusMap[task.status]?.label || task.status}
                   </Badge>
                 </div>
-                {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
+                {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>👤 {getProfileName(task.assigned_to)}</span>
-                  <span>আপডেট: {new Date(task.updated_at).toLocaleDateString("bn-BD")}</span>
+                  <span>{new Date(task.updated_at).toLocaleDateString("bn-BD")}</span>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {selectedTask && (
+        <TaskDetailDialog
+          task={selectedTask}
+          open={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdated={() => { setSelectedTask(null); fetchData(); }}
+          getProfileName={getProfileName}
+          canEdit
+        />
       )}
     </div>
   );

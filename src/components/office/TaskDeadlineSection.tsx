@@ -2,9 +2,9 @@ import { useEffect, useState, useCallback } from "react";
 import { Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import TaskDetailDialog from "./TaskDetailDialog";
 
 interface Props {
   userId: string;
@@ -15,15 +15,11 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from("tasks")
-      .select("*")
-      .not("due_date", "is", null)
-      .neq("status", "completed")
-      .order("due_date", { ascending: true });
+    let query = supabase.from("tasks").select("*").not("due_date", "is", null).neq("status", "completed").order("due_date", { ascending: true });
     if (businessId) query = query.eq("business_id", businessId);
 
     const [{ data: t }, { data: p }] = await Promise.all([
@@ -37,20 +33,17 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getProfileName = (uid: string) => {
-    const p = profiles.find(p => p.user_id === uid);
-    return p ? p.full_name : uid.slice(0, 8);
-  };
+  const getProfileName = (uid: string) => profiles.find(p => p.user_id === uid)?.full_name || uid.slice(0, 8);
 
   const getTimeInfo = (dueDate: string) => {
     const diff = new Date(dueDate).getTime() - Date.now();
     if (diff < 0) {
       const hrs = Math.abs(Math.floor(diff / 3600000));
-      return { text: `${hrs} ঘণ্টা আগে শেষ হয়েছে`, overdue: true, percent: 100 };
+      return { text: `${hrs} ঘণ্টা আগে শেষ`, overdue: true, percent: 100 };
     }
     const hrs = Math.floor(diff / 3600000);
     const days = Math.floor(hrs / 24);
-    const text = days > 0 ? `${days} দিন ${hrs % 24} ঘণ্টা বাকি` : `${hrs} ঘণ্টা বাকি`;
+    const text = days > 0 ? `${days}দি ${hrs % 24}ঘ বাকি` : `${hrs}ঘ বাকি`;
     return { text, overdue: false, percent: Math.min(90, 100 - (diff / (7 * 86400000)) * 100) };
   };
 
@@ -68,7 +61,6 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
         </Button>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="border-destructive/30">
           <CardContent className="py-3 text-center">
@@ -87,18 +79,17 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
       {loading ? (
         <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
       ) : tasks.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
-            <Clock className="h-12 w-12" />
-            <p>কোন ডেডলাইন নেই</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground"><Clock className="h-12 w-12" /><p>কোন ডেডলাইন নেই</p></CardContent></Card>
       ) : (
         <div className="space-y-2">
           {tasks.map(task => {
             const info = getTimeInfo(task.due_date);
             return (
-              <Card key={task.id} className={info.overdue ? "border-destructive/50" : ""}>
+              <Card
+                key={task.id}
+                className={`cursor-pointer hover:shadow-md transition-all ${info.overdue ? "border-destructive/50" : ""}`}
+                onClick={() => setSelectedTask(task)}
+              >
                 <CardContent className="py-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{task.title}</p>
@@ -110,15 +101,24 @@ const TaskDeadlineSection = ({ userId, businessId }: Props) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Progress value={info.percent} className="h-1.5 flex-1" />
-                    <span className={`text-[10px] ${info.overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                      {info.text}
-                    </span>
+                    <span className={`text-[10px] ${info.overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>{info.text}</span>
                   </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+      )}
+
+      {selectedTask && (
+        <TaskDetailDialog
+          task={selectedTask}
+          open={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdated={() => { setSelectedTask(null); fetchData(); }}
+          getProfileName={getProfileName}
+          canEdit
+        />
       )}
     </div>
   );
