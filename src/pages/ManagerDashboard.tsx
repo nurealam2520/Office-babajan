@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ShieldCheck, MessageSquare, ClipboardList, FileText, Users, Wallet, LogOut, Menu, X,
+  ShieldCheck, MessageSquare, ClipboardList, FileText, Users, LogOut, Menu, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,7 @@ import MessageSection from "@/components/admin/MessageSection";
 import TaskSection from "@/components/admin/TaskSection";
 import ReportSection from "@/components/admin/ReportSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
-import CollectionReportSection from "@/components/admin/CollectionReportSection";
+
 import NotificationBell from "@/components/NotificationBell";
 import PopupNotification from "@/components/PopupNotification";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -62,7 +62,6 @@ const ManagerDashboard = () => {
     { id: "tasks", label: "টাস্ক", icon: ClipboardList },
     { id: "users", label: "ইউজার", icon: Users },
     { id: "reports", label: "রিপোর্ট", icon: FileText },
-    { id: "collections", label: "কালেকশন", icon: Wallet },
   ];
 
   return (
@@ -144,9 +143,6 @@ const ManagerDashboard = () => {
           </TabsContent>
           <TabsContent value="reports">
             <ReportSection userId={session.user.id} />
-          </TabsContent>
-          <TabsContent value="collections">
-            <CollectionReportSection />
           </TabsContent>
         </Tabs>
       </div>
