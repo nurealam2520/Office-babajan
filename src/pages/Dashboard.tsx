@@ -193,7 +193,7 @@ const Dashboard = () => {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-4">
-        <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} isOffice={isOffice} />
+        <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
             {tabs.map(tab => (
