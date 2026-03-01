@@ -37,6 +37,9 @@ const SuperAdminDashboard = () => {
   // Stats
   const [pendingOtpCount, setPendingOtpCount] = useState(0);
   const [officeTaskSubmitted, setOfficeTaskSubmitted] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  const [overdueTasks, setOverdueTasks] = useState(0);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -100,6 +103,18 @@ const SuperAdminDashboard = () => {
         .select("*, tasks!inner(business_id)", { count: "exact", head: true })
         .eq("tasks.business_id", officeBiz.id);
       setOfficeTaskSubmitted(count || 0);
+
+      // Fetch task stats
+      const { data: allTasks } = await supabase
+        .from("tasks")
+        .select("id, status, due_date")
+        .eq("business_id", officeBiz.id);
+      
+      if (allTasks) {
+        setTotalTasks(allTasks.length);
+        setPendingTasks(allTasks.filter(t => t.status === "pending").length);
+        setOverdueTasks(allTasks.filter(t => t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed").length);
+      }
     }
   };
 
@@ -173,16 +188,34 @@ const SuperAdminDashboard = () => {
           <>
             {/* Summary Stats */}
             {activeView === "home" && (
-              <div className="mb-5 grid grid-cols-2 gap-3">
+              <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
                 <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { if (role === "super_admin") setActiveView("otp"); }}>
                   <CardContent className="py-4 text-center">
                     <p className="text-xs text-muted-foreground">OTP অপেক্ষমাণ</p>
                     <p className="text-2xl font-bold text-primary">{pendingOtpCount}</p>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveView("office-daily-task")}>
                   <CardContent className="py-4 text-center">
-                    <p className="text-xs text-muted-foreground">অফিস রিপোর্ট জমা</p>
+                    <p className="text-xs text-muted-foreground">মোট টাস্ক</p>
+                    <p className="text-2xl font-bold text-foreground">{totalTasks}</p>
+                  </CardContent>
+                </Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveView("office-daily-task")}>
+                  <CardContent className="py-4 text-center">
+                    <p className="text-xs text-muted-foreground">পেন্ডিং</p>
+                    <p className="text-2xl font-bold text-amber-500">{pendingTasks}</p>
+                  </CardContent>
+                </Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveView("office-deadline")}>
+                  <CardContent className="py-4 text-center">
+                    <p className="text-xs text-muted-foreground">ওভারডিউ</p>
+                    <p className="text-2xl font-bold text-destructive">{overdueTasks}</p>
+                  </CardContent>
+                </Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveView("office-daily-report")}>
+                  <CardContent className="py-4 text-center">
+                    <p className="text-xs text-muted-foreground">রিপোর্ট জমা</p>
                     <p className="text-2xl font-bold text-foreground">{officeTaskSubmitted}</p>
                   </CardContent>
                 </Card>
