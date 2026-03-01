@@ -31,7 +31,7 @@ interface BusinessContextType {
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
-const BUSINESS_SLUGS = ["dorbar", "office"];
+const BUSINESS_SLUGS = ["office"];
 
 export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   const location = useLocation();

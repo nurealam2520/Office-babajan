@@ -12,12 +12,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import OtpSection from "@/components/admin/OtpSection";
-import MessageSection from "@/components/admin/MessageSection";
-import TaskSection from "@/components/admin/TaskSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import ReportSection from "@/components/admin/ReportSection";
-import LocationSection from "@/components/admin/LocationSection";
-import CollectionReportSection from "@/components/admin/CollectionReportSection";
 import AttendanceSection from "@/components/office/AttendanceSection";
 import TaskCalendarSection from "@/components/office/TaskCalendarSection";
 import TaskDeadlineSection from "@/components/office/TaskDeadlineSection";
@@ -26,8 +22,7 @@ import OfficeTaskAssignSection from "@/components/office/OfficeTaskAssignSection
 import { useBusiness } from "@/contexts/BusinessContext";
 import shahzadaLogo from "@/assets/shahzada-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "messages" | "tasks" | "reports" | "collections" | "location" | "office-daily-task" | "office-daily-report" | "office-attendance" | "office-calendar" | "office-deadline" | "office-status";
-type BusinessTab = "dorbar" | "office";
+type ActiveView = "home" | "otp" | "users" | "office-daily-task" | "office-daily-report" | "office-attendance" | "office-calendar" | "office-deadline" | "office-status";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,16 +31,12 @@ const SuperAdminDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [profileName, setProfileName] = useState("");
   const [activeView, setActiveView] = useState<ActiveView>("home");
-  const [activeBusinessTab, setActiveBusinessTab] = useState<BusinessTab>("dorbar");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const { allBusinesses, selectedAdminBusiness, setSelectedAdminBusiness } = useBusiness();
 
   // Stats
   const [pendingOtpCount, setPendingOtpCount] = useState(0);
-  const [dorbarTaskSubmitted, setDorbarTaskSubmitted] = useState(0);
   const [officeTaskSubmitted, setOfficeTaskSubmitted] = useState(0);
-  const [dorbar24hCollection, setDorbar24hCollection] = useState(0);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -72,7 +63,6 @@ const SuperAdminDashboard = () => {
       const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", s.user.id).maybeSingle();
       if (prof) setProfileName(prof.full_name);
 
-      // Welcome popup: show only on first use or after 1 hour gap
       const lastWelcome = localStorage.getItem("admin-welcome-ts");
       const now = Date.now();
       if (!lastWelcome || (now - parseInt(lastWelcome)) > 3600000) {
@@ -81,58 +71,35 @@ const SuperAdminDashboard = () => {
         setTimeout(() => setShowWelcome(false), 5000);
       }
 
-      // Fetch stats
       fetchStats();
     };
     checkAccess();
   }, [navigate, toast]);
 
-  // Set default business on mount when allBusinesses loads
+  // Auto-select office business on mount
   useEffect(() => {
     if (allBusinesses.length > 0 && !selectedAdminBusiness) {
-      const defaultBiz = allBusinesses.find(b => b.slug === activeBusinessTab);
-      if (defaultBiz) setSelectedAdminBusiness(defaultBiz);
+      const officeBiz = allBusinesses.find(b => b.slug === "office");
+      if (officeBiz) setSelectedAdminBusiness(officeBiz);
     }
-  }, [allBusinesses, selectedAdminBusiness, activeBusinessTab, setSelectedAdminBusiness]);
+  }, [allBusinesses, selectedAdminBusiness, setSelectedAdminBusiness]);
 
   const fetchStats = async () => {
-    // Pending OTP users
     const { count: otpCount } = await supabase
       .from("profiles")
       .select("*", { count: "exact", head: true })
       .eq("is_active", false);
     setPendingOtpCount(otpCount || 0);
 
-    // Find dorbar and office business IDs
     const { data: bizList } = await supabase.from("businesses").select("id, slug").eq("is_active", true);
-    const dorbarBiz = bizList?.find(b => b.slug === "dorbar");
     const officeBiz = bizList?.find(b => b.slug === "office");
 
-    // Task reports submitted count by business
-    if (dorbarBiz) {
-      const { count } = await supabase
-        .from("task_reports")
-        .select("*, tasks!inner(business_id)", { count: "exact", head: true })
-        .eq("tasks.business_id", dorbarBiz.id);
-      setDorbarTaskSubmitted(count || 0);
-    }
     if (officeBiz) {
       const { count } = await supabase
         .from("task_reports")
         .select("*, tasks!inner(business_id)", { count: "exact", head: true })
         .eq("tasks.business_id", officeBiz.id);
       setOfficeTaskSubmitted(count || 0);
-    }
-
-    // Dorbar 24h collection
-    if (dorbarBiz) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-      const { data: cols } = await supabase
-        .from("collections")
-        .select("amount")
-        .eq("business_id", dorbarBiz.id)
-        .gte("collection_date", yesterday);
-      setDorbar24hCollection(cols?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
     }
   };
 
@@ -144,23 +111,6 @@ const SuperAdminDashboard = () => {
   const dismissWelcome = () => setShowWelcome(false);
 
   if (!role || !session) return null;
-
-  // When clicking dorbar tab, set the business context to dorbar
-  const handleBusinessTabChange = (tab: BusinessTab) => {
-    setActiveBusinessTab(tab);
-    setActiveView("home");
-    const biz = allBusinesses.find(b => b.slug === tab);
-    if (biz) setSelectedAdminBusiness(biz);
-    else setSelectedAdminBusiness(null);
-  };
-
-  const dorbarSubTabs = [
-    { id: "messages" as ActiveView, label: "মেসেজ", icon: MessageSquare },
-    { id: "tasks" as ActiveView, label: "টাস্ক", icon: ClipboardList },
-    { id: "reports" as ActiveView, label: "রিপোর্ট", icon: FileText },
-    { id: "collections" as ActiveView, label: "কালেকশন", icon: Wallet },
-    { id: "location" as ActiveView, label: "লোকেশন", icon: MapPin },
-  ];
 
   const officeSubTabs = [
     { id: "office-daily-task" as ActiveView, label: "অ্যাসাইন টাস্ক", icon: ClipboardList },
@@ -183,7 +133,6 @@ const SuperAdminDashboard = () => {
             </span>
           </div>
           <div className="flex items-center gap-1">
-            {/* OTP icon button */}
             {role === "super_admin" && (
               <Button
                 variant={activeView === "otp" ? "default" : "ghost"}
@@ -194,7 +143,6 @@ const SuperAdminDashboard = () => {
                 <KeyRound className="h-5 w-5" />
               </Button>
             )}
-            {/* Users icon button */}
             <Button
               variant={activeView === "users" ? "default" : "ghost"}
               size="icon"
@@ -218,22 +166,14 @@ const SuperAdminDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
-        {/* OTP Section (full page when selected) */}
-        {activeView === "otp" && (
-          <OtpSection />
-        )}
+        {activeView === "otp" && <OtpSection />}
+        {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
 
-        {/* Users Section (full page when selected) */}
-        {activeView === "users" && (
-          <UserManagementSection userId={session.user.id} role={role} />
-        )}
-
-        {/* Home / Business views */}
-        {(activeView === "home" || !["otp", "users"].includes(activeView)) && activeView !== "otp" && activeView !== "users" && (
+        {!["otp", "users"].includes(activeView) && (
           <>
-            {/* Summary Stats Cards (only on home) */}
+            {/* Summary Stats */}
             {activeView === "home" && (
-              <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="mb-5 grid grid-cols-2 gap-3">
                 <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { if (role === "super_admin") setActiveView("otp"); }}>
                   <CardContent className="py-4 text-center">
                     <p className="text-xs text-muted-foreground">OTP অপেক্ষমাণ</p>
@@ -242,118 +182,47 @@ const SuperAdminDashboard = () => {
                 </Card>
                 <Card>
                   <CardContent className="py-4 text-center">
-                    <p className="text-xs text-muted-foreground">দরবার রিপোর্ট জমা</p>
-                    <p className="text-2xl font-bold text-foreground">{dorbarTaskSubmitted}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="py-4 text-center">
                     <p className="text-xs text-muted-foreground">অফিস রিপোর্ট জমা</p>
                     <p className="text-2xl font-bold text-foreground">{officeTaskSubmitted}</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="py-4 text-center">
-                    <p className="text-xs text-muted-foreground">দরবার কালেকশন (২৪ ঘণ্টা)</p>
-                    <p className="text-2xl font-bold text-primary">৳{dorbar24hCollection.toLocaleString("bn-BD")}</p>
                   </CardContent>
                 </Card>
               </div>
             )}
 
-            {/* Business Tabs - Dorbar / Office */}
-            <div className="mb-4 flex gap-2">
-              <Button
-                size="lg"
-                className={`flex-1 text-base font-bold ${activeBusinessTab === "dorbar" ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300"}`}
-                onClick={() => handleBusinessTabChange("dorbar")}
-              >
-                দরবার
-              </Button>
-              <Button
-                size="lg"
-                className={`flex-1 text-base font-bold ${activeBusinessTab === "office" ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300"}`}
-                onClick={() => handleBusinessTabChange("office")}
-              >
-                অফিস
-              </Button>
-            </div>
-
-            {/* Dorbar Content */}
-            {activeBusinessTab === "dorbar" && (
-              <>
-                {activeView === "home" && (
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-                    {dorbarSubTabs.map(tab => (
-                      <Button
-                        key={tab.id}
-                        variant="outline"
-                        className="h-20 flex-col gap-2 text-sm font-medium hover:bg-primary/10 hover:border-primary/30"
-                        onClick={() => setActiveView(tab.id)}
-                      >
-                        <tab.icon className="h-6 w-6 text-primary" />
-                        {tab.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-
-                {activeView === "messages" && (
-                  <MessageSection userId={session.user.id} role={role} />
-                )}
-                {activeView === "tasks" && (
-                  <TaskSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
-                )}
-                {activeView === "reports" && (
-                  <ReportSection userId={session.user.id} />
-                )}
-                {activeView === "collections" && (
-                  <CollectionReportSection />
-                )}
-                {activeView === "location" && (
-                  <LocationSection />
-                )}
-              </>
+            {/* Office Sub Tabs */}
+            {activeView === "home" && (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+                {officeSubTabs.map(tab => (
+                  <Button
+                    key={tab.id}
+                    variant="outline"
+                    className="h-20 flex-col gap-2 text-sm font-medium hover:bg-primary/10 hover:border-primary/30"
+                    onClick={() => setActiveView(tab.id)}
+                  >
+                    <tab.icon className="h-6 w-6 text-primary" />
+                    {tab.label}
+                  </Button>
+                ))}
+              </div>
             )}
 
-            {/* Office Content */}
-            {activeBusinessTab === "office" && (
-              <>
-                {activeView === "home" && (
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-                    {officeSubTabs.map(tab => (
-                      <Button
-                        key={tab.id}
-                        variant="outline"
-                        className="h-20 flex-col gap-2 text-sm font-medium hover:bg-primary/10 hover:border-primary/30"
-                        onClick={() => setActiveView(tab.id)}
-                      >
-                        <tab.icon className="h-6 w-6 text-primary" />
-                        {tab.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-
-                {activeView === "office-daily-task" && (
-                  <OfficeTaskAssignSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
-                )}
-                {activeView === "office-daily-report" && (
-                  <ReportSection userId={session.user.id} />
-                )}
-                {activeView === "office-attendance" && (
-                  <AttendanceSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
-                )}
-                {activeView === "office-calendar" && (
-                  <TaskCalendarSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
-                )}
-                {activeView === "office-deadline" && (
-                  <TaskDeadlineSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
-                )}
-                {activeView === "office-status" && (
-                  <TaskStatusSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
-                )}
-              </>
+            {activeView === "office-daily-task" && (
+              <OfficeTaskAssignSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
+            )}
+            {activeView === "office-daily-report" && (
+              <ReportSection userId={session.user.id} />
+            )}
+            {activeView === "office-attendance" && (
+              <AttendanceSection userId={session.user.id} role={role} businessId={selectedAdminBusiness?.id || null} />
+            )}
+            {activeView === "office-calendar" && (
+              <TaskCalendarSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
+            )}
+            {activeView === "office-deadline" && (
+              <TaskDeadlineSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
+            )}
+            {activeView === "office-status" && (
+              <TaskStatusSection userId={session.user.id} businessId={selectedAdminBusiness?.id || null} />
             )}
           </>
         )}

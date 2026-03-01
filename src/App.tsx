@@ -36,12 +36,6 @@ const App = () => (
             <Route path="/admin" element={<SuperAdminDashboard />} />
             <Route path="/manager" element={<ManagerDashboard />} />
 
-            <Route path="/dorbar" element={<BusinessIndex />} />
-            <Route path="/dorbar/login" element={<BusinessLogin />} />
-            <Route path="/dorbar/register" element={<BusinessRegister />} />
-            <Route path="/dorbar/verify-otp" element={<VerifyOtp />} />
-            <Route path="/dorbar/dashboard" element={<Dashboard />} />
-
             <Route path="/office" element={<BusinessIndex />} />
             <Route path="/office/login" element={<BusinessLogin />} />
             <Route path="/office/register" element={<BusinessRegister />} />
