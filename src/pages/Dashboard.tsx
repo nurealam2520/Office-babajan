@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardList, MessageSquare, Wallet, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, ArrowLeftRight, CalendarCheck, FileText,
+  ClipboardList, MessageSquare, Users, LogOut, Menu, X, User, AlertTriangle, CheckCircle2, CalendarCheck, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import MyTasks from "@/components/member/MyTasks";
 import MemberMessages from "@/components/member/MemberMessages";
-import CollectionSection from "@/components/member/CollectionSection";
+
 import TeamSection from "@/components/member/TeamSection";
 import NotificationCenter from "@/components/member/NotificationCenter";
 import MemberAttendance from "@/components/member/MemberAttendance";
@@ -23,7 +23,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { currentBusiness, getLoginPath, getAppName, businessSlug, userBusinesses, activeBusiness, setActiveBusiness, loadUserBusinesses } = useBusiness();
+  const { currentBusiness, getLoginPath, getAppName, businessSlug, activeBusiness, loadUserBusinesses } = useBusiness();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("tasks");
@@ -31,11 +31,10 @@ const Dashboard = () => {
   const [taskCount, setTaskCount] = useState(0);
   const [overdueCount, setOverdueCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
-  const [todayCollection, setTodayCollection] = useState(0);
   const [autoCheckIn, setAutoCheckIn] = useState(false);
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
 
-  const isOffice = activeBusiness?.slug === "office";
+  const isOffice = true;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -76,13 +75,8 @@ const Dashboard = () => {
         .eq("receiver_id", session.user.id);
       setUnreadMsgCount(msgCount || 0);
 
+      // Check if already checked in today
       const today = new Date().toISOString().split("T")[0];
-      const { data: todayCols } = await supabase
-        .from("collections")
-        .select("amount")
-        .eq("user_id", session.user.id)
-        .eq("collection_date", today);
-      setTodayCollection(todayCols?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
 
       // Check if already checked in today
       const { data: todayAtt } = await supabase
@@ -108,11 +102,6 @@ const Dashboard = () => {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${userId}` }, () => {
         setUnreadMsgCount(prev => prev + 1);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "collections", filter: `user_id=eq.${userId}` }, async () => {
-        const today = new Date().toISOString().split("T")[0];
-        const { data } = await supabase.from("collections").select("amount").eq("user_id", userId).eq("collection_date", today);
-        setTodayCollection(data?.reduce((s, c) => s + parseFloat(c.amount as any), 0) || 0);
-      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
@@ -130,16 +119,13 @@ const Dashboard = () => {
   if (!userId) return null;
 
   // Filter tabs based on business
-  const allTabs = [
+  const tabs = [
     { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "অ্যাটেন্ডেন্স", icon: CalendarCheck },
     { id: "messages", label: "মেসেজ", icon: MessageSquare },
-    { id: "collection", label: "কালেকশন", icon: Wallet, hideForOffice: true },
     { id: "reports", label: "রিপোর্ট", icon: FileText },
     { id: "team", label: "টিম", icon: Users },
   ];
-
-  const tabs = isOffice ? allTabs.filter(t => !t.hideForOffice) : allTabs;
 
   return (
     <div className="min-h-screen bg-background">
@@ -186,15 +172,6 @@ const Dashboard = () => {
                 {unreadMsgCount} মেসেজ
               </button>
             )}
-            {!isOffice && todayCollection > 0 && (
-              <button
-                onClick={() => setActiveTab("collection")}
-                className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
-              >
-                <Wallet className="h-3 w-3" />
-                ৳{todayCollection.toLocaleString("bn-BD")}
-              </button>
-            )}
           </div>
 
           <div className="flex items-center gap-1">
@@ -215,33 +192,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {userBusinesses.length > 1 && (
-        <div className="sticky top-[57px] z-30 border-b bg-card/95 backdrop-blur">
-          <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2">
-            <ArrowLeftRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground shrink-0">গ্রুপ:</span>
-            {userBusinesses.map(b => (
-              <Button
-                key={b.id}
-                variant={activeBusiness?.id === b.id ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setActiveBusiness(b)}
-                style={activeBusiness?.id === b.id ? { backgroundColor: b.theme_color || undefined } : { borderColor: b.theme_color || undefined, color: b.theme_color || undefined }}
-              >
-                {b.name}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="mx-auto max-w-5xl px-4 py-4">
-        {activeBusiness && userBusinesses.length > 1 && (
-          <div className="mb-3 rounded-lg border px-3 py-2 text-xs text-muted-foreground" style={{ borderColor: activeBusiness.theme_color || undefined }}>
-            📌 বর্তমান গ্রুপ: <span className="font-semibold text-foreground">{activeBusiness.name}</span> — শুধু এই গ্রুপের কাজ দেখাচ্ছে
-          </div>
-        )}
         <DashboardSummaryCards userId={userId} businessId={activeBusiness?.id || null} onNavigate={setActiveTab} isOffice={isOffice} />
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4 hidden w-full justify-start gap-1 md:flex">
@@ -306,11 +257,6 @@ const Dashboard = () => {
           <TabsContent value="messages">
             <MemberMessages userId={userId} businessId={activeBusiness?.id || null} />
           </TabsContent>
-          {!isOffice && (
-            <TabsContent value="collection">
-              <CollectionSection userId={userId} businessId={activeBusiness?.id || null} />
-            </TabsContent>
-          )}
           <TabsContent value="reports">
             <ReportHistory userId={userId} />
           </TabsContent>
