@@ -1,4 +1,4 @@
-import shahzadaLogo from "@/assets/shahzada-logo.png";
+import officeLogo from "@/assets/office-logo.png";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus, ShieldCheck } from "lucide-react";
@@ -10,12 +10,12 @@ const Index = () => {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="mb-10 flex flex-col items-center gap-4">
         <img
-          src={shahzadaLogo}
-          alt="Shahzada's Hub"
+          src={officeLogo}
+          alt="Office Management"
           className="h-32 w-32 rounded-full object-cover shadow-xl border-4 border-primary/20"
         />
         <h1 className="text-4xl font-extrabold tracking-tight text-primary">
-          Shahzada's Hub
+          Office Management
         </h1>
         <p className="text-center text-base text-muted-foreground max-w-xs leading-relaxed italic">
           "আপনার কাজই আপনার পরিচয়, আর আপনার দায়িত্বই আপনার শক্তি।"
