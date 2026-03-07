@@ -49,7 +49,7 @@ const MyTasks = ({ userId }: Props) => {
 
   const acceptTask = async (taskId: string) => {
     await supabase.from("tasks").update({ status: "in_progress" }).eq("id", taskId);
-    toast({ title: "টাস্ক গ্রহণ করা হয়েছে" });
+    toast({ title: "Task accepted" });
     fetchTasks();
   };
 
@@ -62,9 +62,9 @@ const MyTasks = ({ userId }: Props) => {
       report_content: reportText.trim(),
     });
     if (error) {
-      toast({ title: "ত্রুটি হয়েছে", variant: "destructive" });
+      toast({ title: "Error occurred", variant: "destructive" });
     } else {
-      toast({ title: "রিপোর্ট জমা দেওয়া হয়েছে" });
+      toast({ title: "Report submitted" });
       setReportText("");
       setExpandedId(null);
     }
@@ -79,9 +79,9 @@ const MyTasks = ({ userId }: Props) => {
 
   const statusBadge = (status: string) => {
     const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-      pending: { label: "অপেক্ষমাণ", variant: "outline" },
-      in_progress: { label: "কাজ চলছে", variant: "default" },
-      completed: { label: "সম্পন্ন", variant: "secondary" },
+      pending: { label: "Pending", variant: "outline" },
+      in_progress: { label: "In Progress", variant: "default" },
+      completed: { label: "Completed", variant: "secondary" },
     };
     const m = map[status] || { label: status, variant: "outline" as const };
     return <Badge variant={m.variant}>{m.label}</Badge>;
@@ -89,26 +89,25 @@ const MyTasks = ({ userId }: Props) => {
 
   return (
     <div className="space-y-4">
-      {/* Filter Tabs */}
       <div className="flex gap-2">
         <Button
           variant={filter === "active" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("active")}
         >
-          সক্রিয় ({tasks.filter(t => t.status !== "completed").length})
+          Active ({tasks.filter(t => t.status !== "completed").length})
         </Button>
         <Button
           variant={filter === "completed" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("completed")}
         >
-          সম্পন্ন ({tasks.filter(t => t.status === "completed").length})
+          Completed ({tasks.filter(t => t.status === "completed").length})
         </Button>
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-8">কোনো টাস্ক নেই</p>
+        <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
       )}
 
       {filtered.map(task => (
@@ -123,8 +122,8 @@ const MyTasks = ({ userId }: Props) => {
                 {task.due_date && (
                   <p className={`text-xs mt-0.5 flex items-center gap-1 ${isOverdue(task) ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                     <Clock className="h-3 w-3" />
-                    {new Date(task.due_date).toLocaleDateString("bn-BD")}
-                    {isOverdue(task) && " (সময় শেষ)"}
+                    {new Date(task.due_date).toLocaleDateString("en-US")}
+                    {isOverdue(task) && " (Overdue)"}
                   </p>
                 )}
               </div>
@@ -143,27 +142,27 @@ const MyTasks = ({ userId }: Props) => {
                 )}
                 {task.admin_note && (
                   <div className="rounded-md bg-muted/50 p-2">
-                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">অ্যাডমিন নোট</p>
+                    <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Admin Note</p>
                     <p className="text-xs">{task.admin_note}</p>
                   </div>
                 )}
 
                 {task.status === "pending" && (
                   <Button size="sm" onClick={() => acceptTask(task.id)}>
-                    <CheckCircle2 className="h-4 w-4 mr-1" /> টাস্ক গ্রহণ করুন
+                    <CheckCircle2 className="h-4 w-4 mr-1" /> Accept Task
                   </Button>
                 )}
 
                 {task.status === "in_progress" && (
                   <div className="space-y-2">
                     <Textarea
-                      placeholder="রিপোর্ট লিখুন..."
+                      placeholder="Write your report..."
                       value={reportText}
                       onChange={e => setReportText(e.target.value)}
                       rows={3}
                     />
                     <Button size="sm" onClick={() => submitReport(task.id)} disabled={submitting || !reportText.trim()}>
-                      {submitting ? "জমা হচ্ছে..." : "রিপোর্ট জমা দিন"}
+                      {submitting ? "Submitting..." : "Submit Report"}
                     </Button>
                   </div>
                 )}

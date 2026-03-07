@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const { username, otp_code } = await req.json();
 
     if (!username || !otp_code) {
-      return new Response(JSON.stringify({ error: "ইউজারনেম ও OTP দিন" }), {
+      return new Response(JSON.stringify({ error: "Username and OTP are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -25,7 +25,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Find user by username
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("user_id, is_active")
@@ -33,27 +32,26 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!profile) {
-      return new Response(JSON.stringify({ error: "ইউজার পাওয়া যায়নি" }), {
+      return new Response(JSON.stringify({ error: "User not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (profile.is_active) {
-      return new Response(JSON.stringify({ error: "অ্যাকাউন্ট ইতিমধ্যে সক্রিয়" }), {
+      return new Response(JSON.stringify({ error: "Account is already active" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Verify OTP
     const { data: isValid } = await supabaseAdmin.rpc("verify_otp", {
       _user_id: profile.user_id,
       _code: otp_code,
     });
 
     if (!isValid) {
-      return new Response(JSON.stringify({ error: "OTP সঠিক নয় বা মেয়াদ শেষ হয়েছে" }), {
+      return new Response(JSON.stringify({ error: "Invalid or expired OTP" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -62,7 +60,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "অ্যাকাউন্ট সফলভাবে সক্রিয় হয়েছে! এখন লগইন করুন।",
+        message: "Account activated successfully! You can now login.",
       }),
       {
         status: 200,
@@ -70,7 +68,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ error: "সার্ভারে সমস্যা হয়েছে" }), {
+    return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

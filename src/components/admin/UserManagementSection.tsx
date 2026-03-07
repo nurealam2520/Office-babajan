@@ -25,13 +25,13 @@ interface Props {
 }
 
 const DURATION_OPTIONS = [
-  { value: "1h", label: "১ ঘণ্টা" },
-  { value: "6h", label: "৬ ঘণ্টা" },
-  { value: "24h", label: "২৪ ঘণ্টা" },
-  { value: "3d", label: "৩ দিন" },
-  { value: "7d", label: "৭ দিন" },
-  { value: "30d", label: "৩০ দিন" },
-  { value: "permanent", label: "স্থায়ী" },
+  { value: "1h", label: "1 Hour" },
+  { value: "6h", label: "6 Hours" },
+  { value: "24h", label: "24 Hours" },
+  { value: "3d", label: "3 Days" },
+  { value: "7d", label: "7 Days" },
+  { value: "30d", label: "30 Days" },
+  { value: "permanent", label: "Permanent" },
 ];
 
 const getDurationMs = (val: string): number | null => {
@@ -50,22 +50,22 @@ const RESTRICTION_INFO = [
   {
     type: "restrict",
     icon: MessageSquareOff,
-    title: "সীমাবদ্ধ (Restrict)",
+    title: "Restrict",
     color: "text-accent-foreground",
     bgColor: "bg-accent/10",
-    description: "মেসেজ করতে পারবে না (অ্যাডমিন ছাড়া)",
-    allowed: ["✅ টাস্ক দেখা ও সম্পন্ন করা", "✅ রিপোর্ট জমা দেওয়া", "✅ শুধু অ্যাডমিনের সাথে যোগাযোগ"],
-    blocked: ["❌ অন্য মেম্বারদের মেসেজ করা", "❌ ব্রডকাস্ট পাঠানো"],
+    description: "Cannot message (except admin)",
+    allowed: ["✅ View and complete tasks", "✅ Submit reports", "✅ Contact admin only"],
+    blocked: ["❌ Message other members", "❌ Send broadcasts"],
   },
   {
     type: "ban",
     icon: Ban,
-    title: "ব্যান (Ban)",
+    title: "Ban",
     color: "text-destructive",
     bgColor: "bg-destructive/10",
-    description: "অ্যাপে শুধু দেখতে পারবে, কিছু করতে পারবে না",
-    allowed: ["✅ অ্যাপ ওপেন করা", "✅ ড্যাশবোর্ড দেখা"],
-    blocked: ["❌ মেসেজ পাঠানো", "❌ টাস্ক সম্পন্ন করা", "❌ রিপোর্ট জমা দেওয়া", "❌ কোনো অ্যাকশন নেওয়া"],
+    description: "Can only view the app, cannot perform any action",
+    allowed: ["✅ Open the app", "✅ View dashboard"],
+    blocked: ["❌ Send messages", "❌ Complete tasks", "❌ Submit reports", "❌ Perform any action"],
   },
 ];
 
@@ -119,9 +119,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const isProtectedFromAction = (uid: string) => {
     const targetRole = getUserRole(uid);
-    // সুপার অ্যাডমিনকে কেউ কিছু করতে পারবে না
     if (targetRole === "super_admin") return true;
-    // অ্যাডমিনকে শুধু সুপার অ্যাডমিন অ্যাকশন নিতে পারবে
     if (targetRole === "admin" && role !== "super_admin") return true;
     return false;
   };
@@ -152,9 +150,9 @@ const UserManagementSection = ({ userId, role }: Props) => {
     }
 
     if (error) {
-      toast({ title: "ত্রুটি", variant: "destructive" });
+      toast({ title: "Error", variant: "destructive" });
     } else {
-      toast({ title: "সফল", description: `ব্যবহারকারী ${type === "ban" ? "ব্যান" : type === "restrict" ? "সীমাবদ্ধ" : "ডিলিট"} করা হয়েছে` });
+      toast({ title: "Success", description: `User ${type === "ban" ? "banned" : type === "restrict" ? "restricted" : "deleted"}` });
       setActionDialog({ open: false, type: "", user: null });
       setReason("");
       setDuration("24h");
@@ -164,7 +162,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const removeRestriction = async (restrictionId: string) => {
     await supabase.from("user_restrictions").update({ is_active: false }).eq("id", restrictionId);
-    toast({ title: "সফল", description: "নিষেধাজ্ঞা তুলে নেওয়া হয়েছে" });
+    toast({ title: "Success", description: "Restriction removed" });
     fetchData();
   };
 
@@ -186,21 +184,18 @@ const UserManagementSection = ({ userId, role }: Props) => {
     setSavingGroups(true);
     const uid = groupDialog.user.user_id;
 
-    // Delete all existing
     await supabase.from("user_businesses").delete().eq("user_id", uid);
 
-    // Insert new
     if (userGroupIds.length > 0) {
       await supabase.from("user_businesses").insert(
         userGroupIds.map(bizId => ({ user_id: uid, business_id: bizId, assigned_by: userId }))
       );
-      // Update primary business_id on profile
       await supabase.from("profiles").update({ business_id: userGroupIds[0] }).eq("user_id", uid);
     }
 
     setSavingGroups(false);
     setGroupDialog({ open: false, user: null });
-    toast({ title: "সফল", description: "গ্রুপ আপডেট হয়েছে" });
+    toast({ title: "Success", description: "Groups updated" });
   };
 
   const viewConversations = async (user: any) => {
@@ -216,25 +211,25 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const deleteMessage = async (msgId: string) => {
     await supabase.from("messages").update({ is_deleted_by_admin: true }).eq("id", msgId);
-    toast({ title: "মেসেজ মুছে ফেলা হয়েছে" });
+    toast({ title: "Message deleted" });
     if (conversationDialog.user) viewConversations(conversationDialog.user);
   };
 
   const getProfileName = (uid: string | null) => {
-    if (!uid) return "অজানা";
+    if (!uid) return "Unknown";
     const p = profiles.find(p => p.user_id === uid);
     return p ? p.full_name : uid.slice(0, 8);
   };
 
   const getTimeRemaining = (expiresAt: string | null) => {
-    if (!expiresAt) return "স্থায়ী";
+    if (!expiresAt) return "Permanent";
     const diff = new Date(expiresAt).getTime() - Date.now();
-    if (diff <= 0) return "মেয়াদ শেষ";
+    if (diff <= 0) return "Expired";
     const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return `${Math.floor(diff / 60000)} মিনিট বাকি`;
-    if (hours < 24) return `${hours} ঘণ্টা বাকি`;
+    if (hours < 1) return `${Math.floor(diff / 60000)}m remaining`;
+    if (hours < 24) return `${hours}h remaining`;
     const days = Math.floor(hours / 24);
-    return `${days} দিন বাকি`;
+    return `${days}d remaining`;
   };
 
   const restrictedUsers = profiles.filter(p => getRestriction(p.user_id));
@@ -258,39 +253,38 @@ const UserManagementSection = ({ userId, role }: Props) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">ইউজার ম্যানেজমেন্ট</h2>
+        <h2 className="text-lg font-semibold">User Management</h2>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" className="gap-1 text-xs h-7" onClick={() => setInfoOpen(true)}>
-            <Info className="h-3.5 w-3.5" /> নিয়মাবলী
+            <Info className="h-3.5 w-3.5" /> Guidelines
           </Button>
-          <Badge variant="outline">{profiles.length} জন</Badge>
+          <Badge variant="outline">{profiles.length} users</Badge>
         </div>
       </div>
 
-      {/* Sub-tabs for filtering */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
         <TabsList className="w-full justify-start h-8">
           <TabsTrigger value="all" className="text-xs h-7 px-3">
-            সবাই ({profiles.length})
+            All ({profiles.length})
           </TabsTrigger>
           <TabsTrigger value="restricted" className="text-xs h-7 px-3">
-            নিষেধাজ্ঞাপ্রাপ্ত ({restrictedUsers.length})
+            Restricted ({restrictedUsers.length})
           </TabsTrigger>
           <TabsTrigger value="active" className="text-xs h-7 px-3">
-            সক্রিয় ({activeUsers.length})
+            Active ({activeUsers.length})
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="নাম, ইউজারনেম বা নম্বর..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9" />
+        <Input placeholder="Name, username or number..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9" />
       </div>
 
       {loading ? (
-        <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
+        <div className="py-12 text-center text-muted-foreground">Loading...</div>
       ) : filteredProfiles.length === 0 ? (
-        <div className="py-12 text-center text-muted-foreground text-sm">কোন ব্যবহারকারী পাওয়া যায়নি</div>
+        <div className="py-12 text-center text-muted-foreground text-sm">No users found</div>
       ) : (
         <div className="space-y-2">
           {filteredProfiles.map(user => {
@@ -312,49 +306,46 @@ const UserManagementSection = ({ userId, role }: Props) => {
                     <div className="flex gap-1 shrink-0">
                       {(role === "super_admin" || role === "admin") && (
                         <>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="গ্রুপ ম্যানেজ"
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Manage Groups"
                             onClick={() => openGroupDialog(user)}>
                             <Building2 className="h-3.5 w-3.5 text-primary" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="কথোপকথন দেখুন"
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="View Conversations"
                             onClick={() => viewConversations(user)}>
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
                         </>
                       )}
-                      {/* অ্যাডমিন/সুপার অ্যাডমিনদের উপর কোনো অ্যাকশন নেওয়া যাবে না */}
                       {!isProtectedFromAction(user.user_id) && (
                         <>
                           {restriction ? (
                             (role === "super_admin" || role === "admin" || role === "manager") && (
                               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
-                                <ShieldOff className="h-3 w-3" /> সরান
+                                <ShieldOff className="h-3 w-3" /> Remove
                               </Button>
                             )
                           ) : (
                             <>
-                              {/* সুপার অ্যাডমিন ও অ্যাডমিন: ব্যান + রেস্ট্রিকশন + ডিলিট */}
                               {(role === "super_admin" || role === "admin") && (
                                 <>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="ব্যান করুন"
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Ban User"
                                     onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
                                     <Ban className="h-3.5 w-3.5 text-destructive" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Restrict Messages"
                                     onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
                                     <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
                                   </Button>
                                   {role === "super_admin" && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" title="স্থায়ীভাবে ডিলিট"
+                                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Permanently Delete"
                                       onClick={() => setDeleteConfirm(user)}>
                                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                                     </Button>
                                   )}
                                 </>
                               )}
-                              {/* ম্যানেজার: শুধু রেস্ট্রিকশন */}
                               {role === "manager" && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7" title="মেসেজ সীমাবদ্ধ করুন"
+                                <Button variant="ghost" size="icon" className="h-7 w-7" title="Restrict Messages"
                                   onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
                                   <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
                                 </Button>
@@ -365,18 +356,17 @@ const UserManagementSection = ({ userId, role }: Props) => {
                       )}
                     </div>
                   </div>
-                  {/* Restriction detail bar */}
                   {restriction && (
                     <div className="mt-2 flex items-center gap-2 flex-wrap rounded-md bg-destructive/10 px-2.5 py-1.5">
                       <Badge variant="destructive" className="text-[10px]">
-                        {restriction.restriction_type === "ban" ? "🚫 ব্যান" : restriction.restriction_type === "restrict" ? "⚠️ সীমাবদ্ধ" : "🗑️ ডিলিট"}
+                        {restriction.restriction_type === "ban" ? "🚫 Banned" : restriction.restriction_type === "restrict" ? "⚠️ Restricted" : "🗑️ Deleted"}
                       </Badge>
                       <Badge variant="outline" className="text-[10px] gap-1">
                         <Clock className="h-2.5 w-2.5" />
                         {getTimeRemaining(restriction.expires_at)}
                       </Badge>
                       {restriction.reason && (
-                        <span className="text-[10px] text-muted-foreground">কারণ: {restriction.reason}</span>
+                        <span className="text-[10px] text-muted-foreground">Reason: {restriction.reason}</span>
                       )}
                     </div>
                   )}
@@ -391,8 +381,8 @@ const UserManagementSection = ({ userId, role }: Props) => {
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>নিষেধাজ্ঞার ধরন</DialogTitle>
-            <DialogDescription>প্রতিটি নিষেধাজ্ঞায় কী অনুমোদিত ও কী নিষিদ্ধ</DialogDescription>
+            <DialogTitle>Restriction Types</DialogTitle>
+            <DialogDescription>What is allowed and blocked for each restriction</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {RESTRICTION_INFO.map(info => (
@@ -418,33 +408,32 @@ const UserManagementSection = ({ userId, role }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {/* Ban/Restrict Dialog with Duration */}
+      {/* Ban/Restrict Dialog */}
       <Dialog open={actionDialog.open} onOpenChange={o => setActionDialog(p => ({ ...p, open: o }))}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionDialog.type === "ban" ? "🚫 ব্যবহারকারী ব্যান" : "⚠️ মেসেজ সীমাবদ্ধ করুন"}
+              {actionDialog.type === "ban" ? "🚫 Ban User" : "⚠️ Restrict Messages"}
             </DialogTitle>
             <DialogDescription>
               {actionDialog.user?.full_name} (@{actionDialog.user?.username})
             </DialogDescription>
           </DialogHeader>
           
-          {/* Restriction type description card */}
           <Card className={actionDialog.type === "ban" ? "bg-destructive/10 border-destructive/20" : "bg-accent/10 border-accent/20"}>
             <CardContent className="p-3">
               {actionDialog.type === "restrict" ? (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium">সীমাবদ্ধ ব্যবহারকারী যা করতে পারবে:</p>
-                  <p className="text-[11px] text-muted-foreground">✅ টাস্ক সম্পন্ন ও রিপোর্ট জমা</p>
-                  <p className="text-[11px] text-muted-foreground">✅ শুধু অ্যাডমিনের সাথে যোগাযোগ</p>
-                  <p className="text-[11px] text-destructive">❌ অন্য মেম্বারদের মেসেজ করা যাবে না</p>
+                  <p className="text-xs font-medium">Restricted user can:</p>
+                  <p className="text-[11px] text-muted-foreground">✅ Complete tasks & submit reports</p>
+                  <p className="text-[11px] text-muted-foreground">✅ Contact admin only</p>
+                  <p className="text-[11px] text-destructive">❌ Cannot message other members</p>
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium">ব্যান ব্যবহারকারী:</p>
-                  <p className="text-[11px] text-muted-foreground">✅ অ্যাপ ওপেন করে দেখতে পারবে</p>
-                  <p className="text-[11px] text-destructive">❌ মেসেজ, টাস্ক, রিপোর্ট — কিছুই করতে পারবে না</p>
+                  <p className="text-xs font-medium">Banned user:</p>
+                  <p className="text-[11px] text-muted-foreground">✅ Can open and view the app</p>
+                  <p className="text-[11px] text-destructive">❌ Cannot message, complete tasks, or submit reports</p>
                 </div>
               )}
             </CardContent>
@@ -452,7 +441,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-foreground mb-1.5 block">⏱️ সময়সীমা নির্ধারণ করুন</label>
+              <label className="text-xs font-medium text-foreground mb-1.5 block">⏱️ Set Duration</label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger>
                   <SelectValue />
@@ -464,14 +453,14 @@ const UserManagementSection = ({ userId, role }: Props) => {
                 </SelectContent>
               </Select>
             </div>
-            <Textarea placeholder="কারণ (ঐচ্ছিক)" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
+            <Textarea placeholder="Reason (optional)" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setActionDialog({ open: false, type: "", user: null })}>
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> ফিরে যান
+              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Go Back
             </Button>
             <Button variant="destructive" onClick={() => actionDialog.user && applyRestriction(actionDialog.type, actionDialog.user)}>
-              নিশ্চিত করুন
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -481,17 +470,17 @@ const UserManagementSection = ({ userId, role }: Props) => {
       <AlertDialog open={!!deleteConfirm} onOpenChange={o => !o && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>ব্যবহারকারী ডিলিট</AlertDialogTitle>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteConfirm?.full_name} (@{deleteConfirm?.username}) কে স্থায়ীভাবে ডিলিট করবেন?
-              এই নম্বর দিয়ে আর রেজিস্ট্রেশন করা যাবে না।
+              Permanently delete {deleteConfirm?.full_name} (@{deleteConfirm?.username})?
+              This number will be blocked from future registration.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea placeholder="কারণ" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
+          <Textarea placeholder="Reason" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
           <AlertDialogFooter>
-            <AlertDialogCancel>ফিরে যান</AlertDialogCancel>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive" onClick={() => deleteConfirm && applyRestriction("delete", deleteConfirm)}>
-              ডিলিট করুন
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -501,11 +490,11 @@ const UserManagementSection = ({ userId, role }: Props) => {
       <Dialog open={conversationDialog.open} onOpenChange={o => setConversationDialog(p => ({ ...p, open: o }))}>
         <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{conversationDialog.user?.full_name} এর কথোপকথন</DialogTitle>
+            <DialogTitle>{conversationDialog.user?.full_name}'s Conversations</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
             {userMessages.length === 0 ? (
-              <p className="py-8 text-center text-muted-foreground">কোন মেসেজ নেই</p>
+              <p className="py-8 text-center text-muted-foreground">No messages</p>
             ) : (
               userMessages.map(msg => (
                 <div key={msg.id} className={`flex items-start gap-2 rounded-lg border p-2.5 ${msg.is_deleted_by_admin ? "opacity-40" : ""}`}>
@@ -517,7 +506,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
                     </div>
                     <p className="mt-1 text-xs">{msg.content}</p>
                     <p className="mt-1 text-[10px] text-muted-foreground">
-                      {new Date(msg.created_at).toLocaleString("bn-BD")}
+                      {new Date(msg.created_at).toLocaleString("en-US")}
                     </p>
                   </div>
                   {!msg.is_deleted_by_admin && (role === "super_admin" || role === "admin") && (
@@ -537,9 +526,9 @@ const UserManagementSection = ({ userId, role }: Props) => {
       <Dialog open={groupDialog.open} onOpenChange={o => setGroupDialog(p => ({ ...p, open: o }))}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>গ্রুপ ম্যানেজমেন্ট</DialogTitle>
+            <DialogTitle>Group Management</DialogTitle>
             <DialogDescription>
-              {groupDialog.user?.full_name} (@{groupDialog.user?.username}) — গ্রুপ অ্যাসাইন/পরিবর্তন করুন
+              {groupDialog.user?.full_name} (@{groupDialog.user?.username}) — Assign/change groups
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -555,17 +544,17 @@ const UserManagementSection = ({ userId, role }: Props) => {
             ))}
             {userGroupIds.length > 1 && (
               <p className="text-[11px] text-primary">
-                ✅ {userGroupIds.length}টি গ্রুপে থাকবে — ড্যাশবোর্ডে সুইচ করতে পারবে
+                ✅ Will be in {userGroupIds.length} groups — can switch in dashboard
               </p>
             )}
             {userGroupIds.length === 0 && (
-              <p className="text-[11px] text-destructive">⚠️ কমপক্ষে একটি গ্রুপ সিলেক্ট করুন</p>
+              <p className="text-[11px] text-destructive">⚠️ Select at least one group</p>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGroupDialog({ open: false, user: null })}>বাতিল</Button>
+            <Button variant="outline" onClick={() => setGroupDialog({ open: false, user: null })}>Cancel</Button>
             <Button onClick={saveGroups} disabled={savingGroups || userGroupIds.length === 0}>
-              {savingGroups ? "সেভ হচ্ছে..." : "সেভ করুন"}
+              {savingGroups ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

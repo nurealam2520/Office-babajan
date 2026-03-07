@@ -58,9 +58,9 @@ const Dashboard = () => {
   if (!userId) return null;
 
   const tabs = [
-    { id: "tasks", label: "টাস্ক", icon: ClipboardList, badge: taskCount },
-    { id: "attendance", label: "অ্যাটেন্ডেন্স", icon: CalendarCheck },
-    { id: "reports", label: "রিপোর্ট", icon: FileText },
+    { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
+    { id: "attendance", label: "Attendance", icon: CalendarCheck },
+    { id: "reports", label: "Reports", icon: FileText },
   ];
 
   return (
@@ -68,7 +68,7 @@ const Dashboard = () => {
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div>
-            <p className="text-sm font-bold text-foreground">{profile?.full_name || "ড্যাশবোর্ড"}</p>
+            <p className="text-sm font-bold text-foreground">{profile?.full_name || "Dashboard"}</p>
             {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
           </div>
           <div className="flex items-center gap-1">
@@ -84,7 +84,6 @@ const Dashboard = () => {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-4">
-        {/* Desktop Tabs */}
         <div className="mb-4 hidden md:flex gap-2">
           {tabs.map(tab => (
             <Button
@@ -101,7 +100,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
             {tabs.map(tab => (
@@ -119,7 +117,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Current Tab Label (mobile) */}
         <div className="mb-3 flex items-center gap-2 md:hidden">
           {(() => {
             const t = tabs.find(t => t.id === activeTab);
@@ -133,7 +130,6 @@ const Dashboard = () => {
           })()}
         </div>
 
-        {/* Content */}
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}

@@ -13,32 +13,29 @@ Deno.serve(async (req) => {
   try {
     const { full_name, username, password, mobile_number, country_code, business_slug } = await req.json();
 
-    // Validation
     if (!full_name || !username || !password || !mobile_number || !country_code) {
-      return new Response(JSON.stringify({ error: "সকল ফিল্ড পূরণ করুন" }), {
+      return new Response(JSON.stringify({ error: "All fields are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Username: English only, 8-12 chars, must contain a number
     const usernameRegex = /^[a-zA-Z0-9]{8,12}$/;
     if (!usernameRegex.test(username)) {
-      return new Response(JSON.stringify({ error: "ইউজারনেম ৮-১২ অক্ষর, শুধু ইংরেজি অক্ষর ও সংখ্যা" }), {
+      return new Response(JSON.stringify({ error: "Username must be 8-12 characters, English letters and numbers only" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!/[0-9]/.test(username)) {
-      return new Response(JSON.stringify({ error: "ইউজারনেমে কমপক্ষে একটি সংখ্যা থাকতে হবে" }), {
+      return new Response(JSON.stringify({ error: "Username must contain at least one number" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Password: 8-12 chars
     if (password.length < 8 || password.length > 12) {
-      return new Response(JSON.stringify({ error: "পাসওয়ার্ড ৮-১২ অক্ষরের হতে হবে" }), {
+      return new Response(JSON.stringify({ error: "Password must be 8-12 characters" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -49,7 +46,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if username already exists
     const { data: existingUsername } = await supabaseAdmin
       .from("profiles")
       .select("id")
@@ -57,13 +53,12 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existingUsername) {
-      return new Response(JSON.stringify({ error: "এই ইউজারনেম ইতিমধ্যে ব্যবহৃত হয়েছে" }), {
+      return new Response(JSON.stringify({ error: "This username is already taken" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check if mobile already exists
     const fullMobile = `${country_code}${mobile_number}`;
     const { data: existingMobile } = await supabaseAdmin
       .from("profiles")
@@ -72,13 +67,12 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existingMobile) {
-      return new Response(JSON.stringify({ error: "এই মোবাইল নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে" }), {
+      return new Response(JSON.stringify({ error: "An account already exists with this mobile number" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create auth user with fake email
     const fakeEmail = `${username}@myzmessage.app`;
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: fakeEmail,
@@ -87,7 +81,7 @@ Deno.serve(async (req) => {
     });
 
     if (authError) {
-      return new Response(JSON.stringify({ error: "অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে" }), {
+      return new Response(JSON.stringify({ error: "Failed to create account" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -95,7 +89,6 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id;
 
-    // Resolve business_id from slug if provided
     let businessId: string | null = null;
     if (business_slug) {
       const { data: biz } = await supabaseAdmin
@@ -107,7 +100,6 @@ Deno.serve(async (req) => {
       if (biz) businessId = biz.id;
     }
 
-    // Create profile
     const { error: profileError } = await supabaseAdmin.from("profiles").insert({
       user_id: userId,
       full_name,
@@ -119,20 +111,17 @@ Deno.serve(async (req) => {
     });
 
     if (profileError) {
-      // Cleanup: delete auth user
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      return new Response(JSON.stringify({ error: "প্রোফাইল তৈরি করতে সমস্যা হয়েছে" }), {
+      return new Response(JSON.stringify({ error: "Failed to create profile" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Note: Role and OTP will be assigned by admin later via OTP management
-
     return new Response(
       JSON.stringify({
         success: true,
-        message: "রেজিস্ট্রেশন সফল! অ্যাকাউন্ট সক্রিয় করতে অ্যাডমিনের কাছ থেকে OTP সংগ্রহ করুন।",
+        message: "Registration successful! Collect an OTP from your admin to activate your account.",
         user_id: userId,
       }),
       {
@@ -141,7 +130,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ error: "সার্ভারে সমস্যা হয়েছে" }), {
+    return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
