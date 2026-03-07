@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, LogIn, User, Phone, X } from "lucide-react";
-import shahzadaLogo from "@/assets/shahzada-logo.png";
+import officeLogo from "@/assets/office-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -24,8 +24,8 @@ const Login = () => {
   const [notifId, setNotifId] = useState<string | null>(null);
 
   const loginSchema = z.object({
-    login_id: z.string().trim().min(1, "ইউজারনেম বা মোবাইল নম্বর দিন"),
-    password: z.string().min(1, "পাসওয়ার্ড দিন"),
+    login_id: z.string().trim().min(1, "Enter username or mobile number"),
+    password: z.string().min(1, "Enter password"),
   });
 
   type LoginForm = z.infer<typeof loginSchema>;
@@ -86,25 +86,25 @@ const Login = () => {
     try {
       const email = await resolveEmail(data.login_id);
       if (!email) {
-        toast({ title: "ত্রুটি", description: "ইউজার পাওয়া যায়নি", variant: "destructive" });
+        toast({ title: "Error", description: "User not found", variant: "destructive" });
         return;
       }
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password: data.password });
       if (authError) {
-        toast({ title: "ত্রুটি", description: "ইউজারনেম/মোবাইল বা পাসওয়ার্ড ভুল", variant: "destructive" });
+        toast({ title: "Error", description: "Incorrect username/mobile or password", variant: "destructive" });
         return;
       }
       const { data: profile } = await supabase.from("profiles").select("is_active, username").eq("user_id", authData.user.id).maybeSingle();
       if (!profile?.is_active) {
         await supabase.auth.signOut();
-        toast({ title: "অ্যাকাউন্ট নিষ্ক্রিয়", description: "অ্যাডমিনের কাছ থেকে OTP নিয়ে অ্যাকাউন্ট সক্রিয় করুন।", variant: "destructive" });
+        toast({ title: "Account Inactive", description: "Get an OTP from admin to activate your account.", variant: "destructive" });
         navigate("/verify-otp", { state: { username: profile?.username } });
         return;
       }
       const nId = await checkNotifications(authData.user.id);
       if (nId) { setNotifId(nId); } else { navigate("/dashboard"); }
     } catch {
-      toast({ title: "ত্রুটি", description: "সার্ভারে সমস্যা", variant: "destructive" });
+      toast({ title: "Error", description: "Server error", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -116,9 +116,9 @@ const Login = () => {
         <X className="h-5 w-5" />
       </Button>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg md:h-20 md:w-20 border-2 border-primary/20" />
-        <h1 className="text-2xl font-bold text-primary md:text-3xl">Shahzada's Hub</h1>
-        <p className="text-sm text-muted-foreground">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+        <img src={officeLogo} alt="Office Management" className="h-16 w-16 rounded-full object-cover drop-shadow-lg md:h-20 md:w-20 border-2 border-primary/20" />
+        <h1 className="text-2xl font-bold text-primary md:text-3xl">Office Management</h1>
+        <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
       <div className="w-full max-w-sm rounded-xl border bg-card p-5 shadow-md md:max-w-md md:p-8">
@@ -130,20 +130,20 @@ const Login = () => {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center justify-between">
-                    <FormLabel>ইউজারনেম বা মোবাইল</FormLabel>
+                    <FormLabel>Username or Mobile</FormLabel>
                     {inputType !== "empty" && (
                       <Badge variant="secondary" className="gap-1 text-xs font-normal">
                         {inputType === "username" ? (
-                          <><User className="h-3 w-3" /> ইউজারনেম</>
+                          <><User className="h-3 w-3" /> Username</>
                         ) : (
-                          <><Phone className="h-3 w-3" /> মোবাইল</>
+                          <><Phone className="h-3 w-3" /> Mobile</>
                         )}
                       </Badge>
                     )}
                   </div>
                   <FormControl>
                     <Input
-                      placeholder="ইউজারনেম অথবা মোবাইল নম্বর"
+                      placeholder="Username or mobile number"
                       {...field}
                       onChange={(e) => { field.onChange(e); setInputType(detectInputType(e.target.value)); }}
                     />
@@ -157,10 +157,10 @@ const Login = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>পাসওয়ার্ড</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Input type={showPassword ? "text" : "password"} placeholder="পাসওয়ার্ড দিন" {...field} />
+                      <Input type={showPassword ? "text" : "password"} placeholder="Enter password" {...field} />
                       <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -172,26 +172,26 @@ const Login = () => {
             />
             <Button type="submit" className="w-full font-semibold" size="lg" disabled={loading}>
               <LogIn className="h-4 w-4" />
-              {loading ? "অপেক্ষা করুন..." : "লগইন করুন"}
+              {loading ? "Please wait..." : "Login"}
             </Button>
           </form>
         </Form>
         <div className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:justify-between">
-          <Link to="/register" className="font-medium text-primary hover:underline">রেজিস্ট্রেশন করুন</Link>
-          <Link to="/verify-otp" className="font-medium text-primary hover:underline">OTP ভেরিফাই</Link>
+          <Link to="/register" className="font-medium text-primary hover:underline">Register</Link>
+          <Link to="/verify-otp" className="font-medium text-primary hover:underline">Verify OTP</Link>
         </div>
       </div>
 
       <Dialog open={!!notification} onOpenChange={() => {}}>
         <DialogContent className="mx-4 sm:max-w-md [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle className="text-center text-primary">📢 নির্দেশনা</DialogTitle>
-            <DialogDescription className="sr-only">অ্যাডমিনের নির্দেশনা</DialogDescription>
+            <DialogTitle className="text-center text-primary">📢 Notice</DialogTitle>
+            <DialogDescription className="sr-only">Admin notice</DialogDescription>
           </DialogHeader>
           <div className="py-4 text-center text-foreground whitespace-pre-wrap leading-relaxed">{notification?.message}</div>
           {showOkButton && (
             <div className="flex justify-center">
-              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold">ঠিক আছে</Button>
+              <Button onClick={dismissNotification} size="lg" className="px-10 font-semibold">OK</Button>
             </div>
           )}
         </DialogContent>

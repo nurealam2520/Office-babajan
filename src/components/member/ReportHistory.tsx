@@ -33,7 +33,7 @@ const ReportHistory = ({ userId }: Props) => {
       setReports(
         (data || []).map((r: any) => ({
           ...r,
-          task_title: r.tasks?.title || "টাস্ক",
+          task_title: r.tasks?.title || "Task",
         }))
       );
       setLoading(false);
@@ -43,17 +43,17 @@ const ReportHistory = ({ userId }: Props) => {
 
   const statusInfo = (status: string) => {
     const map: Record<string, { label: string; icon: any; color: string }> = {
-      pending: { label: "অপেক্ষমাণ", icon: Clock, color: "text-amber-500" },
-      approved: { label: "অনুমোদিত", icon: CheckCircle, color: "text-primary" },
-      rejected: { label: "প্রত্যাখ্যাত", icon: XCircle, color: "text-destructive" },
+      pending: { label: "Pending", icon: Clock, color: "text-amber-500" },
+      approved: { label: "Approved", icon: CheckCircle, color: "text-primary" },
+      rejected: { label: "Rejected", icon: XCircle, color: "text-destructive" },
     };
     return map[status] || map.pending;
   };
 
-  if (loading) return <p className="text-center text-sm text-muted-foreground py-4">লোড হচ্ছে...</p>;
+  if (loading) return <p className="text-center text-sm text-muted-foreground py-4">Loading...</p>;
 
   if (reports.length === 0) {
-    return <p className="text-center text-sm text-muted-foreground py-8">কোনো রিপোর্ট নেই</p>;
+    return <p className="text-center text-sm text-muted-foreground py-8">No reports found</p>;
   }
 
   return (
@@ -68,7 +68,7 @@ const ReportHistory = ({ userId }: Props) => {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{report.task_title}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {new Date(report.created_at).toLocaleDateString("bn-BD")}
+                    {new Date(report.created_at).toLocaleDateString("en-US")}
                   </p>
                 </div>
                 <Badge variant="outline" className={`gap-1 shrink-0 ${info.color}`}>
@@ -79,7 +79,7 @@ const ReportHistory = ({ userId }: Props) => {
               <p className="text-xs text-muted-foreground line-clamp-2">{report.report_content}</p>
               {report.admin_feedback && (
                 <div className="rounded-md bg-muted/50 p-2">
-                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">অ্যাডমিন ফিডব্যাক</p>
+                  <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Admin Feedback</p>
                   <p className="text-xs">{report.admin_feedback}</p>
                 </div>
               )}

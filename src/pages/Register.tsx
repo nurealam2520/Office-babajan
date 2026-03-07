@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, UserPlus, X } from "lucide-react";
-import shahzadaLogo from "@/assets/shahzada-logo.png";
+import officeLogo from "@/assets/office-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,25 +14,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { countries } from "@/lib/countries";
 
 const registerSchema = z.object({
-  full_name: z.string().trim().min(2, "নাম কমপক্ষে ২ অক্ষরের হতে হবে").max(100, "নাম সর্বোচ্চ ১০০ অক্ষর"),
+  full_name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be at most 100 characters"),
   username: z
     .string()
     .trim()
-    .min(8, "ইউজারনেম কমপক্ষে ৮ অক্ষর")
-    .max(12, "ইউজারনেম সর্বোচ্চ ১২ অক্ষর")
-    .regex(/^[a-zA-Z0-9]+$/, "শুধু ইংরেজি অক্ষর ও সংখ্যা")
-    .refine((val) => /[0-9]/.test(val), "কমপক্ষে একটি সংখ্যা থাকতে হবে"),
+    .min(8, "Username must be at least 8 characters")
+    .max(12, "Username must be at most 12 characters")
+    .regex(/^[a-zA-Z0-9]+$/, "Only English letters and numbers allowed")
+    .refine((val) => /[0-9]/.test(val), "Must contain at least one number"),
   password: z
     .string()
-    .min(8, "পাসওয়ার্ড কমপক্ষে ৮ অক্ষর")
-    .max(12, "পাসওয়ার্ড সর্বোচ্চ ১২ অক্ষর"),
-  country_code: z.string().min(1, "দেশ নির্বাচন করুন"),
+    .min(8, "Password must be at least 8 characters")
+    .max(12, "Password must be at most 12 characters"),
+  country_code: z.string().min(1, "Select a country"),
   mobile_number: z
     .string()
     .trim()
-    .min(6, "সঠিক মোবাইল নম্বর দিন")
-    .max(15, "সঠিক মোবাইল নম্বর দিন")
-    .regex(/^[0-9]+$/, "শুধু সংখ্যা দিন"),
+    .min(6, "Enter a valid mobile number")
+    .max(15, "Enter a valid mobile number")
+    .regex(/^[0-9]+$/, "Only numbers allowed"),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -63,23 +63,23 @@ const Register = () => {
 
       if (error || !result?.success) {
         toast({
-          title: "ত্রুটি",
-          description: result?.error || "রেজিস্ট্রেশনে সমস্যা হয়েছে",
+          title: "Error",
+          description: result?.error || "Registration failed",
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "সফল!",
+        title: "Success!",
         description: result.message,
       });
 
       navigate("/verify-otp", { state: { username: data.username } });
     } catch {
       toast({
-        title: "ত্রুটি",
-        description: "সার্ভারে সমস্যা হয়েছে",
+        title: "Error",
+        description: "Server error",
         variant: "destructive",
       });
     } finally {
@@ -93,9 +93,9 @@ const Register = () => {
         <X className="h-5 w-5" />
       </Button>
       <div className="mb-6 flex flex-col items-center gap-2">
-        <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-16 w-16 rounded-full object-cover drop-shadow-lg border-2 border-primary/20" />
-        <h1 className="text-2xl font-bold text-primary">রেজিস্ট্রেশন</h1>
-        <p className="text-sm text-muted-foreground">নতুন অ্যাকাউন্ট তৈরি করুন</p>
+        <img src={officeLogo} alt="Office Management" className="h-16 w-16 rounded-full object-cover drop-shadow-lg border-2 border-primary/20" />
+        <h1 className="text-2xl font-bold text-primary">Registration</h1>
+        <p className="text-sm text-muted-foreground">Create a new account</p>
       </div>
 
       <div className="w-full max-w-sm rounded-xl border bg-card p-6 shadow-md">
@@ -106,9 +106,9 @@ const Register = () => {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>সম্পূর্ণ নাম</FormLabel>
+                  <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="বাংলা বা ইংরেজিতে নাম" {...field} />
+                    <Input placeholder="Enter your full name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -120,9 +120,9 @@ const Register = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ইউজারনেম</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="ইংরেজি ৮-১২ অক্ষর, সংখ্যা সহ" {...field} />
+                    <Input placeholder="8-12 characters with numbers" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,12 +134,12 @@ const Register = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>পাসওয়ার্ড</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="৮-১২ অক্ষর"
+                        placeholder="8-12 characters"
                         {...field}
                       />
                       <button
@@ -162,11 +162,11 @@ const Register = () => {
                 name="country_code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>মোবাইল নম্বর</FormLabel>
+                    <FormLabel>Mobile Number</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="দেশ নির্বাচন করুন" />
+                          <SelectValue placeholder="Select country" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -188,7 +188,7 @@ const Register = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="মোবাইল নম্বর" type="tel" {...field} />
+                      <Input placeholder="Mobile number" type="tel" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -198,15 +198,15 @@ const Register = () => {
 
             <Button type="submit" className="w-full font-semibold" size="lg" disabled={loading}>
               <UserPlus className="h-4 w-4" />
-              {loading ? "অপেক্ষা করুন..." : "রেজিস্ট্রেশন করুন"}
+              {loading ? "Please wait..." : "Register"}
             </Button>
           </form>
         </Form>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          ইতিমধ্যে অ্যাকাউন্ট আছে?{" "}
+          Already have an account?{" "}
           <Link to="/login" className="font-medium text-primary hover:underline">
-            লগইন করুন
+            Login
           </Link>
         </div>
       </div>

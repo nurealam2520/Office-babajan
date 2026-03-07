@@ -26,7 +26,7 @@ const ManagerDashboard = () => {
 
       const isManager = roles?.some(r => r.role === "manager");
       if (!isManager) {
-        toast({ title: "অনুমতি নেই", variant: "destructive" });
+        toast({ title: "Access Denied", variant: "destructive" });
         navigate("/dashboard");
         return;
       }
@@ -49,7 +49,7 @@ const ManagerDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <span className="text-lg font-bold text-foreground">{profileName || "ম্যানেজার প্যানেল"}</span>
+          <span className="text-lg font-bold text-foreground">{profileName || "Manager Panel"}</span>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
@@ -60,7 +60,7 @@ const ManagerDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 text-center">
-        <p className="text-muted-foreground">স্বাগতম! নতুন ফিচার শীঘ্রই আসছে...</p>
+        <p className="text-muted-foreground">Welcome! New features coming soon...</p>
       </div>
     </div>
   );

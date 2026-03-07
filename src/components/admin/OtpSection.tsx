@@ -92,19 +92,17 @@ const OtpSection = () => {
     navigator.clipboard.writeText(otp);
     setCopiedId(userId);
     setTimeout(() => setCopiedId(null), 2000);
-    toast({ title: "কপি হয়েছে", description: `OTP: ${otp}` });
+    toast({ title: "Copied", description: `OTP: ${otp}` });
   };
 
   const generateOtp = async (user: PendingUser) => {
     if (user.selectedGroups.length === 0) {
-      toast({ title: "ত্রুটি", description: "কমপক্ষে একটি গ্রুপ সিলেক্ট করুন", variant: "destructive" });
+      toast({ title: "Error", description: "Select at least one group", variant: "destructive" });
       return;
     }
 
-    // Set primary business_id on profile (first selected group)
     await supabase.from("profiles").update({ business_id: user.selectedGroups[0] }).eq("user_id", user.user_id);
 
-    // Insert into user_businesses junction table for all selected groups
     const { data: session } = await supabase.auth.getSession();
     const adminId = session?.session?.user?.id;
     
@@ -116,7 +114,6 @@ const OtpSection = () => {
       }, { onConflict: "user_id,business_id" });
     }
 
-    // Assign role
     const roleToAssign = user.selectedRole as "manager" | "member";
     const { data: existingRoles } = await supabase
       .from("user_roles")
@@ -128,24 +125,23 @@ const OtpSection = () => {
       await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign });
     }
 
-    // Generate OTP
     const { data, error } = await supabase.rpc("generate_otp", { _user_id: user.user_id });
     if (error) {
-      toast({ title: "ত্রুটি", description: "OTP তৈরি করতে সমস্যা", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to generate OTP", variant: "destructive" });
       return;
     }
-    toast({ title: "নতুন OTP", description: `OTP: ${data}` });
+    toast({ title: "New OTP", description: `OTP: ${data}` });
     await fetchPendingUsers();
   };
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "এইমাত্র";
-    if (mins < 60) return `${mins} মিনিট আগে`;
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} ঘণ্টা আগে`;
-    return `${Math.floor(hrs / 24)} দিন আগে`;
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
   };
 
   if (loading) {
@@ -159,9 +155,9 @@ const OtpSection = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">OTP ম্যানেজমেন্ট</h2>
+        <h2 className="text-lg font-semibold">OTP Management</h2>
         <Button variant="outline" size="sm" onClick={fetchPendingUsers}>
-          <RefreshCw className="mr-2 h-4 w-4" /> রিফ্রেশ
+          <RefreshCw className="mr-2 h-4 w-4" /> Refresh
         </Button>
       </div>
 
@@ -169,14 +165,14 @@ const OtpSection = () => {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
             <Users className="h-12 w-12" />
-            <p className="text-lg font-medium">কোন অপেক্ষমাণ ব্যবহারকারী নেই</p>
+            <p className="text-lg font-medium">No pending users</p>
           </CardContent>
         </Card>
       ) : (
         <>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            <span>{pendingUsers.length} জন অপেক্ষমাণ</span>
+            <span>{pendingUsers.length} pending</span>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {pendingUsers.map((user) => (
@@ -193,24 +189,22 @@ const OtpSection = () => {
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">📱 {user.mobile_number}</p>
 
-                  {/* Role Selection */}
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1 block">রোল</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Role</label>
                     <Select value={user.selectedRole} onValueChange={(v) => updateUserRole(user.user_id, v)}>
                       <SelectTrigger className="h-9">
-                        <SelectValue placeholder="রোল নির্বাচন" />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="manager">ম্যানেজার</SelectItem>
-                        <SelectItem value="member">ইউসার</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="member">Member</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Multi-Group Selection with Checkboxes */}
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                      গ্রুপ সিলেক্ট করুন (একাধিক হতে পারে)
+                      Select groups (multiple allowed)
                     </label>
                     <div className="space-y-2">
                       {businesses.map(b => (
@@ -228,7 +222,7 @@ const OtpSection = () => {
                     </div>
                     {user.selectedGroups.length > 1 && (
                       <p className="text-[11px] text-primary mt-1">
-                        ✅ {user.selectedGroups.length}টি গ্রুপে যোগ হবে — ড্যাশবোর্ডে সুইচ করতে পারবে
+                        ✅ Will be added to {user.selectedGroups.length} groups — can switch in dashboard
                       </p>
                     )}
                   </div>
@@ -256,7 +250,7 @@ const OtpSection = () => {
                       onClick={() => generateOtp(user)}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      {user.selectedGroups.length === 0 ? "আগে গ্রুপ সিলেক্ট করুন" : "OTP তৈরি করুন"}
+                      {user.selectedGroups.length === 0 ? "Select a group first" : "Generate OTP"}
                     </Button>
                   )}
                 </CardContent>

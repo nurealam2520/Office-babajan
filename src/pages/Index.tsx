@@ -18,22 +18,22 @@ const Index = () => {
           Office Management
         </h1>
         <p className="text-center text-base text-muted-foreground max-w-xs leading-relaxed italic">
-          "আপনার কাজই আপনার পরিচয়, আর আপনার দায়িত্বই আপনার শক্তি।"
+          "Your work is your identity, and your responsibility is your strength."
         </p>
       </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <Button size="lg" className="w-full text-lg font-semibold shadow-md gap-2" onClick={() => navigate("/login")}>
           <LogIn className="h-5 w-5" />
-          লগইন করুন
+          Login
         </Button>
         <Button size="lg" variant="outline" className="w-full text-lg font-semibold gap-2" onClick={() => navigate("/register")}>
           <UserPlus className="h-5 w-5" />
-          রেজিস্ট্রেশন করুন
+          Register
         </Button>
         <Button size="lg" variant="secondary" className="w-full text-lg font-semibold gap-2" onClick={() => navigate("/verify-otp")}>
           <ShieldCheck className="h-5 w-5" />
-          OTP ভেরিফাই
+          Verify OTP
         </Button>
       </div>
     </div>

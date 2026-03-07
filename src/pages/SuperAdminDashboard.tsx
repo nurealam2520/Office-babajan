@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import ThemeToggle from "@/components/ThemeToggle";
 import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
-import shahzadaLogo from "@/assets/shahzada-logo.png";
+import officeLogo from "@/assets/office-logo.png";
 
 type ActiveView = "home" | "otp" | "users";
 
@@ -36,7 +36,7 @@ const SuperAdminDashboard = () => {
       if (isSuperAdmin) setRole("super_admin");
       else if (isAdmin) setRole("admin");
       else {
-        toast({ title: "অনুমতি নেই", variant: "destructive" });
+        toast({ title: "Access Denied", variant: "destructive" });
         navigate("/dashboard");
         return;
       }
@@ -59,9 +59,9 @@ const SuperAdminDashboard = () => {
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <img src={shahzadaLogo} alt="Shahzada's Hub" className="h-8 w-8 rounded-full object-cover" />
+            <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
             <span className="text-lg font-bold text-foreground">
-              {profileName || (role === "super_admin" ? "সুপার অ্যাডমিন" : "অ্যাডমিন")}
+              {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
             </span>
           </div>
           <div className="flex items-center gap-1">
@@ -70,7 +70,7 @@ const SuperAdminDashboard = () => {
                 variant={activeView === "otp" ? "default" : "ghost"}
                 size="icon"
                 onClick={() => setActiveView(activeView === "otp" ? "home" : "otp")}
-                title="OTP ম্যানেজমেন্ট"
+                title="OTP Management"
               >
                 <KeyRound className="h-5 w-5" />
               </Button>
@@ -79,13 +79,13 @@ const SuperAdminDashboard = () => {
               variant={activeView === "users" ? "default" : "ghost"}
               size="icon"
               onClick={() => setActiveView(activeView === "users" ? "home" : "users")}
-              title="ইউজার ম্যানেজমেন্ট"
+              title="User Management"
             >
               <UserCog className="h-5 w-5" />
             </Button>
             <ThemeToggle />
             {activeView !== "home" && (
-              <Button variant="ghost" size="icon" onClick={() => setActiveView("home")} title="হোমে ফিরুন">
+              <Button variant="ghost" size="icon" onClick={() => setActiveView("home")} title="Back to Home">
                 <X className="h-5 w-5" />
               </Button>
             )}
@@ -101,7 +101,7 @@ const SuperAdminDashboard = () => {
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
         {activeView === "home" && (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">স্বাগতম! নতুন ফিচার শীঘ্রই আসছে...</p>
+            <p className="text-muted-foreground">Welcome! New features coming soon...</p>
           </div>
         )}
       </div>
