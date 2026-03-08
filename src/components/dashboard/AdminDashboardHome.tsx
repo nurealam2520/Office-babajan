@@ -40,8 +40,15 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   });
   const [taskDistribution, setTaskDistribution] = useState<{ name: string; value: number }[]>([]);
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; count: number }[]>([]);
-  const [priorityData, setPriorityData] = useState<{ name: string; value: number }[]>([]);
+  const [labelData, setLabelData] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  const LABEL_COLORS: Record<string, string> = {
+    "Live": "hsl(150 60% 40%)",
+    "Advance": "hsl(210 80% 55%)",
+    "Waiting for Goods": "hsl(30 90% 50%)",
+    "No Label": "hsl(var(--muted-foreground))",
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -91,18 +98,16 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         { name: "Overdue", value: overdue },
       ].filter(d => d.value > 0));
 
-      // Priority distribution
-      const priorityCount: Record<string, number> = {};
+      // Label distribution
+      const labelCount: Record<string, number> = { "Live": 0, "Advance": 0, "Waiting for Goods": 0, "No Label": 0 };
       allTasks.forEach(t => {
-        const p = (t as any).priority || "medium";
-        priorityCount[p] = (priorityCount[p] || 0) + 1;
+        const l = (t as any).label;
+        if (l === "live") labelCount["Live"]++;
+        else if (l === "advance") labelCount["Advance"]++;
+        else if (l === "waiting_for_goods") labelCount["Waiting for Goods"]++;
+        else labelCount["No Label"]++;
       });
-      setPriorityData(
-        Object.entries(priorityCount).map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          value,
-        }))
-      );
+      setLabelData(labelCount);
 
       // Attendance trend (last 7 days)
       const days = eachDayOfInterval({
@@ -248,20 +253,24 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
           </CardContent>
         </Card>
 
-        {/* Priority Bar Chart */}
+        {/* Tasks by Label */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tasks by Priority</CardTitle>
+            <CardTitle className="text-sm">Tasks by Label</CardTitle>
           </CardHeader>
           <CardContent>
-            {priorityData.length > 0 ? (
+            {taskDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={priorityData}>
+                <BarChart data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis allowDecimals={false} className="text-xs" />
                   <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {Object.keys(labelData).map((key, i) => (
+                      <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (

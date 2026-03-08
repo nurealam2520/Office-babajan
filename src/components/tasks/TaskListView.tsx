@@ -15,6 +15,7 @@ interface Props {
 const TaskListView = ({ userId, role }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
+  const [staffList, setStaffList] = useState<{ user_id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -33,6 +34,7 @@ const TaskListView = ({ userId, role }: Props) => {
     const profileMap = new Map<string, string>();
     profilesData?.forEach((p) => profileMap.set(p.user_id, p.full_name));
     setProfiles(profileMap);
+    setStaffList(profilesData || []);
 
     setTasks(
       (tasksData || []).map((t: any) => ({
@@ -106,7 +108,7 @@ const TaskListView = ({ userId, role }: Props) => {
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
       ) : viewMode === "table" ? (
-        <TaskTableView tasks={filtered} />
+        <TaskTableView tasks={filtered} staffList={staffList} />
       ) : (
         <div className="space-y-2">
           {filtered.map((task) => (
