@@ -75,6 +75,13 @@ const MemberTaskTableView = ({ tasks, onSelect }: Props) => {
                   <TableCell className="py-2">
                     <Badge className={`text-[10px] ${s.class}`} variant="outline">{s.label}</Badge>
                   </TableCell>
+                  <TableCell className="py-2">
+                    {task.label ? (
+                      <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
+                        {labelLabels[task.label] || task.label}
+                      </Badge>
+                    ) : "—"}
+                  </TableCell>
                   <TableCell className={`text-xs py-2 ${isOverdue ? "text-destructive font-medium" : ""}`}>
                     {fmtDate(task.due_date)}
                     {isOverdue && " ⚠"}
