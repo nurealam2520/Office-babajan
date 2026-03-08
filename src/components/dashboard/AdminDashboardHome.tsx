@@ -91,18 +91,16 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         { name: "Overdue", value: overdue },
       ].filter(d => d.value > 0));
 
-      // Priority distribution
-      const priorityCount: Record<string, number> = {};
+      // Label distribution
+      const labelCount: Record<string, number> = { "Live": 0, "Advance": 0, "Waiting for Goods": 0, "No Label": 0 };
       allTasks.forEach(t => {
-        const p = (t as any).priority || "medium";
-        priorityCount[p] = (priorityCount[p] || 0) + 1;
+        const l = (t as any).label;
+        if (l === "live") labelCount["Live"]++;
+        else if (l === "advance") labelCount["Advance"]++;
+        else if (l === "waiting_for_goods") labelCount["Waiting for Goods"]++;
+        else labelCount["No Label"]++;
       });
-      setPriorityData(
-        Object.entries(priorityCount).map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          value,
-        }))
-      );
+      setLabelData(labelCount);
 
       // Attendance trend (last 7 days)
       const days = eachDayOfInterval({
