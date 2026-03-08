@@ -80,6 +80,7 @@ const ManagerDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeTab === "tasks" && <TaskListView userId={session.user.id} role="manager" />}
+        {activeTab === "chat" && <ChatModule userId={session.user.id} role="manager" />}
       </div>
     </div>
   );
