@@ -81,9 +81,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="text-center flex-1 sm:text-left sm:flex-none">
-            <p className="text-sm font-bold text-foreground">{profile?.full_name || "Dashboard"}</p>
-            {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
+          <div className="flex items-center gap-2">
+            <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
+            <div className="text-left">
+              <p className="text-sm font-bold text-foreground">{profile?.full_name || "Dashboard"}</p>
+              {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
