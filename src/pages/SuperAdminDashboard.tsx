@@ -86,6 +86,14 @@ const SuperAdminDashboard = () => {
               </Button>
             )}
             <Button
+              variant={activeView === "attendance" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveView(activeView === "attendance" ? "home" : "attendance")}
+              title="Attendance & Leave"
+            >
+              <CalendarCheck className="h-5 w-5" />
+            </Button>
+            <Button
               variant={activeView === "users" ? "default" : "ghost"}
               size="icon"
               onClick={() => setActiveView(activeView === "users" ? "home" : "users")}
@@ -108,6 +116,7 @@ const SuperAdminDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} />}
+        {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
         {activeView === "home" && (
