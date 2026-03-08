@@ -48,6 +48,10 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   }, []);
 
   useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
+
+  useEffect(() => {
     fetchData();
     const channel = supabase
       .channel("admin-tasks")
