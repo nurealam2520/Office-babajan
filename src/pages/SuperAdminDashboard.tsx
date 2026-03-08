@@ -160,9 +160,7 @@ const SuperAdminDashboard = () => {
         {activeView === "chat" && <ChatModule userId={session.user.id} role={role} />}
         {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "announcements" && <AnnouncementsModule userId={session.user.id} role={role} />}
-        {activeView === "documents" && <DocumentsModule userId={session.user.id} role={role} />}
         {activeView === "shifts" && <ShiftsModule userId={session.user.id} role={role} />}
-        {activeView === "performance" && <PerformanceModule userId={session.user.id} role={role} />}
         {activeView === "assets" && <AssetsModule userId={session.user.id} role={role} />}
         {activeView === "payroll" && <PayrollModule userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
