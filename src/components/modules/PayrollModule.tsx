@@ -662,7 +662,7 @@ const PayrollModule = ({ userId, role }: Props) => {
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-2 bg-muted/50 rounded p-1.5">
-                  📌 যেমন: {settingsForm.late_threshold_minutes} মিনিটের বেশি লেট হলে Late count হবে। {settingsForm.late_days_for_penalty} দিন Late = {settingsForm.penalty_days_deducted} দিনের বেতন কাটা।
+                  📌 Example: Late after {settingsForm.late_threshold_minutes} min. {settingsForm.late_days_for_penalty} late days = {settingsForm.penalty_days_deducted} day(s) salary deducted.
                 </p>
               </div>
 

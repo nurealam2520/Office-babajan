@@ -222,7 +222,7 @@ const AdminOtpDashboard = () => {
                       onClick={() => regenerateOtp(user.user_id)}
                     >
                       <RefreshCw className="h-4 w-4" />
-                      OTP তৈরি করুন
+                      Generate OTP
                     </Button>
                   )}
                 </CardContent>
