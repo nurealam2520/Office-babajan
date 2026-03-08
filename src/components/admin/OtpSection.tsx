@@ -107,7 +107,39 @@ const OtpSection = () => {
     toast({ title: "Copied", description: `OTP: ${otp}` });
   };
 
-  const generateOtp = async (user: PendingUser) => {
+  const rejectUser = async (user: PendingUser) => {
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            target_user_id: user.user_id,
+            mobile_number: user.mobile_number,
+            reason: "Registration rejected by admin",
+          }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: result.error || "Failed to delete", variant: "destructive" });
+      } else {
+        toast({ title: "Deleted", description: `${user.full_name} has been removed` });
+        await fetchPendingUsers();
+      }
+    } catch {
+      toast({ title: "Error", description: "Server error", variant: "destructive" });
+    }
+    setDeleting(false);
+    setDeleteConfirm(null);
+  };
+
     if (user.selectedGroups.length === 0) {
       toast({ title: "Error", description: "Select at least one group", variant: "destructive" });
       return;
