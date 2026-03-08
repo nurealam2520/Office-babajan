@@ -1,5 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Check, RefreshCw, Users, Clock } from "lucide-react";
+import { Copy, Check, RefreshCw, Users, Clock, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
