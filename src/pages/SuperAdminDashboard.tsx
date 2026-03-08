@@ -54,7 +54,10 @@ const SuperAdminDashboard = () => {
       }
 
       const { data: prof } = await supabase.from("profiles").select("full_name, username").eq("user_id", s.user.id).maybeSingle();
-      if (prof) setProfileName(`${prof.full_name} (${prof.username})`);
+      if (prof) {
+        setProfileName(prof.full_name);
+        setProfileUsername(prof.username);
+      }
     };
     checkAccess();
   }, [navigate, toast]);
