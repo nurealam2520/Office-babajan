@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus } from "lucide-react";
+import { Plus, LayoutList, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import TaskFilters from "./TaskFilters";
 import TaskCard, { type Task } from "./TaskCard";
+import TaskTableView from "./TaskTableView";
 import CreateTaskDialog from "./CreateTaskDialog";
 
 interface Props {
@@ -20,6 +21,7 @@ const TaskListView = ({ userId, role }: Props) => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -70,9 +72,27 @@ const TaskListView = ({ userId, role }: Props) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Task Management</h2>
-        <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4" /> New Task
-        </Button>
+        <div className="flex items-center gap-1">
+          <div className="flex items-center border rounded-md overflow-hidden mr-2">
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              title="Card View"
+            >
+              <LayoutList className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-1.5 ${viewMode === "table" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              title="Excel View"
+            >
+              <Table2 className="h-4 w-4" />
+            </button>
+          </div>
+          <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" /> New Task
+          </Button>
+        </div>
       </div>
 
       <TaskFilters
@@ -89,6 +109,8 @@ const TaskListView = ({ userId, role }: Props) => {
         <p className="text-center text-sm text-muted-foreground py-8">Loading tasks...</p>
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
+      ) : viewMode === "table" ? (
+        <TaskTableView tasks={filtered} />
       ) : (
         <div className="space-y-2">
           {filtered.map((task) => (

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { ClipboardList, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, LayoutList, Table2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import MemberTaskTableView from "@/components/tasks/MemberTaskTableView";
 
 interface Task {
   id: string;
@@ -28,6 +29,7 @@ const MyTasks = ({ userId }: Props) => {
   const [reportText, setReportText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<"active" | "completed">("active");
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
   const fetchTasks = async () => {
     const { data } = await supabase
@@ -89,28 +91,50 @@ const MyTasks = ({ userId }: Props) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Button
-          variant={filter === "active" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("active")}
-        >
-          Active ({tasks.filter(t => t.status !== "completed").length})
-        </Button>
-        <Button
-          variant={filter === "completed" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setFilter("completed")}
-        >
-          Completed ({tasks.filter(t => t.status === "completed").length})
-        </Button>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <Button
+            variant={filter === "active" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("active")}
+          >
+            Active ({tasks.filter(t => t.status !== "completed").length})
+          </Button>
+          <Button
+            variant={filter === "completed" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("completed")}
+          >
+            Completed ({tasks.filter(t => t.status === "completed").length})
+          </Button>
+        </div>
+        <div className="flex items-center border rounded-md overflow-hidden">
+          <button
+            onClick={() => setViewMode("card")}
+            className={`p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+            title="Card View"
+          >
+            <LayoutList className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`p-1.5 ${viewMode === "table" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+            title="Excel View"
+          >
+            <Table2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
       )}
 
-      {filtered.map(task => (
+      {filtered.length > 0 && viewMode === "table" ? (
+        <MemberTaskTableView tasks={filtered} onSelect={(id) => setExpandedId(expandedId === id ? null : id)} />
+      ) : null}
+
+      {filtered.length > 0 && viewMode === "card" ? filtered.map(task => (
         <Card
           key={task.id}
           className={`transition-shadow hover:shadow-md ${isOverdue(task) ? "border-destructive/50" : ""}`}
@@ -170,7 +194,7 @@ const MyTasks = ({ userId }: Props) => {
             )}
           </CardContent>
         </Card>
-      ))}
+      )) : null}
     </div>
   );
 };
