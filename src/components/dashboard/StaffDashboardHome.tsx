@@ -7,6 +7,7 @@ import { startOfDay } from "date-fns";
 
 interface Props {
   userId: string;
+  onNavigate?: (tab: string) => void;
 }
 
 const COLORS = [
