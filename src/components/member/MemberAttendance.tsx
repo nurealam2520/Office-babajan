@@ -103,10 +103,8 @@ const MemberAttendance = ({ userId }: Props) => {
     const { error } = await supabase.from("attendance").insert({
       user_id: userId,
       status: "present",
-      latitude: location.lat,
-      longitude: location.lng,
-      device_info: deviceInfo,
-    } as any);
+      note: `📍 ${location.lat ? `${location.lat.toFixed(4)}, ${location.lng?.toFixed(4)}` : "No location"} | ${deviceInfo}`,
+    });
 
     if (error) {
       toast({ title: "Check-in failed", description: error.message, variant: "destructive" });

@@ -11,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const LABELS = ["live", "advance", "waiting_for_goods"] as const;
+
 const taskSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
   description: z.string().max(2000).optional(),
   assigned_to: z.string().min(1, "Select an assignee"),
   priority: z.string().default("medium"),
   status: z.string().default("pending"),
+  label: z.string().optional(),
   due_date: z.string().optional(),
   planned_date: z.string().optional(),
   budget: z.string().optional(),
@@ -49,7 +52,7 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: "", description: "", assigned_to: "", priority: "medium",
-      status: "pending", due_date: "", planned_date: "", budget: "",
+      status: "pending", label: "", due_date: "", planned_date: "", budget: "",
       credit_line: "", t_security: "", task_number: "", category: "", admin_note: "",
     },
   });
@@ -72,6 +75,7 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
       assigned_by: userId,
       inputter_id: userId,
       priority: data.priority,
+      label: data.label || null,
       status: data.status,
       due_date: data.due_date || null,
       planned_date: data.planned_date || null,
@@ -165,6 +169,22 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
                 <FormItem>
                   <FormLabel>Task ID</FormLabel>
                   <FormControl><Input placeholder="e.g. T-001" {...field} /></FormControl>
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="label" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Label</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Select label" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="live">Live</SelectItem>
+                      <SelectItem value="advance">Advance</SelectItem>
+                      <SelectItem value="waiting_for_goods">Waiting for the Goods</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormItem>
               )} />
 

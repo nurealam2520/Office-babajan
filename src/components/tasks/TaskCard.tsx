@@ -17,6 +17,7 @@ interface Task {
   inputter_id: string | null;
   task_number: string | null;
   category: string | null;
+  label: string | null;
   budget: number | null;
   credit_line: string | null;
   t_security: number | null;
@@ -47,6 +48,18 @@ const statusColors: Record<string, string> = {
   processing: "bg-blue-500/10 text-blue-600",
   ready_to_bid: "bg-violet-500/10 text-violet-600",
   bidded: "bg-teal-500/10 text-teal-600",
+};
+
+const labelColors: Record<string, string> = {
+  live: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  advance: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+  waiting_for_goods: "bg-orange-500/10 text-orange-600 border-orange-500/30",
+};
+
+const labelLabels: Record<string, string> = {
+  live: "Live",
+  advance: "Advance",
+  waiting_for_goods: "Waiting for the Goods",
 };
 
 const statusLabels: Record<string, string> = {
@@ -89,7 +102,12 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            {task.label && (
+              <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
+                {labelLabels[task.label] || task.label}
+              </Badge>
+            )}
             <Badge className={`text-[10px] ${priorityColors[task.priority] || ""}`} variant="outline">
               {task.priority}
             </Badge>
