@@ -653,7 +653,7 @@ const PayrollModule = ({ userId, role }: Props) => {
                   <div>
                     <Label className="text-[11px]">Late Days</Label>
                     <Input type="number" value={settingsForm.late_days_for_penalty} onChange={e => setSettingsForm(p => ({ ...p, late_days_for_penalty: e.target.value }))} className="h-8 text-sm" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">এত দিন লেট হলে</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Late days to trigger penalty</p>
                   </div>
                   <div>
                     <Label className="text-[11px]">Penalty Days</Label>
