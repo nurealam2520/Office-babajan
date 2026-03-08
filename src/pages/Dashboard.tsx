@@ -20,7 +20,7 @@ import officeLogo from "@/assets/office-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string; username: string; employee_id: string | null } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
