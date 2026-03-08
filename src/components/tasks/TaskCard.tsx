@@ -118,12 +118,6 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
                 {labelLabels[task.label] || task.label}
               </Badge>
             )}
-            <Badge className={`text-[10px] ${priorityColors[task.priority] || ""}`} variant="outline">
-              {task.priority}
-            </Badge>
-            <Badge className={`text-[10px] ${statusColors[task.status] || ""}`} variant="outline">
-              {statusLabels[task.status] || task.status}
-            </Badge>
             <button onClick={onToggle} className="p-1 hover:bg-muted rounded">
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
