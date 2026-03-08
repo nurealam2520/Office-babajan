@@ -1,5 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Check, RefreshCw, Users, Clock } from "lucide-react";
+import { Copy, Check, RefreshCw, Users, Clock, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +37,8 @@ const OtpSection = () => {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<PendingUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
@@ -93,6 +105,39 @@ const OtpSection = () => {
     setCopiedId(userId);
     setTimeout(() => setCopiedId(null), 2000);
     toast({ title: "Copied", description: `OTP: ${otp}` });
+  };
+
+  const rejectUser = async (user: PendingUser) => {
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            target_user_id: user.user_id,
+            mobile_number: user.mobile_number,
+            reason: "Registration rejected by admin",
+          }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: "Error", description: result.error || "Failed to delete", variant: "destructive" });
+      } else {
+        toast({ title: "Deleted", description: `${user.full_name} has been removed` });
+        await fetchPendingUsers();
+      }
+    } catch {
+      toast({ title: "Error", description: "Server error", variant: "destructive" });
+    }
+    setDeleting(false);
+    setDeleteConfirm(null);
   };
 
   const generateOtp = async (user: PendingUser) => {
@@ -253,12 +298,43 @@ const OtpSection = () => {
                       {user.selectedGroups.length === 0 ? "Select a group first" : "Generate OTP"}
                     </Button>
                   )}
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setDeleteConfirm(user)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Reject & Delete
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </>
       )}
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject Registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{deleteConfirm?.full_name}</strong> (@{deleteConfirm?.username}) and block their mobile number from re-registering.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirm && rejectUser(deleteConfirm)}
+            >
+              {deleting ? "Deleting..." : "Yes, Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
