@@ -63,6 +63,7 @@ const Dashboard = () => {
     { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
     { id: "leave", label: "Leave", icon: CalendarDays },
+    { id: "chat", label: "Chat", icon: MessageCircle },
     { id: "reports", label: "Reports", icon: FileText },
   ];
 
