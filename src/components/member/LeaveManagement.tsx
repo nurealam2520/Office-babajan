@@ -49,19 +49,19 @@ const LeaveManagement = ({ userId }: Props) => {
   const fetchData = async () => {
     const [{ data: lr }, { data: lt }] = await Promise.all([
       supabase
-        .from("leave_requests")
+        .from("leave_requests" as any)
         .select("*, leave_types(name)")
         .eq("user_id", userId)
         .order("created_at", { ascending: false }),
-      supabase.from("leave_types").select("*").eq("is_active", true),
+      supabase.from("leave_types" as any).select("*").eq("is_active", true),
     ]);
     setRequests(
-      (lr || []).map((r: any) => ({
+      ((lr as any[]) || []).map((r: any) => ({
         ...r,
         leave_type_name: r.leave_types?.name || "General",
       }))
     );
-    setLeaveTypes(lt || []);
+    setLeaveTypes((lt as any[]) || []);
     setLoading(false);
   };
 
@@ -79,13 +79,13 @@ const LeaveManagement = ({ userId }: Props) => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("leave_requests").insert({
+    const { error } = await (supabase.from("leave_requests" as any) as any).insert({
       user_id: userId,
       leave_type_id: selectedType || null,
       start_date: startDate,
       end_date: endDate,
       reason: reason || null,
-    } as any);
+    });
 
     if (error) {
       toast({ title: "Failed to apply", description: error.message, variant: "destructive" });

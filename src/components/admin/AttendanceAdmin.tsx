@@ -67,7 +67,7 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
         .order("check_in", { ascending: false }),
       supabase.from("profiles").select("user_id, full_name"),
       supabase
-        .from("leave_requests")
+        .from("leave_requests" as any)
         .select("*, leave_types(name)")
         .order("created_at", { ascending: false })
         .limit(50),
@@ -78,10 +78,11 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
     setProfiles(profileMap);
 
     setAttendance(
-      (att || []).map((a: any) => ({ ...a, user_name: profileMap.get(a.user_id) || "Unknown" }))
+      ((att as any[]) || []).map((a: any) => ({ ...a, user_name: profileMap.get(a.user_id) || "Unknown" }))
+    );
     );
     setLeaveRequests(
-      (leaves || []).map((l: any) => ({
+      ((leaves as any[]) || []).map((l: any) => ({
         ...l,
         user_name: profileMap.get(l.user_id) || "Unknown",
         leave_type_name: l.leave_types?.name || "General",
@@ -96,13 +97,12 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
 
   const handleLeaveAction = async (action: "approved" | "rejected") => {
     if (!actionDialog.request) return;
-    const { error } = await supabase
-      .from("leave_requests")
+    const { error } = await (supabase.from("leave_requests" as any) as any)
       .update({
         status: action,
         approved_by: userId,
         admin_note: adminNote || null,
-      } as any)
+      })
       .eq("id", actionDialog.request.id);
 
     if (error) {

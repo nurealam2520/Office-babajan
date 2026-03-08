@@ -47,8 +47,8 @@ const MemberAttendance = ({ userId }: Props) => {
         .order("check_in", { ascending: false })
         .limit(7),
     ]);
-    setTodayRecord(todayData?.[0] || null);
-    setRecentRecords(recent || []);
+    setTodayRecord((todayData as any)?.[0] || null);
+    setRecentRecords((recent as any) || []);
     setLoading(false);
   };
 
