@@ -69,20 +69,25 @@ const ManagerDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-foreground hidden sm:inline">{profileName || "Manager Panel"}</span>
           <span className="text-sm font-bold text-foreground sm:hidden text-center flex-1">{profileName || "Manager"}</span>
-          <div className="flex items-center gap-0.5">
-            {navItems.map(item => (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setActiveTab(item.id)}
-                title={item.title}
-              >
-                <item.icon className="h-4 w-4" />
-              </Button>
-            ))}
+          <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-0.5">
+              {navItems.map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setActiveTab(item.id)}
+                  title={item.title}
+                >
+                  <item.icon className="h-4 w-4" />
+                </Button>
+              ))}
+            </div>
             <ThemeToggle />
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
