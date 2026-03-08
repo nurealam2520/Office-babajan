@@ -39,7 +39,7 @@ const AdminOtpDashboard = () => {
 
     const adminRoles = roles?.filter(r => r.role === "admin" || r.role === "super_admin");
     if (!adminRoles?.length) {
-      toast({ title: "অনুমতি নেই", description: "শুধুমাত্র অ্যাডমিন এই পেজ দেখতে পারবে", variant: "destructive" });
+      toast({ title: "Access Denied", description: "Only admins can view this page", variant: "destructive" });
       navigate("/dashboard");
       return false;
     }
