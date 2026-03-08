@@ -49,7 +49,7 @@ const MemberTaskTableView = ({ tasks, onSelect }: Props) => {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="text-xs font-bold min-w-[200px]">Title</TableHead>
-              <TableHead className="text-xs font-bold w-[100px]">Status</TableHead>
+              
               <TableHead className="text-xs font-bold w-[90px]">Label</TableHead>
               <TableHead className="text-xs font-bold w-[110px]">Due Date</TableHead>
               <TableHead className="text-xs font-bold w-[110px]">Created</TableHead>
@@ -71,9 +71,6 @@ const MemberTaskTableView = ({ tasks, onSelect }: Props) => {
                     {task.description && (
                       <p className="text-[10px] text-muted-foreground line-clamp-1">{task.description}</p>
                     )}
-                  </TableCell>
-                  <TableCell className="py-2">
-                    <Badge className={`text-[10px] ${s.class}`} variant="outline">{s.label}</Badge>
                   </TableCell>
                   <TableCell className="py-2">
                     {task.label ? (
