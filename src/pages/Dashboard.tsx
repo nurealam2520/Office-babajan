@@ -9,6 +9,7 @@ import MyTasks from "@/components/member/MyTasks";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
+import ChatModule from "@/components/chat/ChatModule";
 
 const Dashboard = () => {
   const navigate = useNavigate();
