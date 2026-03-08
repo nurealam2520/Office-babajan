@@ -65,11 +65,16 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
     if (search) {
       const q = search.toLowerCase();
+      // Support filtering by label value (e.g. "live", "advance", "waiting_for_goods")
+      if (["live", "advance", "waiting_for_goods"].includes(q)) {
+        return t.label === q;
+      }
       return (
         t.title.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q) ||
         t.task_number?.toLowerCase().includes(q) ||
-        t.assignee_name?.toLowerCase().includes(q)
+        t.assignee_name?.toLowerCase().includes(q) ||
+        t.label?.toLowerCase().includes(q)
       );
     }
     return true;
