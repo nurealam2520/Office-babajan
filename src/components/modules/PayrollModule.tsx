@@ -648,7 +648,7 @@ const PayrollModule = ({ userId, role }: Props) => {
                   <div>
                     <Label className="text-[11px]">Threshold (min)</Label>
                     <Input type="number" value={settingsForm.late_threshold_minutes} onChange={e => setSettingsForm(p => ({ ...p, late_threshold_minutes: e.target.value }))} className="h-8 text-sm" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">এত মিনিট পর Late</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Late after this many minutes</p>
                   </div>
                   <div>
                     <Label className="text-[11px]">Late Days</Label>
