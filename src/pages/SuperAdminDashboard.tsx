@@ -160,7 +160,7 @@ const SuperAdminDashboard = () => {
             <ExportReports userId={session.user.id} role={role} />
           </div>
         )}
-        {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} />}
+        {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} initialSearch={taskSearchFilter} />}
         {activeView === "chat" && <ChatModule userId={session.user.id} role={role} />}
         {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "announcements" && <AnnouncementsModule userId={session.user.id} role={role} />}
