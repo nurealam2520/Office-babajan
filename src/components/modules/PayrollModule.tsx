@@ -526,7 +526,7 @@ const PayrollModule = ({ userId, role }: Props) => {
               <CardTitle className="text-sm">💰 Staff Salary Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-xs text-muted-foreground">প্রতিটি কর্মীর Basic Salary ও Overtime Rate সেট করুন।</p>
+              <p className="text-xs text-muted-foreground">Set Basic Salary and Overtime Rate for each staff member.</p>
               {staffList.map(s => (
                 <div key={s.user_id} className="flex items-center gap-2 py-1.5 border-b border-border/50 last:border-0">
                   <span className="text-sm flex-1 min-w-0 truncate">{s.full_name}</span>
