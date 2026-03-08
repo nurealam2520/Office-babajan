@@ -62,8 +62,9 @@ const Register = () => {
       });
 
       if (error || !result?.success) {
+        const isBlocked = result?.blocked === true;
         toast({
-          title: "Error",
+          title: isBlocked ? "Account Blocked" : "Error",
           description: result?.error || "Registration failed",
           variant: "destructive",
         });
