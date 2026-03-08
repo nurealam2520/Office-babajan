@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ThemeToggle from "@/components/ThemeToggle";
 import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
+import TaskListView from "@/components/tasks/TaskListView";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users";
+type ActiveView = "home" | "otp" | "users" | "tasks";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -65,6 +66,14 @@ const SuperAdminDashboard = () => {
             </span>
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              variant={activeView === "tasks" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveView(activeView === "tasks" ? "home" : "tasks")}
+              title="Task Management"
+            >
+              <ClipboardList className="h-5 w-5" />
+            </Button>
             {role === "super_admin" && (
               <Button
                 variant={activeView === "otp" ? "default" : "ghost"}
@@ -97,11 +106,12 @@ const SuperAdminDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
         {activeView === "home" && (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">Welcome! New features coming soon...</p>
+            <p className="text-muted-foreground">Welcome! Select a module from the header to get started.</p>
           </div>
         )}
       </div>
