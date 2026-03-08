@@ -80,7 +80,6 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
     setAttendance(
       ((att as any[]) || []).map((a: any) => ({ ...a, user_name: profileMap.get(a.user_id) || "Unknown" }))
     );
-    );
     setLeaveRequests(
       ((leaves as any[]) || []).map((l: any) => ({
         ...l,
