@@ -12,6 +12,7 @@ import ExportReports from "@/components/dashboard/ExportReports";
 import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
 import PerformanceModule from "@/components/modules/PerformanceModule";
+import officeLogo from "@/assets/office-logo.png";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const ManagerDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [profileUsername, setProfileUsername] = useState("");
   const [activeTab, setActiveTab] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -41,8 +43,11 @@ const ManagerDashboard = () => {
       }
       setVerified(true);
 
-      const { data: prof } = await supabase.from("profiles").select("full_name").eq("user_id", s.user.id).maybeSingle();
-      if (prof) setProfileName(prof.full_name);
+      const { data: prof } = await supabase.from("profiles").select("full_name, username").eq("user_id", s.user.id).maybeSingle();
+      if (prof) {
+        setProfileName(prof.full_name);
+        setProfileUsername(prof.username);
+      }
     };
     checkAccess();
   }, [navigate, toast]);
@@ -67,8 +72,13 @@ const ManagerDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <span className="text-lg font-bold text-foreground hidden sm:inline">{profileName || "Manager Panel"}</span>
-          <span className="text-sm font-bold text-foreground sm:hidden text-center flex-1">{profileName || "Manager"}</span>
+          <div className="flex items-center gap-2">
+            <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
+            <div className="text-left">
+              <p className="text-sm font-bold text-foreground">{profileName || "Manager Panel"}</p>
+              {profileUsername && <p className="text-[10px] text-muted-foreground">@{profileUsername}</p>}
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <div className="hidden md:flex items-center gap-0.5">
               {navItems.map(item => (
