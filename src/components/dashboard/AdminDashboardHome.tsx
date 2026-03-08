@@ -15,7 +15,7 @@ import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 interface Props {
   userId: string;
   role: "super_admin" | "admin" | "manager" | "staff";
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, search?: string) => void;
 }
 
 const COLORS = [

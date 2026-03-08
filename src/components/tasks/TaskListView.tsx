@@ -13,13 +13,13 @@ interface Props {
   initialSearch?: string;
 }
 
-const TaskListView = ({ userId, role }: Props) => {
+const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
