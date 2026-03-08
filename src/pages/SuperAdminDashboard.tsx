@@ -111,6 +111,20 @@ const SuperAdminDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        <div className="mb-4 hidden md:flex gap-2 flex-wrap">
+          {navItems.map(item => (
+            <Button
+              key={item.id}
+              variant={activeView === item.id ? "default" : "outline"}
+              size="sm"
+              className="gap-2"
+              onClick={() => setActiveView(item.id)}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.title}
+            </Button>
+          ))}
+        </div>
         {mobileMenuOpen && (
           <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
             {navItems.map(item => (
