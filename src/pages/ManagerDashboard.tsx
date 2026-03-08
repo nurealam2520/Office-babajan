@@ -16,7 +16,7 @@ const ManagerDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
-  const [activeTab, setActiveTab] = useState("tasks");
+  const [activeTab, setActiveTab] = useState("home");
 
   useEffect(() => {
     const checkAccess = async () => {
