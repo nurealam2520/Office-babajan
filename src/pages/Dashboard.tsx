@@ -149,7 +149,7 @@ const Dashboard = () => {
         </div>
 
         {activeTab === "home" && <StaffDashboardHome userId={userId} onNavigate={(tab) => setActiveTab(tab)} />}
-        {activeTab === "tasks" && <MyTasks userId={userId} />}
+        {activeTab === "tasks" && <TaskListView userId={userId} role="member" />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
         {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}

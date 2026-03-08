@@ -113,9 +113,11 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
               <Table2 className="h-4 w-4" />
             </button>
           </div>
-          <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> New Task
-          </Button>
+          {role !== "member" && (
+            <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4" /> New Task
+            </Button>
+          )}
         </div>
       </div>
 
