@@ -40,8 +40,15 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   });
   const [taskDistribution, setTaskDistribution] = useState<{ name: string; value: number }[]>([]);
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; count: number }[]>([]);
-  const [priorityData, setPriorityData] = useState<{ name: string; value: number }[]>([]);
+  const [labelData, setLabelData] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+
+  const LABEL_COLORS: Record<string, string> = {
+    "Live": "hsl(150 60% 40%)",
+    "Advance": "hsl(210 80% 55%)",
+    "Waiting for Goods": "hsl(30 90% 50%)",
+    "No Label": "hsl(var(--muted-foreground))",
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
