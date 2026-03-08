@@ -17,7 +17,7 @@ const COLORS = [
   "hsl(45 93% 47%)",
 ];
 
-const StaffDashboardHome = ({ userId }: Props) => {
+const StaffDashboardHome = ({ userId, onNavigate }: Props) => {
   const [stats, setStats] = useState({
     total: 0, pending: 0, inProgress: 0, completed: 0, overdue: 0, checkedIn: false,
   });
