@@ -11,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const LABELS = ["live", "advance", "waiting_for_goods"] as const;
+
 const taskSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
   description: z.string().max(2000).optional(),
   assigned_to: z.string().min(1, "Select an assignee"),
   priority: z.string().default("medium"),
   status: z.string().default("pending"),
+  label: z.string().optional(),
   due_date: z.string().optional(),
   planned_date: z.string().optional(),
   budget: z.string().optional(),
