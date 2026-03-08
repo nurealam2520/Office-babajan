@@ -10,6 +10,8 @@ import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
 import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
 import ChatModule from "@/components/chat/ChatModule";
+import AdminDashboardHome from "@/components/dashboard/AdminDashboardHome";
+import ExportReports from "@/components/dashboard/ExportReports";
 import officeLogo from "@/assets/office-logo.png";
 
 type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat";
