@@ -37,6 +37,8 @@ const OtpSection = () => {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<PendingUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
