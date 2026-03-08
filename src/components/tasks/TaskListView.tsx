@@ -27,8 +27,12 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    let tasksQuery = supabase.from("tasks").select("*").order("created_at", { ascending: false });
+    if (role === "member") {
+      tasksQuery = tasksQuery.eq("assigned_to", userId);
+    }
     const [{ data: tasksData }, { data: profilesData }] = await Promise.all([
-      supabase.from("tasks").select("*").order("created_at", { ascending: false }),
+      tasksQuery,
       supabase.from("profiles").select("user_id, full_name"),
     ]);
 
