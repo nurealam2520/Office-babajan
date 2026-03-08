@@ -140,6 +140,7 @@ const OtpSection = () => {
     setDeleteConfirm(null);
   };
 
+  const generateOtp = async (user: PendingUser) => {
     if (user.selectedGroups.length === 0) {
       toast({ title: "Error", description: "Select at least one group", variant: "destructive" });
       return;
