@@ -102,7 +102,12 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            {task.label && (
+              <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
+                {labelLabels[task.label] || task.label}
+              </Badge>
+            )}
             <Badge className={`text-[10px] ${priorityColors[task.priority] || ""}`} variant="outline">
               {task.priority}
             </Badge>

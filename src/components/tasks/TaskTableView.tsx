@@ -103,6 +103,13 @@ const TaskTableView = ({ tasks }: Props) => {
                       {task.priority}
                     </Badge>
                   </TableCell>
+                  <TableCell className="py-2">
+                    {task.label ? (
+                      <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
+                        {labelLabels[task.label] || task.label}
+                      </Badge>
+                    ) : "—"}
+                  </TableCell>
                   <TableCell className={`text-xs py-2 ${isOverdue ? "text-destructive font-medium" : ""}`}>
                     {fmtDate(task.due_date)}
                   </TableCell>
