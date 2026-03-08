@@ -31,6 +31,7 @@ const SuperAdminDashboard = () => {
   const [activeView, setActiveView] = useState<ActiveView>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileUsername, setProfileUsername] = useState("");
+  const [taskSearchFilter, setTaskSearchFilter] = useState("");
 
   useEffect(() => {
     const checkAccess = async () => {
