@@ -98,10 +98,6 @@ const TaskListView = ({ userId, role }: Props) => {
       <TaskFilters
         search={search}
         onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        priorityFilter={priorityFilter}
-        onPriorityChange={setPriorityFilter}
         totalCount={filtered.length}
       />
 
