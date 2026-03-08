@@ -1,4 +1,7 @@
-import { Clock, User, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { Clock, User, ChevronDown, ChevronUp, AlertTriangle, Tag } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -74,7 +77,14 @@ const statusLabels: Record<string, string> = {
 };
 
 const TaskCard = ({ task, expanded, onToggle }: Props) => {
+  const { toast } = useToast();
   const isOverdue = task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
+
+  const handleLabelChange = async (newLabel: string) => {
+    const labelValue = newLabel === "none" ? null : newLabel;
+    await supabase.from("tasks").update({ label: labelValue } as any).eq("id", task.id);
+    toast({ title: `Label → ${labelValue ? labelLabels[labelValue] : "None"}` });
+  };
 
   return (
     <Card className={`transition-shadow hover:shadow-md ${isOverdue ? "border-destructive/50" : ""}`}>
@@ -176,6 +186,22 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
                 <p className="text-xs">{task.admin_note}</p>
               </div>
             )}
+            {/* Label change */}
+            <div className="flex items-center gap-2">
+              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Label:</span>
+              <Select value={task.label || "none"} onValueChange={handleLabelChange}>
+                <SelectTrigger className="h-7 w-[180px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Label</SelectItem>
+                  <SelectItem value="live">Live</SelectItem>
+                  <SelectItem value="advance">Advance</SelectItem>
+                  <SelectItem value="waiting_for_goods">Waiting for the Goods</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
       </CardContent>
