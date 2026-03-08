@@ -41,9 +41,9 @@ Deno.serve(async (req) => {
       .select("role")
       .eq("user_id", caller.id);
 
-    const isSuperAdmin = roles?.some((r: any) => r.role === "super_admin");
-    if (!isSuperAdmin) {
-      return new Response(JSON.stringify({ error: "Only super admins can delete users" }), {
+    const isAdmin = roles?.some((r: any) => r.role === "super_admin" || r.role === "admin");
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Only admins can delete users" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
