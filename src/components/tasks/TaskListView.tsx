@@ -49,7 +49,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       }))
     );
     setLoading(false);
-  }, []);
+  }, [role, userId]);
 
   useEffect(() => {
     setSearch(initialSearch);
