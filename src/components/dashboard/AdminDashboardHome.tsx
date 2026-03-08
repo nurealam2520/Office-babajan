@@ -15,7 +15,7 @@ import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 interface Props {
   userId: string;
   role: "super_admin" | "admin" | "manager" | "staff";
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, search?: string) => void;
 }
 
 const COLORS = [
@@ -41,6 +41,7 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   const [taskDistribution, setTaskDistribution] = useState<{ name: string; value: number }[]>([]);
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; count: number }[]>([]);
   const [labelData, setLabelData] = useState<Record<string, number>>({});
+  const [userData, setUserData] = useState<{ name: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const LABEL_COLORS: Record<string, string> = {
@@ -59,12 +60,14 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         { data: profiles },
         { data: todayAtt },
         { data: pendingLeaves },
+        { data: profileNames },
       ] = await Promise.all([
-        supabase.from("tasks").select("status, due_date"),
+        supabase.from("tasks").select("status, due_date, label, assigned_to"),
         supabase.from("profiles").select("is_active"),
         supabase.from("attendance").select("id")
           .gte("check_in", startOfDay(new Date()).toISOString()),
         supabase.from("leave_requests" as any).select("id").eq("status", "pending"),
+        supabase.from("profiles").select("user_id, full_name"),
       ]);
 
       const allTasks = tasks || [];
@@ -108,6 +111,21 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         else labelCount["No Label"]++;
       });
       setLabelData(labelCount);
+
+      // Tasks by user
+      const profileMap = new Map<string, string>();
+      (profileNames || []).forEach(p => profileMap.set(p.user_id, p.full_name));
+      const userCount: Record<string, number> = {};
+      allTasks.forEach(t => {
+        const uid = (t as any).assigned_to;
+        const name = profileMap.get(uid) || "Unknown";
+        userCount[name] = (userCount[name] || 0) + 1;
+      });
+      setUserData(
+        Object.entries(userCount)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+      );
 
       // Attendance trend (last 7 days)
       const days = eachDayOfInterval({
@@ -254,14 +272,24 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         </Card>
 
         {/* Tasks by Label */}
-        <Card className="md:col-span-2">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Tasks by Label</CardTitle>
           </CardHeader>
           <CardContent>
-            {taskDistribution.length > 0 ? (
+            {Object.values(labelData).some(v => v > 0) ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}>
+                <BarChart
+                  data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}
+                  onClick={(data) => {
+                    if (data?.activeLabel) {
+                      const labelMap: Record<string, string> = { "Live": "live", "Advance": "advance", "Waiting for Goods": "waiting_for_goods", "No Label": "" };
+                      const searchTerm = data.activeLabel as string;
+                      onNavigate?.("tasks", labelMap[searchTerm] !== undefined ? (labelMap[searchTerm] || "") : searchTerm);
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis allowDecimals={false} className="text-xs" />
@@ -271,6 +299,37 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                       <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
                     ))}
                   </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-10">No task data</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tasks by User */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Tasks by User</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {userData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart
+                  data={userData}
+                  layout="vertical"
+                  onClick={(data) => {
+                    if (data?.activeLabel) {
+                      onNavigate?.("tasks", data.activeLabel as string);
+                    }
+                  }}
+                  className="cursor-pointer"
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" allowDecimals={false} className="text-xs" />
+                  <YAxis dataKey="name" type="category" className="text-xs" width={90} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

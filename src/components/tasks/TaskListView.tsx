@@ -10,15 +10,16 @@ import CreateTaskDialog from "./CreateTaskDialog";
 interface Props {
   userId: string;
   role: "super_admin" | "admin" | "manager";
+  initialSearch?: string;
 }
 
-const TaskListView = ({ userId, role }: Props) => {
+const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
@@ -47,6 +48,10 @@ const TaskListView = ({ userId, role }: Props) => {
   }, []);
 
   useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
+
+  useEffect(() => {
     fetchData();
     const channel = supabase
       .channel("admin-tasks")
@@ -60,11 +65,16 @@ const TaskListView = ({ userId, role }: Props) => {
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
     if (search) {
       const q = search.toLowerCase();
+      // Support filtering by label value (e.g. "live", "advance", "waiting_for_goods")
+      if (["live", "advance", "waiting_for_goods"].includes(q)) {
+        return t.label === q;
+      }
       return (
         t.title.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q) ||
         t.task_number?.toLowerCase().includes(q) ||
-        t.assignee_name?.toLowerCase().includes(q)
+        t.assignee_name?.toLowerCase().includes(q) ||
+        t.label?.toLowerCase().includes(q)
       );
     }
     return true;
