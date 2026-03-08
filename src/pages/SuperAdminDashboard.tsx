@@ -87,6 +87,14 @@ const SuperAdminDashboard = () => {
               </Button>
             )}
             <Button
+              variant={activeView === "chat" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveView(activeView === "chat" ? "home" : "chat")}
+              title="Messages"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+            <Button
               variant={activeView === "attendance" ? "default" : "ghost"}
               size="icon"
               onClick={() => setActiveView(activeView === "attendance" ? "home" : "attendance")}
