@@ -297,12 +297,43 @@ const OtpSection = () => {
                       {user.selectedGroups.length === 0 ? "Select a group first" : "Generate OTP"}
                     </Button>
                   )}
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setDeleteConfirm(user)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Reject & Delete
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </>
       )}
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject Registration?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <strong>{deleteConfirm?.full_name}</strong> (@{deleteConfirm?.username}) and block their mobile number from re-registering.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirm && rejectUser(deleteConfirm)}
+            >
+              {deleting ? "Deleting..." : "Yes, Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
