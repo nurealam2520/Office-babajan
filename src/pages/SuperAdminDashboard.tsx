@@ -91,25 +91,25 @@ const SuperAdminDashboard = () => {
               {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
             </span>
           </div>
-          <div className="flex items-center gap-0.5 overflow-x-auto">
-            {navItems.map(item => (
-              <Button
-                key={item.id}
-                variant={activeView === item.id ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={() => setActiveView(activeView === item.id ? "home" : item.id)}
-                title={item.title}
-              >
-                <item.icon className="h-4 w-4" />
-              </Button>
-            ))}
+          <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-0.5">
+              {navItems.map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeView === item.id ? "default" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => setActiveView(item.id)}
+                  title={item.title}
+                >
+                  <item.icon className="h-4 w-4" />
+                </Button>
+              ))}
+            </div>
             <ThemeToggle />
-            {activeView !== "home" && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActiveView("home")} title="Back">
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
