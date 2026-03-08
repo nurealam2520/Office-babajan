@@ -67,8 +67,6 @@ const TaskTableView = ({ tasks }: Props) => {
               <TableHead className="w-[80px] text-xs font-bold">Task ID</TableHead>
               <TableHead className="min-w-[200px] text-xs font-bold">Description</TableHead>
               <TableHead className="w-[100px] text-xs font-bold">Assign To</TableHead>
-              <TableHead className="w-[90px] text-xs font-bold">Status</TableHead>
-              <TableHead className="w-[90px] text-xs font-bold">Priority</TableHead>
               <TableHead className="w-[90px] text-xs font-bold">Label</TableHead>
               <TableHead className="w-[110px] text-xs font-bold">Due Date</TableHead>
               <TableHead className="w-[110px] text-xs font-bold">P. Date</TableHead>
