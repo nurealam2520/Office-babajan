@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,9 +8,10 @@ import ThemeToggle from "@/components/ThemeToggle";
 import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
+import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
