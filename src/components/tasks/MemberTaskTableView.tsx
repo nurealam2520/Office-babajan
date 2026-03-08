@@ -9,6 +9,7 @@ interface Task {
   status: string;
   due_date: string | null;
   admin_note: string | null;
+  label: string | null;
   created_at: string;
 }
 
