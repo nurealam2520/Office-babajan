@@ -301,6 +301,9 @@ const UserManagementSection = ({ userId, role }: Props) => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm">{user.full_name}</span>
                         <span className="text-xs text-muted-foreground">@{user.username}</span>
+                        {user.employee_id && (
+                          <Badge variant="outline" className="text-[10px]">ID: {user.employee_id}</Badge>
+                        )}
                       </div>
                       <p className="text-[11px] text-muted-foreground">📱 {user.mobile_number}</p>
                     </div>

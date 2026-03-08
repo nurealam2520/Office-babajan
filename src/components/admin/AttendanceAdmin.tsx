@@ -206,8 +206,16 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
                   <Card key={rec.id}>
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{rec.user_name}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <p className="text-sm font-medium">{rec.user_name}</p>
+                            <Badge 
+                              variant={rec.source === "device" ? "default" : "secondary"} 
+                              className="text-[9px] h-4 px-1.5"
+                            >
+                              {rec.source === "device" ? "🔒 Device" : "📱 App"}
+                            </Badge>
+                          </div>
                           <p className="text-[11px] text-muted-foreground">
                             {checkIn} → {checkOut || "Active"}
                             {total && <span className="ml-2 font-medium">({total})</span>}
@@ -216,7 +224,7 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
                             <p className="text-[10px] text-muted-foreground">{rec.device_info}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           {rec.latitude && (
                             <Badge variant="outline" className="text-[9px] gap-1">
                               📍 {rec.latitude.toFixed(2)}, {rec.longitude?.toFixed(2)}
