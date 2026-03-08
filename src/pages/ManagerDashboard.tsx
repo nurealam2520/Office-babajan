@@ -12,6 +12,7 @@ import ExportReports from "@/components/dashboard/ExportReports";
 import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
 import PerformanceModule from "@/components/modules/PerformanceModule";
+import officeLogo from "@/assets/office-logo.png";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
