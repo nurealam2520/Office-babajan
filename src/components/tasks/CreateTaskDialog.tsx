@@ -172,7 +172,21 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
                 </FormItem>
               )} />
 
-              <FormField control={form.control} name="due_date" render={({ field }) => (
+              <FormField control={form.control} name="label" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Label</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Select label" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="live">Live</SelectItem>
+                      <SelectItem value="advance">Advance</SelectItem>
+                      <SelectItem value="waiting_for_goods">Waiting for the Goods</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )} />
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl><Input type="datetime-local" {...field} /></FormControl>
