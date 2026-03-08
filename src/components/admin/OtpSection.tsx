@@ -52,6 +52,26 @@ const OtpSection = () => {
   const [unblocking, setUnblocking] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
+  const fetchBlockedNumbers = useCallback(async () => {
+    const { data } = await supabase
+      .from("blocked_numbers")
+      .select("id, mobile_number, country_code, reason, created_at")
+      .order("created_at", { ascending: false });
+    setBlockedNumbers(data || []);
+  }, []);
+
+  const checkSuperAdmin = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id);
+    if (roles?.some(r => r.role === "super_admin")) {
+      setIsSuperAdmin(true);
+    }
+  }, []);
+
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
     const [{ data: profiles }, { data: biz }] = await Promise.all([
@@ -96,7 +116,11 @@ const OtpSection = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchPendingUsers(); }, [fetchPendingUsers]);
+  useEffect(() => {
+    fetchPendingUsers();
+    checkSuperAdmin();
+    fetchBlockedNumbers();
+  }, [fetchPendingUsers, checkSuperAdmin, fetchBlockedNumbers]);
 
   const updateUserRole = (userId: string, value: string) => {
     setPendingUsers(prev => prev.map(u => u.user_id === userId ? { ...u, selectedRole: value } : u));
