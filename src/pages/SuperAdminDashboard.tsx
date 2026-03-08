@@ -9,9 +9,10 @@ import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
 import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
+import ChatModule from "@/components/chat/ChatModule";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
