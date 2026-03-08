@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
 import TaskListView from "@/components/tasks/TaskListView";
+import ChatModule from "@/components/chat/ChatModule";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
