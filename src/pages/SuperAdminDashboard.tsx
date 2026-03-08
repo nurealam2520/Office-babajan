@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, FileText, Clock, Star, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,14 +13,12 @@ import ChatModule from "@/components/chat/ChatModule";
 import AdminDashboardHome from "@/components/dashboard/AdminDashboardHome";
 import ExportReports from "@/components/dashboard/ExportReports";
 import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
-import DocumentsModule from "@/components/modules/DocumentsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
-import PerformanceModule from "@/components/modules/PerformanceModule";
 import AssetsModule from "@/components/modules/AssetsModule";
 import PayrollModule from "@/components/modules/PayrollModule";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "documents" | "shifts" | "performance" | "assets" | "payroll";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "shifts" | "assets" | "payroll";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -77,9 +75,7 @@ const SuperAdminDashboard = () => {
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "attendance", icon: CalendarCheck, title: "Attendance" },
     { id: "announcements", icon: Megaphone, title: "Announcements" },
-    { id: "documents", icon: FileText, title: "Documents" },
     { id: "shifts", icon: Clock, title: "Shifts" },
-    { id: "performance", icon: Star, title: "Reviews" },
     { id: "assets", icon: Package, title: "Assets" },
     { id: "payroll", icon: DollarSign, title: "Payroll" },
     { id: "users", icon: UserCog, title: "Users" },
@@ -164,9 +160,7 @@ const SuperAdminDashboard = () => {
         {activeView === "chat" && <ChatModule userId={session.user.id} role={role} />}
         {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "announcements" && <AnnouncementsModule userId={session.user.id} role={role} />}
-        {activeView === "documents" && <DocumentsModule userId={session.user.id} role={role} />}
         {activeView === "shifts" && <ShiftsModule userId={session.user.id} role={role} />}
-        {activeView === "performance" && <PerformanceModule userId={session.user.id} role={role} />}
         {activeView === "assets" && <AssetsModule userId={session.user.id} role={role} />}
         {activeView === "payroll" && <PayrollModule userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
