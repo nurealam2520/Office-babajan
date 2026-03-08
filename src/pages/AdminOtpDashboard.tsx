@@ -133,8 +133,8 @@ const AdminOtpDashboard = () => {
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-7 w-7 text-primary" />
             <div>
-              <h1 className="text-xl font-bold text-foreground md:text-2xl">OTP ম্যানেজমেন্ট</h1>
-              <p className="text-sm text-muted-foreground">অপেক্ষমাণ ব্যবহারকারীদের OTP</p>
+              <h1 className="text-xl font-bold text-foreground md:text-2xl">OTP Management</h1>
+              <p className="text-sm text-muted-foreground">OTP for pending users</p>
             </div>
           </div>
           <div className="flex gap-2">
