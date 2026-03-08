@@ -46,11 +46,11 @@ Deno.serve(async (req) => {
       for (const rec of records) {
         // rec should have: { employee_id, timestamp, type: "check_in" | "check_out", method: "fingerprint" | "face" | "rfid" | "pin", device_id? }
         
-        // Look up user by username (employee_id from device maps to username in profiles)
+        // Look up user by employee_id in profiles
         const { data: profile } = await supabase
           .from("profiles")
           .select("user_id")
-          .eq("username", rec.employee_id)
+          .eq("employee_id", rec.employee_id)
           .maybeSingle();
 
         if (!profile) {
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
     if (action === "list_employees") {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("username, full_name, user_id")
+        .select("username, full_name, user_id, employee_id")
         .eq("is_active", true);
 
       return new Response(JSON.stringify({ employees: profiles || [] }), {
