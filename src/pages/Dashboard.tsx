@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,10 @@ import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
 import ChatModule from "@/components/chat/ChatModule";
 import StaffDashboardHome from "@/components/dashboard/StaffDashboardHome";
+import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
+import ShiftsModule from "@/components/modules/ShiftsModule";
+import AssetsModule from "@/components/modules/AssetsModule";
+import PayrollModule from "@/components/modules/PayrollModule";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -66,6 +70,10 @@ const Dashboard = () => {
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
     { id: "leave", label: "Leave", icon: CalendarDays },
     { id: "chat", label: "Chat", icon: MessageCircle },
+    { id: "notices", label: "Notices", icon: Megaphone },
+    { id: "shifts", label: "Shifts", icon: Clock },
+    { id: "payroll", label: "Payroll", icon: DollarSign },
+    { id: "assets", label: "Assets", icon: Package },
     { id: "reports", label: "Reports", icon: FileText },
   ];
 
@@ -73,7 +81,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div>
+          <div className="text-center flex-1 sm:text-left sm:flex-none">
             <p className="text-sm font-bold text-foreground">{profile?.full_name || "Dashboard"}</p>
             {profile && <p className="text-[10px] text-muted-foreground">@{profile.username}</p>}
           </div>
@@ -90,7 +98,7 @@ const Dashboard = () => {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-4">
-        <div className="mb-4 hidden md:flex gap-2">
+        <div className="mb-4 hidden md:flex gap-2 flex-wrap">
           {tabs.map(tab => (
             <Button
               key={tab.id}
@@ -123,7 +131,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        <div className="mb-3 flex items-center gap-2 md:hidden">
+        <div className="mb-3 flex items-center justify-center gap-2 md:hidden">
           {(() => {
             const t = tabs.find(t => t.id === activeTab);
             if (!t) return null;
@@ -141,6 +149,10 @@ const Dashboard = () => {
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
         {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
+        {activeTab === "notices" && <AnnouncementsModule userId={userId} role="staff" />}
+        {activeTab === "shifts" && <ShiftsModule userId={userId} role="staff" />}
+        {activeTab === "payroll" && <PayrollModule userId={userId} role="staff" />}
+        {activeTab === "assets" && <AssetsModule userId={userId} role="staff" />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>
