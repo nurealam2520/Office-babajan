@@ -125,6 +125,7 @@ const SuperAdminDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} />}
+        {activeView === "chat" && <ChatModule userId={session.user.id} role={role} />}
         {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
