@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
             check_in: timestamp,
             status: "present",
             note,
+            source: "device",
           });
 
           results.push({

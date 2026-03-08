@@ -103,6 +103,7 @@ const MemberAttendance = ({ userId }: Props) => {
     const { error } = await supabase.from("attendance").insert({
       user_id: userId,
       status: "present",
+      source: "app",
       note: `📍 ${location.lat ? `${location.lat.toFixed(4)}, ${location.lng?.toFixed(4)}` : "No location"} | ${deviceInfo}`,
     });
 

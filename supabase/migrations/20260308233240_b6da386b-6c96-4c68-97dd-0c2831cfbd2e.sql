@@ -1,0 +1,1 @@
+ALTER TABLE public.attendance ADD COLUMN source text NOT NULL DEFAULT 'app';
