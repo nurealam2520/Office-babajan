@@ -52,7 +52,7 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: "", description: "", assigned_to: "", priority: "medium",
-      status: "pending", due_date: "", planned_date: "", budget: "",
+      status: "pending", label: "", due_date: "", planned_date: "", budget: "",
       credit_line: "", t_security: "", task_number: "", category: "", admin_note: "",
     },
   });
