@@ -118,6 +118,34 @@ const SuperAdminDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        {mobileMenuOpen && (
+          <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
+            {navItems.map(item => (
+              <Button
+                key={item.id}
+                variant={activeView === item.id ? "default" : "outline"}
+                className="flex-col gap-1 h-16 text-xs"
+                onClick={() => { setActiveView(item.id); setMobileMenuOpen(false); }}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.title}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        <div className="mb-3 flex items-center justify-center gap-2 md:hidden">
+          {(() => {
+            const t = navItems.find(t => t.id === activeView);
+            if (!t) return null;
+            return (
+              <Button variant="secondary" size="sm" className="gap-2 pointer-events-none text-xs">
+                <t.icon className="h-4 w-4" />
+                {t.title}
+              </Button>
+            );
+          })()}
+        </div>
         {activeView === "home" && (
           <div className="space-y-6">
             <AdminDashboardHome userId={session.user.id} role={role} onNavigate={(tab) => setActiveView(tab as ActiveView)} />
