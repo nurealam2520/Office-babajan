@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, FileText, Clock, Star, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
