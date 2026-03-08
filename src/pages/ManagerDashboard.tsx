@@ -72,8 +72,13 @@ const ManagerDashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <span className="text-lg font-bold text-foreground hidden sm:inline">{profileName || "Manager Panel"}</span>
-          <span className="text-sm font-bold text-foreground sm:hidden text-center flex-1">{profileName || "Manager"}</span>
+          <div className="flex items-center gap-2">
+            <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
+            <div className="text-left">
+              <p className="text-sm font-bold text-foreground">{profileName || "Manager Panel"}</p>
+              {profileUsername && <p className="text-[10px] text-muted-foreground">@{profileUsername}</p>}
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <div className="hidden md:flex items-center gap-0.5">
               {navItems.map(item => (

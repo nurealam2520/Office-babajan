@@ -15,6 +15,7 @@ import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
 import AssetsModule from "@/components/modules/AssetsModule";
 import PayrollModule from "@/components/modules/PayrollModule";
+import officeLogo from "@/assets/office-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();

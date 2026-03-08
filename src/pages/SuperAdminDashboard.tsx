@@ -91,9 +91,12 @@ const SuperAdminDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
-            <span className="text-lg font-bold text-foreground hidden sm:inline">
-              {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
-            </span>
+            <div className="text-left hidden sm:block">
+              <p className="text-sm font-bold text-foreground">
+                {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
+              </p>
+              {profileUsername && <p className="text-[10px] text-muted-foreground">@{profileUsername}</p>}
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <div className="hidden md:flex items-center gap-0.5">
