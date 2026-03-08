@@ -77,7 +77,14 @@ const statusLabels: Record<string, string> = {
 };
 
 const TaskCard = ({ task, expanded, onToggle }: Props) => {
+  const { toast } = useToast();
   const isOverdue = task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
+
+  const handleLabelChange = async (newLabel: string) => {
+    const labelValue = newLabel === "none" ? null : newLabel;
+    await supabase.from("tasks").update({ label: labelValue } as any).eq("id", task.id);
+    toast({ title: `Label → ${labelValue ? labelLabels[labelValue] : "None"}` });
+  };
 
   return (
     <Card className={`transition-shadow hover:shadow-md ${isOverdue ? "border-destructive/50" : ""}`}>
