@@ -17,6 +17,7 @@ interface Task {
   inputter_id: string | null;
   task_number: string | null;
   category: string | null;
+  label: string | null;
   budget: number | null;
   credit_line: string | null;
   t_security: number | null;
