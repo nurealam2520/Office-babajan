@@ -142,7 +142,7 @@ const AdminOtpDashboard = () => {
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
-              ড্যাশবোর্ড
+              Dashboard
             </Button>
           </div>
         </div>
