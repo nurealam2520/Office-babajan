@@ -20,6 +20,7 @@ const ManagerDashboard = () => {
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [activeTab, setActiveTab] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
