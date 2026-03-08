@@ -244,7 +244,8 @@ const UserManagementSection = ({ userId, role }: Props) => {
     return list.filter(p =>
       p.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.mobile_number.includes(searchQuery)
+      p.mobile_number.includes(searchQuery) ||
+      (p.employee_id && p.employee_id.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   };
 
@@ -278,7 +279,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Name, username or number..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9" />
+        <Input placeholder="Name, username, employee ID or number..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 h-9" />
       </div>
 
       {loading ? (
@@ -300,6 +301,9 @@ const UserManagementSection = ({ userId, role }: Props) => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm">{user.full_name}</span>
                         <span className="text-xs text-muted-foreground">@{user.username}</span>
+                        {user.employee_id && (
+                          <Badge variant="outline" className="text-[10px]">ID: {user.employee_id}</Badge>
+                        )}
                       </div>
                       <p className="text-[11px] text-muted-foreground">📱 {user.mobile_number}</p>
                     </div>
