@@ -136,6 +136,7 @@ const Dashboard = () => {
           })()}
         </div>
 
+        {activeTab === "home" && <StaffDashboardHome userId={userId} />}
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
