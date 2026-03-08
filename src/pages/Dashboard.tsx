@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-import MyTasks from "@/components/member/MyTasks";
+import TaskListView from "@/components/tasks/TaskListView";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
