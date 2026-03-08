@@ -31,6 +31,14 @@ interface PendingUser {
   selectedGroups: string[];
 }
 
+interface BlockedNumber {
+  id: string;
+  mobile_number: string;
+  country_code: string;
+  reason: string | null;
+  created_at: string;
+}
+
 const OtpSection = () => {
   const { toast } = useToast();
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -39,6 +47,10 @@ const OtpSection = () => {
   const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<PendingUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [blockedNumbers, setBlockedNumbers] = useState<BlockedNumber[]>([]);
+  const [unblockConfirm, setUnblockConfirm] = useState<BlockedNumber | null>(null);
+  const [unblocking, setUnblocking] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
