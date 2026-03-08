@@ -67,6 +67,7 @@ const SuperAdminDashboard = () => {
   if (!role || !session) return null;
 
   const navItems: { id: ActiveView; icon: any; title: string; adminOnly?: boolean }[] = [
+    { id: "home", icon: LayoutDashboard, title: "Dashboard" },
     { id: "tasks", icon: ClipboardList, title: "Tasks" },
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "attendance", icon: CalendarCheck, title: "Attendance" },
