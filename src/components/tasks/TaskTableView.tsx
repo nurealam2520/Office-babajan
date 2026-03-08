@@ -92,16 +92,6 @@ const TaskTableView = ({ tasks }: Props) => {
                   </TableCell>
                   <TableCell className="text-xs py-2">{task.assignee_name || "—"}</TableCell>
                   <TableCell className="py-2">
-                    <Badge className={`text-[10px] ${statusColors[task.status] || ""}`} variant="outline">
-                      {statusLabels[task.status] || task.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-2">
-                    <Badge className={`text-[10px] ${priorityColors[task.priority] || ""}`} variant="outline">
-                      {task.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-2">
                     {task.label ? (
                       <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
                         {labelLabels[task.label] || task.label}
