@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
     if (action === "list_employees") {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("username, full_name, user_id")
+        .select("username, full_name, user_id, employee_id")
         .eq("is_active", true);
 
       return new Response(JSON.stringify({ employees: profiles || [] }), {
