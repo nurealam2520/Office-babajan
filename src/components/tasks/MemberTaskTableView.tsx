@@ -24,6 +24,18 @@ const statusMap: Record<string, { label: string; class: string }> = {
   completed: { label: "Completed", class: "bg-emerald-500/10 text-emerald-600" },
 };
 
+const labelColors: Record<string, string> = {
+  live: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  advance: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+  waiting_for_goods: "bg-orange-500/10 text-orange-600 border-orange-500/30",
+};
+
+const labelLabels: Record<string, string> = {
+  live: "Live",
+  advance: "Advance",
+  waiting_for_goods: "Waiting for the Goods",
+};
+
 const fmtDate = (d: string | null) => {
   if (!d) return "";
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
