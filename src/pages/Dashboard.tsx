@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import MyTasks from "@/components/member/MyTasks";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
+import LeaveManagement from "@/components/member/LeaveManagement";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ const Dashboard = () => {
   const tabs = [
     { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
+    { id: "leave", label: "Leave", icon: CalendarDays },
     { id: "reports", label: "Reports", icon: FileText },
   ];
 
@@ -132,6 +134,7 @@ const Dashboard = () => {
 
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
+        {activeTab === "leave" && <LeaveManagement userId={userId} />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>
