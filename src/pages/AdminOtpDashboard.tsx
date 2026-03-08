@@ -107,10 +107,10 @@ const AdminOtpDashboard = () => {
   const regenerateOtp = async (userId: string) => {
     const { data, error } = await supabase.rpc("generate_otp", { _user_id: userId });
     if (error) {
-      toast({ title: "ত্রুটি", description: "OTP তৈরি করতে সমস্যা", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to generate OTP", variant: "destructive" });
       return;
     }
-    toast({ title: "নতুন OTP", description: `OTP: ${data}` });
+    toast({ title: "New OTP", description: `OTP: ${data}` });
     await fetchPendingUsers();
   };
 
