@@ -156,7 +156,7 @@ const SuperAdminDashboard = () => {
         </div>
         {activeView === "home" && (
           <div className="space-y-6">
-            <AdminDashboardHome userId={session.user.id} role={role} onNavigate={(tab) => setActiveView(tab as ActiveView)} />
+            <AdminDashboardHome userId={session.user.id} role={role} onNavigate={(tab, search) => { setTaskSearchFilter(search || ""); setActiveView(tab as ActiveView); }} />
             <ExportReports userId={session.user.id} role={role} />
           </div>
         )}
