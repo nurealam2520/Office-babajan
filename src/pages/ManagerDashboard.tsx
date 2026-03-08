@@ -62,6 +62,14 @@ const ManagerDashboard = () => {
             >
               <ClipboardList className="h-5 w-5" />
             </Button>
+            <Button
+              variant={activeTab === "chat" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveTab("chat")}
+              title="Messages"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
