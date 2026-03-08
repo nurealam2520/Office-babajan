@@ -26,7 +26,7 @@ const COLORS = [
   "hsl(150 60% 40%)",
 ];
 
-const AdminDashboardHome = ({ userId, role }: Props) => {
+const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   const [stats, setStats] = useState({
     totalTasks: 0,
     pendingTasks: 0,
