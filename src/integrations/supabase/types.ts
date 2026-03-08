@@ -483,6 +483,7 @@ export type Database = {
           business_id: string | null
           country_code: string
           created_at: string
+          employee_id: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -497,6 +498,7 @@ export type Database = {
           business_id?: string | null
           country_code?: string
           created_at?: string
+          employee_id?: string | null
           full_name: string
           id?: string
           is_active?: boolean
@@ -511,6 +513,7 @@ export type Database = {
           business_id?: string | null
           country_code?: string
           created_at?: string
+          employee_id?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
