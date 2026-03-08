@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
