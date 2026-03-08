@@ -101,7 +101,7 @@ const AdminOtpDashboard = () => {
     navigator.clipboard.writeText(otp);
     setCopiedId(userId);
     setTimeout(() => setCopiedId(null), 2000);
-    toast({ title: "কপি হয়েছে", description: `OTP: ${otp}` });
+    toast({ title: "Copied", description: `OTP: ${otp}` });
   };
 
   const regenerateOtp = async (userId: string) => {
