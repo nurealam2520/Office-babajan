@@ -24,6 +24,7 @@ interface AttendanceRecord {
   latitude: number | null;
   longitude: number | null;
   device_info: string | null;
+  source: string;
   user_name?: string;
 }
 
