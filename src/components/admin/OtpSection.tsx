@@ -176,6 +176,26 @@ const OtpSection = () => {
     setDeleteConfirm(null);
   };
 
+  const unblockNumber = async (blocked: BlockedNumber) => {
+    setUnblocking(true);
+    try {
+      const { error } = await supabase
+        .from("blocked_numbers")
+        .delete()
+        .eq("id", blocked.id);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Unblocked", description: `${blocked.country_code}${blocked.mobile_number} আনব্লক করা হয়েছে` });
+        await fetchBlockedNumbers();
+      }
+    } catch {
+      toast({ title: "Error", description: "Server error", variant: "destructive" });
+    }
+    setUnblocking(false);
+    setUnblockConfirm(null);
+  };
+
   const generateOtp = async (user: PendingUser) => {
     if (user.selectedGroups.length === 0) {
       toast({ title: "Error", description: "Select at least one group", variant: "destructive" });
