@@ -285,10 +285,9 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
           </CardHeader>
           <CardContent>
             {userData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={Math.max(200, userData.length * 40)}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={userData}
-                  layout="vertical"
                   onClick={(data) => {
                     if (data?.activeLabel) {
                       onNavigate?.("tasks", data.activeLabel as string);
@@ -297,10 +296,10 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                   className="cursor-pointer"
                 >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis type="number" allowDecimals={false} className="text-xs" />
-                  <YAxis dataKey="name" type="category" className="text-xs" width={120} />
+                  <XAxis dataKey="name" className="text-xs" interval={0} angle={-30} textAnchor="end" height={60} />
+                  <YAxis allowDecimals={false} className="text-xs" />
                   <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
