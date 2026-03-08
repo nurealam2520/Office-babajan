@@ -10,6 +10,7 @@ import CreateTaskDialog from "./CreateTaskDialog";
 interface Props {
   userId: string;
   role: "super_admin" | "admin" | "manager";
+  initialSearch?: string;
 }
 
 const TaskListView = ({ userId, role }: Props) => {
