@@ -261,17 +261,13 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
           <CardContent>
             {taskDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={[
-                  ...Object.entries(
-                    tasks_label_count
-                  ).map(([name, value]) => ({ name, value }))
-                ]}>
+                <BarChart data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis allowDecimals={false} className="text-xs" />
                   <Tooltip />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {Object.keys(tasks_label_count).map((key, i) => (
+                    {Object.keys(labelData).map((key, i) => (
                       <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
                     ))}
                   </Bar>
