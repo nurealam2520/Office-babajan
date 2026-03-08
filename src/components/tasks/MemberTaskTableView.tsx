@@ -49,7 +49,7 @@ const MemberTaskTableView = ({ tasks, onSelect }: Props) => {
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="text-xs font-bold min-w-[200px]">Title</TableHead>
-              <TableHead className="text-xs font-bold w-[100px]">Status</TableHead>
+              
               <TableHead className="text-xs font-bold w-[90px]">Label</TableHead>
               <TableHead className="text-xs font-bold w-[110px]">Due Date</TableHead>
               <TableHead className="text-xs font-bold w-[110px]">Created</TableHead>
