@@ -18,7 +18,7 @@ import AssetsModule from "@/components/modules/AssetsModule";
 import PayrollModule from "@/components/modules/PayrollModule";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "documents" | "shifts" | "performance" | "assets" | "payroll";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "shifts" | "assets" | "payroll";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
