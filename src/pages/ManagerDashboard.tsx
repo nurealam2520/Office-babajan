@@ -57,6 +57,14 @@ const ManagerDashboard = () => {
           <span className="text-lg font-bold text-foreground">{profileName || "Manager Panel"}</span>
           <div className="flex items-center gap-1">
             <Button
+              variant={activeTab === "home" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveTab("home")}
+              title="Dashboard"
+            >
+              <LayoutDashboard className="h-5 w-5" />
+            </Button>
+            <Button
               variant={activeTab === "tasks" ? "default" : "ghost"}
               size="icon"
               onClick={() => setActiveTab("tasks")}
