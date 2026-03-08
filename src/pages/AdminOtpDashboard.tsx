@@ -117,11 +117,11 @@ const AdminOtpDashboard = () => {
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "এইমাত্র";
-    if (mins < 60) return `${mins} মিনিট আগে`;
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} min ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} ঘণ্টা আগে`;
-    return `${Math.floor(hrs / 24)} দিন আগে`;
+    if (hrs < 24) return `${hrs} hr ago`;
+    return `${Math.floor(hrs / 24)} days ago`;
   };
 
   if (!isAdmin) return null;
