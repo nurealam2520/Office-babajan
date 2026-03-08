@@ -74,7 +74,11 @@ const StaffDashboardHome = ({ userId, onNavigate }: Props) => {
 
       <div className="grid grid-cols-2 gap-3">
         {cards.map(c => (
-          <Card key={c.label}>
+          <Card
+            key={c.label}
+            className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => onNavigate?.(c.tab)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
