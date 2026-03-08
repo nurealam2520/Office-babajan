@@ -458,7 +458,7 @@ const PayrollModule = ({ userId, role }: Props) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                Attendance ডেটা থেকে অটো payroll তৈরি হবে। প্রতিটি কর্মীর basic salary প্রোফাইলে সেট থাকতে হবে।
+                Payroll will be auto-generated from attendance data. Each staff member's basic salary must be set in their profile.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
