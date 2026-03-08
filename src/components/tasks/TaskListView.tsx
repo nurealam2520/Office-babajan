@@ -15,6 +15,7 @@ interface Props {
 const TaskListView = ({ userId, role }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
+  const [staffList, setStaffList] = useState<{ user_id: string; full_name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
