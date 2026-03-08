@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ClipboardList, CalendarCheck } from "lucide-react";
+import { LogOut, ClipboardList, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
 import TaskListView from "@/components/tasks/TaskListView";
+import ChatModule from "@/components/chat/ChatModule";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -61,6 +62,14 @@ const ManagerDashboard = () => {
             >
               <ClipboardList className="h-5 w-5" />
             </Button>
+            <Button
+              variant={activeTab === "chat" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveTab("chat")}
+              title="Messages"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
@@ -71,6 +80,7 @@ const ManagerDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeTab === "tasks" && <TaskListView userId={session.user.id} role="manager" />}
+        {activeTab === "chat" && <ChatModule userId={session.user.id} role="manager" />}
       </div>
     </div>
   );

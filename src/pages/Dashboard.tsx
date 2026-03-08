@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import MyTasks from "@/components/member/MyTasks";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
+import ChatModule from "@/components/chat/ChatModule";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ const Dashboard = () => {
     { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
     { id: "leave", label: "Leave", icon: CalendarDays },
+    { id: "chat", label: "Chat", icon: MessageCircle },
     { id: "reports", label: "Reports", icon: FileText },
   ];
 
@@ -135,6 +137,7 @@ const Dashboard = () => {
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
+        {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>

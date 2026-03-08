@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -9,9 +9,10 @@ import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
 import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
+import ChatModule from "@/components/chat/ChatModule";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -86,6 +87,14 @@ const SuperAdminDashboard = () => {
               </Button>
             )}
             <Button
+              variant={activeView === "chat" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveView(activeView === "chat" ? "home" : "chat")}
+              title="Messages"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+            <Button
               variant={activeView === "attendance" ? "default" : "ghost"}
               size="icon"
               onClick={() => setActiveView(activeView === "attendance" ? "home" : "attendance")}
@@ -116,6 +125,7 @@ const SuperAdminDashboard = () => {
 
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeView === "tasks" && <TaskListView userId={session.user.id} role={role} />}
+        {activeView === "chat" && <ChatModule userId={session.user.id} role={role} />}
         {activeView === "attendance" && <AttendanceAdmin userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
