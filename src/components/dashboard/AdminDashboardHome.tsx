@@ -41,6 +41,7 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   const [taskDistribution, setTaskDistribution] = useState<{ name: string; value: number }[]>([]);
   const [attendanceTrend, setAttendanceTrend] = useState<{ date: string; count: number }[]>([]);
   const [labelData, setLabelData] = useState<Record<string, number>>({});
+  const [userData, setUserData] = useState<{ name: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const LABEL_COLORS: Record<string, string> = {
