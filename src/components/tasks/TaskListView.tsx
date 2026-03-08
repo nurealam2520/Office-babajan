@@ -65,9 +65,17 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
     if (search) {
       const q = search.toLowerCase();
-      // Support filtering by label value (e.g. "live", "advance", "waiting_for_goods")
+      // Filter by label value
       if (["live", "advance", "waiting_for_goods"].includes(q)) {
         return t.label === q;
+      }
+      // Filter by status
+      if (["pending", "in_progress", "completed", "cancelled", "issues", "processing", "ready_to_bid", "bidded"].includes(q)) {
+        return t.status === q;
+      }
+      // Filter overdue tasks
+      if (q === "overdue") {
+        return t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed";
       }
       return (
         t.title.toLowerCase().includes(q) ||

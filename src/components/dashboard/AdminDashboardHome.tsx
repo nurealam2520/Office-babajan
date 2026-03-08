@@ -232,6 +232,18 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                     paddingAngle={4}
                     dataKey="value"
                     label={({ name, value }) => `${name}: ${value}`}
+                    className="cursor-pointer"
+                    onClick={(data) => {
+                      if (data?.name) {
+                        const statusMap: Record<string, string> = {
+                          "Pending": "pending",
+                          "In Progress": "in_progress",
+                          "Completed": "completed",
+                          "Overdue": "overdue",
+                        };
+                        onNavigate?.("tasks", statusMap[data.name] || data.name);
+                      }
+                    }}
                   >
                     {taskDistribution.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
