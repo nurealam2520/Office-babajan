@@ -20,6 +20,7 @@ const ManagerDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [profileUsername, setProfileUsername] = useState("");
   const [activeTab, setActiveTab] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
