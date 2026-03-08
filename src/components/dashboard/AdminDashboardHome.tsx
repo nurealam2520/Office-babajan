@@ -214,17 +214,17 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Task Status Pie */}
+        {/* Tasks by Label - Pie Chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Task Distribution</CardTitle>
+            <CardTitle className="text-sm">Tasks by Label</CardTitle>
           </CardHeader>
           <CardContent>
-            {taskDistribution.length > 0 ? (
+            {Object.values(labelData).some(v => v > 0) ? (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie
-                    data={taskDistribution}
+                    data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -235,18 +235,13 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                     className="cursor-pointer"
                     onClick={(data) => {
                       if (data?.name) {
-                        const statusMap: Record<string, string> = {
-                          "Pending": "pending",
-                          "In Progress": "in_progress",
-                          "Completed": "completed",
-                          "Overdue": "overdue",
-                        };
-                        onNavigate?.("tasks", statusMap[data.name] || data.name);
+                        const labelMap: Record<string, string> = { "Live": "live", "Advance": "advance", "Waiting for Goods": "waiting_for_goods", "No Label": "" };
+                        onNavigate?.("tasks", labelMap[data.name] !== undefined ? (labelMap[data.name] || "") : data.name);
                       }
                     }}
                   >
-                    {taskDistribution.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    {Object.keys(labelData).map((key, i) => (
+                      <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <Legend />
@@ -254,7 +249,7 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-10">No tasks yet</p>
+              <p className="text-sm text-muted-foreground text-center py-10">No task data</p>
             )}
           </CardContent>
         </Card>
@@ -283,50 +278,14 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
           </CardContent>
         </Card>
 
-        {/* Tasks by Label */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tasks by Label</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {Object.values(labelData).some(v => v > 0) ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart
-                  data={Object.entries(labelData).map(([name, value]) => ({ name, value }))}
-                  onClick={(data) => {
-                    if (data?.activeLabel) {
-                      const labelMap: Record<string, string> = { "Live": "live", "Advance": "advance", "Waiting for Goods": "waiting_for_goods", "No Label": "" };
-                      const searchTerm = data.activeLabel as string;
-                      onNavigate?.("tasks", labelMap[searchTerm] !== undefined ? (labelMap[searchTerm] || "") : searchTerm);
-                    }
-                  }}
-                  className="cursor-pointer"
-                >
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-xs" />
-                  <YAxis allowDecimals={false} className="text-xs" />
-                  <Tooltip />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {Object.keys(labelData).map((key, i) => (
-                      <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-10">No task data</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tasks by User */}
-        <Card>
+        {/* Tasks by User - Full Width */}
+        <Card className="md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Tasks by User</CardTitle>
           </CardHeader>
           <CardContent>
             {userData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={Math.max(200, userData.length * 40)}>
                 <BarChart
                   data={userData}
                   layout="vertical"
@@ -339,7 +298,7 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
                 >
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis type="number" allowDecimals={false} className="text-xs" />
-                  <YAxis dataKey="name" type="category" className="text-xs" width={90} />
+                  <YAxis dataKey="name" type="category" className="text-xs" width={120} />
                   <Tooltip />
                   <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                 </BarChart>
