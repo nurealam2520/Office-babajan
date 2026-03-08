@@ -60,12 +60,14 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
         { data: profiles },
         { data: todayAtt },
         { data: pendingLeaves },
+        { data: profileNames },
       ] = await Promise.all([
-        supabase.from("tasks").select("status, due_date"),
+        supabase.from("tasks").select("status, due_date, label, assigned_to"),
         supabase.from("profiles").select("is_active"),
         supabase.from("attendance").select("id")
           .gte("check_in", startOfDay(new Date()).toISOString()),
         supabase.from("leave_requests" as any).select("id").eq("status", "pending"),
+        supabase.from("profiles").select("user_id, full_name"),
       ]);
 
       const allTasks = tasks || [];
