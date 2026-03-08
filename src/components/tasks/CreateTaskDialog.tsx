@@ -75,6 +75,7 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
       assigned_by: userId,
       inputter_id: userId,
       priority: data.priority,
+      label: data.label || null,
       status: data.status,
       due_date: data.due_date || null,
       planned_date: data.planned_date || null,
