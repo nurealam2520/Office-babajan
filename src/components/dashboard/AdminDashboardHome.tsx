@@ -154,14 +154,14 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
   }
 
   const statCards = [
-    { label: "Total Tasks", value: stats.totalTasks, icon: ClipboardList, color: "text-primary" },
-    { label: "In Progress", value: stats.inProgressTasks, icon: Clock, color: "text-blue-500" },
-    { label: "Completed", value: stats.completedTasks, icon: CheckCircle2, color: "text-green-500" },
-    { label: "Overdue", value: stats.overdueTasks, icon: AlertTriangle, color: "text-destructive" },
-    { label: "Active Users", value: stats.activeUsers, icon: Users, color: "text-primary" },
-    { label: "Today Attendance", value: stats.todayAttendance, icon: CalendarCheck, color: "text-green-500" },
-    { label: "Pending Leaves", value: stats.pendingLeaves, icon: TrendingUp, color: "text-yellow-500" },
-    { label: "Total Users", value: stats.totalUsers, icon: BarChart3, color: "text-muted-foreground" },
+    { label: "Total Tasks", value: stats.totalTasks, icon: ClipboardList, color: "text-primary", tab: "tasks" },
+    { label: "In Progress", value: stats.inProgressTasks, icon: Clock, color: "text-blue-500", tab: "tasks" },
+    { label: "Completed", value: stats.completedTasks, icon: CheckCircle2, color: "text-green-500", tab: "tasks" },
+    { label: "Overdue", value: stats.overdueTasks, icon: AlertTriangle, color: "text-destructive", tab: "tasks" },
+    { label: "Active Users", value: stats.activeUsers, icon: Users, color: "text-primary", tab: "users" },
+    { label: "Today Attendance", value: stats.todayAttendance, icon: CalendarCheck, color: "text-green-500", tab: "attendance" },
+    { label: "Pending Leaves", value: stats.pendingLeaves, icon: TrendingUp, color: "text-yellow-500", tab: "shifts" },
+    { label: "Total Users", value: stats.totalUsers, icon: BarChart3, color: "text-muted-foreground", tab: "users" },
   ];
 
   return (
@@ -171,7 +171,11 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {statCards.map(card => (
-          <Card key={card.label}>
+          <Card
+            key={card.label}
+            className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => onNavigate?.(card.tab)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
