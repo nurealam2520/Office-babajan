@@ -30,6 +30,7 @@ const SuperAdminDashboard = () => {
   const [profileName, setProfileName] = useState("");
   const [activeView, setActiveView] = useState<ActiveView>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileUsername, setProfileUsername] = useState("");
 
   useEffect(() => {
     const checkAccess = async () => {
