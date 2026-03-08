@@ -66,7 +66,7 @@ const OtpSection = () => {
       ...p,
       otp_code: otpMap.get(p.user_id)?.code || null,
       otp_created_at: otpMap.get(p.user_id)?.created_at || null,
-      selectedRole: "member",
+      selectedRole: "staff",
       selectedGroups: [],
     })));
     setLoading(false);
@@ -114,15 +114,15 @@ const OtpSection = () => {
       }, { onConflict: "user_id,business_id" });
     }
 
-    const roleToAssign = user.selectedRole as "manager" | "member";
+    const roleToAssign = user.selectedRole;
     const { data: existingRoles } = await supabase
       .from("user_roles")
       .select("id")
       .eq("user_id", user.user_id)
-      .eq("role", roleToAssign);
+      .eq("role", roleToAssign as any);
 
     if (!existingRoles?.length) {
-      await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign });
+      await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign } as any);
     }
 
     const { data, error } = await supabase.rpc("generate_otp", { _user_id: user.user_id });
@@ -197,7 +197,7 @@ const OtpSection = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="member">Member</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

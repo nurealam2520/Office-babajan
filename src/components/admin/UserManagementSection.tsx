@@ -114,7 +114,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const getUserRole = (uid: string): string => {
     const r = userRoles.find(r => r.user_id === uid);
-    return r?.role || "member";
+    return r?.role || "staff";
   };
 
   const isProtectedFromAction = (uid: string) => {

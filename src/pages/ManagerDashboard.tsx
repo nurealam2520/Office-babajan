@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, ClipboardList, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
+import TaskListView from "@/components/tasks/TaskListView";
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ const ManagerDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [activeTab, setActiveTab] = useState("tasks");
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -51,6 +53,14 @@ const ManagerDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-foreground">{profileName || "Manager Panel"}</span>
           <div className="flex items-center gap-1">
+            <Button
+              variant={activeTab === "tasks" ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setActiveTab("tasks")}
+              title="Tasks"
+            >
+              <ClipboardList className="h-5 w-5" />
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
@@ -59,8 +69,8 @@ const ManagerDashboard = () => {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 text-center">
-        <p className="text-muted-foreground">Welcome! New features coming soon...</p>
+      <div className="mx-auto max-w-7xl px-4 py-4">
+        {activeTab === "tasks" && <TaskListView userId={session.user.id} role="manager" />}
       </div>
     </div>
   );
