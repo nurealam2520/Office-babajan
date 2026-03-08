@@ -470,17 +470,46 @@ const UserManagementSection = ({ userId, role }: Props) => {
       <AlertDialog open={!!deleteConfirm} onOpenChange={o => !o && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>🗑️ Permanently Delete User</AlertDialogTitle>
             <AlertDialogDescription>
               Permanently delete {deleteConfirm?.full_name} (@{deleteConfirm?.username})?
-              This number will be blocked from future registration.
+              This will instantly remove the user and block their number from future registration.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea placeholder="Reason" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
+          <Textarea placeholder="Reason (optional)" value={reason} onChange={e => setReason(e.target.value)} rows={2} />
           <AlertDialogFooter>
             <AlertDialogCancel>Go Back</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive" onClick={() => deleteConfirm && applyRestriction("delete", deleteConfirm)}>
-              Delete
+            <AlertDialogAction className="bg-destructive" onClick={async () => {
+              if (!deleteConfirm) return;
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session?.access_token}`,
+                  },
+                  body: JSON.stringify({
+                    target_user_id: deleteConfirm.user_id,
+                    reason: reason || null,
+                    mobile_number: deleteConfirm.mobile_number,
+                    country_code: deleteConfirm.country_code,
+                  }),
+                });
+                const result = await res.json();
+                if (result.error) {
+                  toast({ title: "Error", description: result.error, variant: "destructive" });
+                } else {
+                  toast({ title: "User Deleted", description: `${deleteConfirm.full_name} has been permanently deleted` });
+                  setDeleteConfirm(null);
+                  setReason("");
+                  fetchData();
+                }
+              } catch (err: any) {
+                toast({ title: "Error", description: err.message, variant: "destructive" });
+              }
+            }}>
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
