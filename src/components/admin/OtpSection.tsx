@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Copy, Check, RefreshCw, Users, Clock, Trash2 } from "lucide-react";
+import { Copy, Check, RefreshCw, Users, Clock, Trash2, ShieldOff, Ban } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +31,14 @@ interface PendingUser {
   selectedGroups: string[];
 }
 
+interface BlockedNumber {
+  id: string;
+  mobile_number: string;
+  country_code: string;
+  reason: string | null;
+  created_at: string;
+}
+
 const OtpSection = () => {
   const { toast } = useToast();
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -39,6 +47,30 @@ const OtpSection = () => {
   const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<PendingUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [blockedNumbers, setBlockedNumbers] = useState<BlockedNumber[]>([]);
+  const [unblockConfirm, setUnblockConfirm] = useState<BlockedNumber | null>(null);
+  const [unblocking, setUnblocking] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  const fetchBlockedNumbers = useCallback(async () => {
+    const { data } = await supabase
+      .from("blocked_numbers")
+      .select("id, mobile_number, country_code, reason, created_at")
+      .order("created_at", { ascending: false });
+    setBlockedNumbers(data || []);
+  }, []);
+
+  const checkSuperAdmin = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id);
+    if (roles?.some(r => r.role === "super_admin")) {
+      setIsSuperAdmin(true);
+    }
+  }, []);
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
@@ -84,7 +116,11 @@ const OtpSection = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchPendingUsers(); }, [fetchPendingUsers]);
+  useEffect(() => {
+    fetchPendingUsers();
+    checkSuperAdmin();
+    fetchBlockedNumbers();
+  }, [fetchPendingUsers, checkSuperAdmin, fetchBlockedNumbers]);
 
   const updateUserRole = (userId: string, value: string) => {
     setPendingUsers(prev => prev.map(u => u.user_id === userId ? { ...u, selectedRole: value } : u));
@@ -138,6 +174,26 @@ const OtpSection = () => {
     }
     setDeleting(false);
     setDeleteConfirm(null);
+  };
+
+  const unblockNumber = async (blocked: BlockedNumber) => {
+    setUnblocking(true);
+    try {
+      const { error } = await supabase
+        .from("blocked_numbers")
+        .delete()
+        .eq("id", blocked.id);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Unblocked", description: `${blocked.country_code}${blocked.mobile_number} আনব্লক করা হয়েছে` });
+        await fetchBlockedNumbers();
+      }
+    } catch {
+      toast({ title: "Error", description: "Server error", variant: "destructive" });
+    }
+    setUnblocking(false);
+    setUnblockConfirm(null);
   };
 
   const generateOtp = async (user: PendingUser) => {
@@ -331,6 +387,69 @@ const OtpSection = () => {
               onClick={() => deleteConfirm && rejectUser(deleteConfirm)}
             >
               {deleting ? "Deleting..." : "Yes, Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Blocked Numbers Section - Super Admin Only */}
+      {isSuperAdmin && (
+        <div className="space-y-3 mt-6">
+          <div className="flex items-center gap-2">
+            <Ban className="h-5 w-5 text-destructive" />
+            <h2 className="text-lg font-semibold">Blocked Numbers</h2>
+            <Badge variant="secondary" className="text-xs">{blockedNumbers.length}</Badge>
+          </div>
+
+          {blockedNumbers.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                <ShieldOff className="h-10 w-10" />
+                <p className="text-sm">No blocked numbers</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-2 md:grid-cols-2">
+              {blockedNumbers.map((b) => (
+                <Card key={b.id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div>
+                      <p className="font-mono text-sm font-medium">{b.country_code}{b.mobile_number}</p>
+                      {b.reason && <p className="text-xs text-muted-foreground mt-0.5">{b.reason}</p>}
+                      <p className="text-[10px] text-muted-foreground">{timeAgo(b.created_at)}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setUnblockConfirm(b)}
+                    >
+                      <ShieldOff className="mr-1 h-3 w-3" />
+                      Unblock
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <AlertDialog open={!!unblockConfirm} onOpenChange={() => setUnblockConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unblock Number?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{unblockConfirm?.country_code}{unblockConfirm?.mobile_number}</strong> আনব্লক করলে এই নম্বর দিয়ে আবার রেজিস্ট্রেশন করতে পারবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={unblocking}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={unblocking}
+              onClick={() => unblockConfirm && unblockNumber(unblockConfirm)}
+            >
+              {unblocking ? "Unblocking..." : "Yes, Unblock"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
