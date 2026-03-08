@@ -333,6 +333,84 @@ export type Database = {
         }
         Relationships: []
       }
+      payrolls: {
+        Row: {
+          advance_deduction: number
+          basic_salary: number
+          bonus: number
+          created_at: string
+          created_by: string
+          housing_allowance: number
+          id: string
+          loan_deduction: number
+          medical_allowance: number
+          month: string
+          net_salary: number
+          note: string | null
+          other_allowances: number
+          other_deductions: number
+          overtime_hours: number
+          overtime_rate: number
+          paid_at: string | null
+          penalty_deduction: number
+          status: string
+          tax_deduction: number
+          transport_allowance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advance_deduction?: number
+          basic_salary?: number
+          bonus?: number
+          created_at?: string
+          created_by: string
+          housing_allowance?: number
+          id?: string
+          loan_deduction?: number
+          medical_allowance?: number
+          month: string
+          net_salary?: number
+          note?: string | null
+          other_allowances?: number
+          other_deductions?: number
+          overtime_hours?: number
+          overtime_rate?: number
+          paid_at?: string | null
+          penalty_deduction?: number
+          status?: string
+          tax_deduction?: number
+          transport_allowance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advance_deduction?: number
+          basic_salary?: number
+          bonus?: number
+          created_at?: string
+          created_by?: string
+          housing_allowance?: number
+          id?: string
+          loan_deduction?: number
+          medical_allowance?: number
+          month?: string
+          net_salary?: number
+          note?: string | null
+          other_allowances?: number
+          other_deductions?: number
+          overtime_hours?: number
+          overtime_rate?: number
+          paid_at?: string | null
+          penalty_deduction?: number
+          status?: string
+          tax_deduction?: number
+          transport_allowance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           business_id: string | null
