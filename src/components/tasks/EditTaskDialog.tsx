@@ -83,6 +83,10 @@ const EditTaskDialog = ({ task, open, onOpenChange, staffList }: Props) => {
         </DialogHeader>
         <div className="space-y-3">
           <div>
+            <Label className="text-xs">Task ID</Label>
+            <Input value={form.task_number} onChange={e => setForm(f => ({ ...f, task_number: e.target.value }))} />
+          </div>
+          <div>
             <Label className="text-xs">Title</Label>
             <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
           </div>
@@ -129,10 +133,6 @@ const EditTaskDialog = ({ task, open, onOpenChange, staffList }: Props) => {
             <div>
               <Label className="text-xs">T. Security</Label>
               <Input type="number" value={form.t_security} onChange={e => setForm(f => ({ ...f, t_security: e.target.value }))} />
-            </div>
-            <div>
-              <Label className="text-xs">Task ID</Label>
-              <Input value={form.task_number} onChange={e => setForm(f => ({ ...f, task_number: e.target.value }))} />
             </div>
           </div>
           <div>
