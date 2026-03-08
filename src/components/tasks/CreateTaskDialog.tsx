@@ -187,6 +187,8 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
                   </Select>
                 </FormItem>
               )} />
+
+              <FormField control={form.control} name="due_date" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl><Input type="datetime-local" {...field} /></FormControl>
