@@ -80,20 +80,6 @@ const ManagerDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <div className="hidden md:flex items-center gap-0.5">
-              {navItems.map(item => (
-                <Button
-                  key={item.id}
-                  variant={activeTab === item.id ? "default" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setActiveTab(item.id)}
-                  title={item.title}
-                >
-                  <item.icon className="h-4 w-4" />
-                </Button>
-              ))}
-            </div>
             <ThemeToggle />
             <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -106,6 +92,20 @@ const ManagerDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        <div className="mb-4 hidden md:flex gap-2 flex-wrap">
+          {navItems.map(item => (
+            <Button
+              key={item.id}
+              variant={activeTab === item.id ? "default" : "outline"}
+              size="sm"
+              className="gap-2"
+              onClick={() => setActiveTab(item.id)}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.title}
+            </Button>
+          ))}
+        </div>
         {mobileMenuOpen && (
           <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
             {navItems.map(item => (
