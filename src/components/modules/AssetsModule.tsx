@@ -74,7 +74,7 @@ const AssetsModule = ({ userId, role }: Props) => {
       description: description || null,
       category,
       status,
-      assigned_to: assignTo || null,
+      assigned_to: assignTo && assignTo !== "none" ? assignTo : null,
       serial_number: serial || null,
       purchase_date: purchaseDate || null,
       created_by: userId,
