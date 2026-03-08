@@ -60,6 +60,24 @@ Deno.serve(async (req) => {
     }
 
     const fullMobile = `${country_code}${mobile_number}`;
+
+    // Check if mobile number is blocked
+    const { data: blockedEntry } = await supabaseAdmin
+      .from("blocked_numbers")
+      .select("id")
+      .eq("mobile_number", fullMobile)
+      .maybeSingle();
+
+    if (blockedEntry) {
+      return new Response(JSON.stringify({ 
+        error: "This number has been blocked. Please contact your admin for assistance.",
+        blocked: true
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: existingMobile } = await supabaseAdmin
       .from("profiles")
       .select("id")

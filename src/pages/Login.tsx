@@ -86,6 +86,21 @@ const Login = () => {
     try {
       const email = await resolveEmail(data.login_id);
       if (!email) {
+        // Check if the input might be a blocked number
+        const trimmed = data.login_id.trim();
+        const type = detectInputType(trimmed);
+        if (type === "mobile") {
+          const fullNum = trimmed.startsWith("+") ? trimmed : `+880${trimmed}`;
+          const { data: blocked } = await supabase
+            .from("blocked_numbers")
+            .select("id")
+            .eq("mobile_number", fullNum)
+            .maybeSingle();
+          if (blocked) {
+            toast({ title: "Account Blocked", description: "Your account has been removed. Please contact your admin.", variant: "destructive" });
+            return;
+          }
+        }
         toast({ title: "Error", description: "User not found", variant: "destructive" });
         return;
       }
