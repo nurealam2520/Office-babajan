@@ -9,7 +9,7 @@ import CreateTaskDialog from "./CreateTaskDialog";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager";
+  role: "super_admin" | "admin" | "manager" | "member";
   initialSearch?: string;
 }
 
@@ -27,8 +27,12 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    let tasksQuery = supabase.from("tasks").select("*").order("created_at", { ascending: false });
+    if (role === "member") {
+      tasksQuery = tasksQuery.eq("assigned_to", userId);
+    }
     const [{ data: tasksData }, { data: profilesData }] = await Promise.all([
-      supabase.from("tasks").select("*").order("created_at", { ascending: false }),
+      tasksQuery,
       supabase.from("profiles").select("user_id, full_name"),
     ]);
 
@@ -45,7 +49,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       }))
     );
     setLoading(false);
-  }, []);
+  }, [role, userId]);
 
   useEffect(() => {
     setSearch(initialSearch);
@@ -109,9 +113,11 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
               <Table2 className="h-4 w-4" />
             </button>
           </div>
-          <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> New Task
-          </Button>
+          {role !== "member" && (
+            <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4" /> New Task
+            </Button>
+          )}
         </div>
       </div>
 

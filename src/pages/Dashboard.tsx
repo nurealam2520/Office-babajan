@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
-import MyTasks from "@/components/member/MyTasks";
+import TaskListView from "@/components/tasks/TaskListView";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
@@ -149,7 +149,7 @@ const Dashboard = () => {
         </div>
 
         {activeTab === "home" && <StaffDashboardHome userId={userId} onNavigate={(tab) => setActiveTab(tab)} />}
-        {activeTab === "tasks" && <MyTasks userId={userId} />}
+        {activeTab === "tasks" && <TaskListView userId={userId} role="member" />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
         {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
