@@ -132,8 +132,9 @@ const SuperAdminDashboard = () => {
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
         {activeView === "home" && (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Welcome! Select a module from the header to get started.</p>
+          <div className="space-y-6">
+            <AdminDashboardHome userId={session.user.id} role={role} />
+            <ExportReports userId={session.user.id} role={role} />
           </div>
         )}
       </div>

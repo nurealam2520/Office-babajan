@@ -89,6 +89,12 @@ const ManagerDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        {activeTab === "home" && (
+          <div className="space-y-6">
+            <AdminDashboardHome userId={session.user.id} role="manager" />
+            <ExportReports userId={session.user.id} role="manager" />
+          </div>
+        )}
         {activeTab === "tasks" && <TaskListView userId={session.user.id} role="manager" />}
         {activeTab === "chat" && <ChatModule userId={session.user.id} role="manager" />}
       </div>
