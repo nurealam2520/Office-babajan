@@ -151,7 +151,7 @@ const AdminOtpDashboard = () => {
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-3 text-muted-foreground">
               <RefreshCw className="h-8 w-8 animate-spin" />
-              <span>লোড হচ্ছে...</span>
+              <span>Loading...</span>
             </div>
           </div>
         ) : pendingUsers.length === 0 ? (
