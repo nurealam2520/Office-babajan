@@ -61,6 +61,7 @@ const Dashboard = () => {
   if (!userId) return null;
 
   const tabs = [
+    { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
     { id: "leave", label: "Leave", icon: CalendarDays },
