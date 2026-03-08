@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ClipboardList, MessageCircle, LayoutDashboard, Megaphone, Clock, Star } from "lucide-react";
+import { LogOut, ClipboardList, MessageCircle, LayoutDashboard, Megaphone, Clock, Star, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ const ManagerDashboard = () => {
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [activeTab, setActiveTab] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -68,20 +69,25 @@ const ManagerDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-foreground hidden sm:inline">{profileName || "Manager Panel"}</span>
           <span className="text-sm font-bold text-foreground sm:hidden text-center flex-1">{profileName || "Manager"}</span>
-          <div className="flex items-center gap-0.5">
-            {navItems.map(item => (
-              <Button
-                key={item.id}
-                variant={activeTab === item.id ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setActiveTab(item.id)}
-                title={item.title}
-              >
-                <item.icon className="h-4 w-4" />
-              </Button>
-            ))}
+          <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-0.5">
+              {navItems.map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeTab === item.id ? "default" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setActiveTab(item.id)}
+                  title={item.title}
+                >
+                  <item.icon className="h-4 w-4" />
+                </Button>
+              ))}
+            </div>
             <ThemeToggle />
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
@@ -90,6 +96,35 @@ const ManagerDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        {mobileMenuOpen && (
+          <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
+            {navItems.map(item => (
+              <Button
+                key={item.id}
+                variant={activeTab === item.id ? "default" : "outline"}
+                className="flex-col gap-1 h-16 text-xs"
+                onClick={() => { setActiveTab(item.id); setMobileMenuOpen(false); }}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.title}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        <div className="mb-3 flex items-center justify-center gap-2 md:hidden">
+          {(() => {
+            const t = navItems.find(t => t.id === activeTab);
+            if (!t) return null;
+            return (
+              <Button variant="secondary" size="sm" className="gap-2 pointer-events-none text-xs">
+                <t.icon className="h-4 w-4" />
+                {t.title}
+              </Button>
+            );
+          })()}
+        </div>
+
         {activeTab === "home" && (
           <div className="space-y-6">
             <AdminDashboardHome userId={session.user.id} role="manager" onNavigate={(tab) => setActiveTab(tab)} />

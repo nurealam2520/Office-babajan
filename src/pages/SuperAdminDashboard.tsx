@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, FileText, Clock, Star, Package, DollarSign } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, FileText, Clock, Star, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,7 @@ const SuperAdminDashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [profileName, setProfileName] = useState("");
   const [activeView, setActiveView] = useState<ActiveView>("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -66,6 +67,7 @@ const SuperAdminDashboard = () => {
   if (!role || !session) return null;
 
   const navItems: { id: ActiveView; icon: any; title: string; adminOnly?: boolean }[] = [
+    { id: "home", icon: LayoutDashboard, title: "Dashboard" },
     { id: "tasks", icon: ClipboardList, title: "Tasks" },
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "attendance", icon: CalendarCheck, title: "Attendance" },
@@ -89,25 +91,25 @@ const SuperAdminDashboard = () => {
               {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
             </span>
           </div>
-          <div className="flex items-center gap-0.5 overflow-x-auto">
-            {navItems.map(item => (
-              <Button
-                key={item.id}
-                variant={activeView === item.id ? "default" : "ghost"}
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={() => setActiveView(activeView === item.id ? "home" : item.id)}
-                title={item.title}
-              >
-                <item.icon className="h-4 w-4" />
-              </Button>
-            ))}
+          <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-0.5">
+              {navItems.map(item => (
+                <Button
+                  key={item.id}
+                  variant={activeView === item.id ? "default" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => setActiveView(item.id)}
+                  title={item.title}
+                >
+                  <item.icon className="h-4 w-4" />
+                </Button>
+              ))}
+            </div>
             <ThemeToggle />
-            {activeView !== "home" && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActiveView("home")} title="Back">
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+            <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
             </Button>
@@ -116,6 +118,34 @@ const SuperAdminDashboard = () => {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-4">
+        {mobileMenuOpen && (
+          <div className="mb-4 grid grid-cols-3 gap-2 md:hidden">
+            {navItems.map(item => (
+              <Button
+                key={item.id}
+                variant={activeView === item.id ? "default" : "outline"}
+                className="flex-col gap-1 h-16 text-xs"
+                onClick={() => { setActiveView(item.id); setMobileMenuOpen(false); }}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.title}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        <div className="mb-3 flex items-center justify-center gap-2 md:hidden">
+          {(() => {
+            const t = navItems.find(t => t.id === activeView);
+            if (!t) return null;
+            return (
+              <Button variant="secondary" size="sm" className="gap-2 pointer-events-none text-xs">
+                <t.icon className="h-4 w-4" />
+                {t.title}
+              </Button>
+            );
+          })()}
+        </div>
         {activeView === "home" && (
           <div className="space-y-6">
             <AdminDashboardHome userId={session.user.id} role={role} onNavigate={(tab) => setActiveView(tab as ActiveView)} />
