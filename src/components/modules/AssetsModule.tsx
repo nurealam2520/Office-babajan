@@ -74,7 +74,7 @@ const AssetsModule = ({ userId, role }: Props) => {
       description: description || null,
       category,
       status,
-      assigned_to: assignTo || null,
+      assigned_to: assignTo && assignTo !== "none" ? assignTo : null,
       serial_number: serial || null,
       purchase_date: purchaseDate || null,
       created_by: userId,
@@ -186,7 +186,7 @@ const AssetsModule = ({ userId, role }: Props) => {
             <Select value={assignTo} onValueChange={setAssignTo}>
               <SelectTrigger><SelectValue placeholder="Assign to (optional)" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {staffList.map(s => <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
