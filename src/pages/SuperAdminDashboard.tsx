@@ -91,7 +91,7 @@ const SuperAdminDashboard = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <img src={officeLogo} alt="Office Management" className="h-8 w-8 rounded-full object-cover" />
-            <div className="text-left hidden sm:block">
+            <div className="text-left">
               <p className="text-sm font-bold text-foreground">
                 {profileName || (role === "super_admin" ? "Super Admin" : "Admin")}
               </p>
