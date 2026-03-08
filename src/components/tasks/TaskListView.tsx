@@ -108,7 +108,7 @@ const TaskListView = ({ userId, role }: Props) => {
       ) : filtered.length === 0 ? (
         <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
       ) : viewMode === "table" ? (
-        <TaskTableView tasks={filtered} />
+        <TaskTableView tasks={filtered} staffList={staffList} />
       ) : (
         <div className="space-y-2">
           {filtered.map((task) => (
