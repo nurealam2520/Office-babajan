@@ -391,6 +391,69 @@ const OtpSection = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Blocked Numbers Section - Super Admin Only */}
+      {isSuperAdmin && (
+        <div className="space-y-3 mt-6">
+          <div className="flex items-center gap-2">
+            <Ban className="h-5 w-5 text-destructive" />
+            <h2 className="text-lg font-semibold">Blocked Numbers</h2>
+            <Badge variant="secondary" className="text-xs">{blockedNumbers.length}</Badge>
+          </div>
+
+          {blockedNumbers.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                <ShieldOff className="h-10 w-10" />
+                <p className="text-sm">No blocked numbers</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-2 md:grid-cols-2">
+              {blockedNumbers.map((b) => (
+                <Card key={b.id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div>
+                      <p className="font-mono text-sm font-medium">{b.country_code}{b.mobile_number}</p>
+                      {b.reason && <p className="text-xs text-muted-foreground mt-0.5">{b.reason}</p>}
+                      <p className="text-[10px] text-muted-foreground">{timeAgo(b.created_at)}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setUnblockConfirm(b)}
+                    >
+                      <ShieldOff className="mr-1 h-3 w-3" />
+                      Unblock
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <AlertDialog open={!!unblockConfirm} onOpenChange={() => setUnblockConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unblock Number?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{unblockConfirm?.country_code}{unblockConfirm?.mobile_number}</strong> আনব্লক করলে এই নম্বর দিয়ে আবার রেজিস্ট্রেশন করতে পারবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={unblocking}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={unblocking}
+              onClick={() => unblockConfirm && unblockNumber(unblockConfirm)}
+            >
+              {unblocking ? "Unblocking..." : "Yes, Unblock"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
