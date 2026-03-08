@@ -248,20 +248,28 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
           </CardContent>
         </Card>
 
-        {/* Priority Bar Chart */}
+        {/* Tasks by Label */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tasks by Priority</CardTitle>
+            <CardTitle className="text-sm">Tasks by Label</CardTitle>
           </CardHeader>
           <CardContent>
-            {priorityData.length > 0 ? (
+            {taskDistribution.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={priorityData}>
+                <BarChart data={[
+                  ...Object.entries(
+                    tasks_label_count
+                  ).map(([name, value]) => ({ name, value }))
+                ]}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis allowDecimals={false} className="text-xs" />
                   <Tooltip />
-                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {Object.keys(tasks_label_count).map((key, i) => (
+                      <Cell key={key} fill={LABEL_COLORS[key] || COLORS[i % COLORS.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
