@@ -207,6 +207,30 @@ export type Database = {
         }
         Relationships: []
       }
+      government_holidays: {
+        Row: {
+          created_at: string
+          holiday_date: string
+          id: string
+          name: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          holiday_date: string
+          id?: string
+          name: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          name?: string
+          year?: number
+        }
+        Relationships: []
+      }
       login_notifications: {
         Row: {
           created_at: string
@@ -333,6 +357,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_settings: {
+        Row: {
+          created_at: string
+          default_overtime_rate: number
+          id: string
+          late_days_for_penalty: number
+          late_threshold_minutes: number
+          office_end_time: string
+          office_start_time: string
+          penalty_days_deducted: number
+          updated_at: string
+          weekly_off_day: string
+        }
+        Insert: {
+          created_at?: string
+          default_overtime_rate?: number
+          id?: string
+          late_days_for_penalty?: number
+          late_threshold_minutes?: number
+          office_end_time?: string
+          office_start_time?: string
+          penalty_days_deducted?: number
+          updated_at?: string
+          weekly_off_day?: string
+        }
+        Update: {
+          created_at?: string
+          default_overtime_rate?: number
+          id?: string
+          late_days_for_penalty?: number
+          late_threshold_minutes?: number
+          office_end_time?: string
+          office_start_time?: string
+          penalty_days_deducted?: number
+          updated_at?: string
+          weekly_off_day?: string
+        }
+        Relationships: []
+      }
       payrolls: {
         Row: {
           advance_deduction: number
@@ -413,6 +476,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          basic_salary: number
           business_id: string | null
           country_code: string
           created_at: string
@@ -420,11 +484,13 @@ export type Database = {
           id: string
           is_active: boolean
           mobile_number: string
+          overtime_rate_per_hour: number
           updated_at: string
           user_id: string
           username: string
         }
         Insert: {
+          basic_salary?: number
           business_id?: string | null
           country_code?: string
           created_at?: string
@@ -432,11 +498,13 @@ export type Database = {
           id?: string
           is_active?: boolean
           mobile_number: string
+          overtime_rate_per_hour?: number
           updated_at?: string
           user_id: string
           username: string
         }
         Update: {
+          basic_salary?: number
           business_id?: string | null
           country_code?: string
           created_at?: string
@@ -444,6 +512,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           mobile_number?: string
+          overtime_rate_per_hour?: number
           updated_at?: string
           user_id?: string
           username?: string
