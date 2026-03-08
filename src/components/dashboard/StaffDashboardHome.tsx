@@ -7,6 +7,7 @@ import { startOfDay } from "date-fns";
 
 interface Props {
   userId: string;
+  onNavigate?: (tab: string) => void;
 }
 
 const COLORS = [
@@ -16,7 +17,7 @@ const COLORS = [
   "hsl(45 93% 47%)",
 ];
 
-const StaffDashboardHome = ({ userId }: Props) => {
+const StaffDashboardHome = ({ userId, onNavigate }: Props) => {
   const [stats, setStats] = useState({
     total: 0, pending: 0, inProgress: 0, completed: 0, overdue: 0, checkedIn: false,
   });
@@ -55,10 +56,10 @@ const StaffDashboardHome = ({ userId }: Props) => {
   if (loading) return <p className="text-center text-sm text-muted-foreground py-8">Loading...</p>;
 
   const cards = [
-    { label: "My Tasks", value: stats.total, icon: ClipboardList, color: "text-primary" },
-    { label: "In Progress", value: stats.inProgress, icon: Clock, color: "text-blue-500" },
-    { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-green-500" },
-    { label: "Overdue", value: stats.overdue, icon: AlertTriangle, color: "text-destructive" },
+    { label: "My Tasks", value: stats.total, icon: ClipboardList, color: "text-primary", tab: "tasks" },
+    { label: "In Progress", value: stats.inProgress, icon: Clock, color: "text-blue-500", tab: "tasks" },
+    { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-green-500", tab: "tasks" },
+    { label: "Overdue", value: stats.overdue, icon: AlertTriangle, color: "text-destructive", tab: "tasks" },
   ];
 
   return (
@@ -73,7 +74,11 @@ const StaffDashboardHome = ({ userId }: Props) => {
 
       <div className="grid grid-cols-2 gap-3">
         {cards.map(c => (
-          <Card key={c.label}>
+          <Card
+            key={c.label}
+            className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => onNavigate?.(c.tab)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>

@@ -118,7 +118,7 @@ const SuperAdminDashboard = () => {
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeView === "home" && (
           <div className="space-y-6">
-            <AdminDashboardHome userId={session.user.id} role={role} />
+            <AdminDashboardHome userId={session.user.id} role={role} onNavigate={(tab) => setActiveView(tab as ActiveView)} />
             <ExportReports userId={session.user.id} role={role} />
           </div>
         )}

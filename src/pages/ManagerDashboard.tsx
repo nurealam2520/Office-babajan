@@ -92,7 +92,7 @@ const ManagerDashboard = () => {
       <div className="mx-auto max-w-7xl px-4 py-4">
         {activeTab === "home" && (
           <div className="space-y-6">
-            <AdminDashboardHome userId={session.user.id} role="manager" />
+            <AdminDashboardHome userId={session.user.id} role="manager" onNavigate={(tab) => setActiveTab(tab)} />
             <ExportReports userId={session.user.id} role="manager" />
           </div>
         )}
