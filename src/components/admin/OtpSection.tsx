@@ -114,15 +114,15 @@ const OtpSection = () => {
       }, { onConflict: "user_id,business_id" });
     }
 
-    const roleToAssign = user.selectedRole as "manager" | "staff";
+    const roleToAssign = user.selectedRole;
     const { data: existingRoles } = await supabase
       .from("user_roles")
       .select("id")
       .eq("user_id", user.user_id)
-      .eq("role", roleToAssign);
+      .eq("role", roleToAssign as any);
 
     if (!existingRoles?.length) {
-      await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign });
+      await supabase.from("user_roles").insert({ user_id: user.user_id, role: roleToAssign } as any);
     }
 
     const { data, error } = await supabase.rpc("generate_otp", { _user_id: user.user_id });
