@@ -14,7 +14,7 @@ const Index = () => {
           alt="Office Management"
           className="h-32 w-32 rounded-full object-cover shadow-xl border-4 border-primary/20"
         />
-        <h1 className="text-4xl font-extrabold tracking-tight text-primary">
+        <h1 className="text-4xl font-extrabold tracking-tight text-primary text-center">
           Office Management
         </h1>
         <p className="text-center text-base text-muted-foreground max-w-xs leading-relaxed italic">
