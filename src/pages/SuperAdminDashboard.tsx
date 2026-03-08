@@ -10,6 +10,8 @@ import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
 import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
 import ChatModule from "@/components/chat/ChatModule";
+import AdminDashboardHome from "@/components/dashboard/AdminDashboardHome";
+import ExportReports from "@/components/dashboard/ExportReports";
 import officeLogo from "@/assets/office-logo.png";
 
 type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat";
@@ -130,8 +132,9 @@ const SuperAdminDashboard = () => {
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
         {activeView === "home" && (
-          <div className="py-8 text-center">
-            <p className="text-muted-foreground">Welcome! Select a module from the header to get started.</p>
+          <div className="space-y-6">
+            <AdminDashboardHome userId={session.user.id} role={role} />
+            <ExportReports userId={session.user.id} role={role} />
           </div>
         )}
       </div>

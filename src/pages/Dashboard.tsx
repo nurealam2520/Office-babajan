@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,12 +10,13 @@ import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
 import LeaveManagement from "@/components/member/LeaveManagement";
 import ChatModule from "@/components/chat/ChatModule";
+import StaffDashboardHome from "@/components/dashboard/StaffDashboardHome";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string; username: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("tasks");
+  const [activeTab, setActiveTab] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [taskCount, setTaskCount] = useState(0);
 
@@ -60,6 +61,7 @@ const Dashboard = () => {
   if (!userId) return null;
 
   const tabs = [
+    { id: "home", label: "Home", icon: LayoutDashboard },
     { id: "tasks", label: "Tasks", icon: ClipboardList, badge: taskCount },
     { id: "attendance", label: "Attendance", icon: CalendarCheck },
     { id: "leave", label: "Leave", icon: CalendarDays },
@@ -134,6 +136,7 @@ const Dashboard = () => {
           })()}
         </div>
 
+        {activeTab === "home" && <StaffDashboardHome userId={userId} />}
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
