@@ -137,6 +137,7 @@ const Dashboard = () => {
         {activeTab === "tasks" && <MyTasks userId={userId} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
+        {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>
