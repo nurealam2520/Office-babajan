@@ -112,6 +112,21 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
       });
       setLabelData(labelCount);
 
+      // Tasks by user
+      const profileMap = new Map<string, string>();
+      (profileNames || []).forEach(p => profileMap.set(p.user_id, p.full_name));
+      const userCount: Record<string, number> = {};
+      allTasks.forEach(t => {
+        const uid = (t as any).assigned_to;
+        const name = profileMap.get(uid) || "Unknown";
+        userCount[name] = (userCount[name] || 0) + 1;
+      });
+      setUserData(
+        Object.entries(userCount)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value)
+      );
+
       // Attendance trend (last 7 days)
       const days = eachDayOfInterval({
         start: subDays(new Date(), 6),
