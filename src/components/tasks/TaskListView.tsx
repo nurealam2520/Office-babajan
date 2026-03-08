@@ -34,6 +34,7 @@ const TaskListView = ({ userId, role }: Props) => {
     const profileMap = new Map<string, string>();
     profilesData?.forEach((p) => profileMap.set(p.user_id, p.full_name));
     setProfiles(profileMap);
+    setStaffList(profilesData || []);
 
     setTasks(
       (tasksData || []).map((t: any) => ({
