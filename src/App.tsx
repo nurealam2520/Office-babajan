@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminOtpDashboard from "./pages/AdminOtpDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
+import EmployeeSetup from "./pages/EmployeeSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/employee-setup" element={<EmployeeSetup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin/otp" element={<AdminOtpDashboard />} />
           <Route path="/admin" element={<SuperAdminDashboard />} />

@@ -43,7 +43,11 @@ const ManagerDashboard = () => {
       }
       setVerified(true);
 
-      const { data: prof } = await supabase.from("profiles").select("full_name, username").eq("user_id", s.user.id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("full_name, username, employee_id").eq("user_id", s.user.id).maybeSingle();
+      if (prof && !prof.employee_id) {
+        navigate("/employee-setup");
+        return;
+      }
       if (prof) {
         setProfileName(prof.full_name);
         setProfileUsername(prof.username);

@@ -44,9 +44,15 @@ const Dashboard = () => {
 
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, username")
+        .select("full_name, username, employee_id")
         .eq("user_id", session.user.id)
         .maybeSingle();
+      
+      if (!data?.employee_id) {
+        navigate("/employee-setup");
+        return;
+      }
+      
       setProfile(data);
 
       const { data: activeTasks } = await supabase
