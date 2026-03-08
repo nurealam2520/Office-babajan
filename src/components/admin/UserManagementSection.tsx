@@ -244,7 +244,8 @@ const UserManagementSection = ({ userId, role }: Props) => {
     return list.filter(p =>
       p.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.mobile_number.includes(searchQuery)
+      p.mobile_number.includes(searchQuery) ||
+      (p.employee_id && p.employee_id.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   };
 
