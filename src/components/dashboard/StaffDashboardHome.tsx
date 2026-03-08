@@ -56,10 +56,10 @@ const StaffDashboardHome = ({ userId, onNavigate }: Props) => {
   if (loading) return <p className="text-center text-sm text-muted-foreground py-8">Loading...</p>;
 
   const cards = [
-    { label: "My Tasks", value: stats.total, icon: ClipboardList, color: "text-primary" },
-    { label: "In Progress", value: stats.inProgress, icon: Clock, color: "text-blue-500" },
-    { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-green-500" },
-    { label: "Overdue", value: stats.overdue, icon: AlertTriangle, color: "text-destructive" },
+    { label: "My Tasks", value: stats.total, icon: ClipboardList, color: "text-primary", tab: "tasks" },
+    { label: "In Progress", value: stats.inProgress, icon: Clock, color: "text-blue-500", tab: "tasks" },
+    { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-green-500", tab: "tasks" },
+    { label: "Overdue", value: stats.overdue, icon: AlertTriangle, color: "text-destructive", tab: "tasks" },
   ];
 
   return (
