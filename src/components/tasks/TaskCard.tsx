@@ -1,4 +1,7 @@
-import { Clock, User, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
+import { Clock, User, ChevronDown, ChevronUp, AlertTriangle, Tag } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
