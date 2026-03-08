@@ -458,7 +458,7 @@ const PayrollModule = ({ userId, role }: Props) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground">
-                Attendance ডেটা থেকে অটো payroll তৈরি হবে। প্রতিটি কর্মীর basic salary প্রোফাইলে সেট থাকতে হবে।
+                Payroll will be auto-generated from attendance data. Each staff member's basic salary must be set in their profile.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -526,7 +526,7 @@ const PayrollModule = ({ userId, role }: Props) => {
               <CardTitle className="text-sm">💰 Staff Salary Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-xs text-muted-foreground">প্রতিটি কর্মীর Basic Salary ও Overtime Rate সেট করুন।</p>
+              <p className="text-xs text-muted-foreground">Set Basic Salary and Overtime Rate for each staff member.</p>
               {staffList.map(s => (
                 <div key={s.user_id} className="flex items-center gap-2 py-1.5 border-b border-border/50 last:border-0">
                   <span className="text-sm flex-1 min-w-0 truncate">{s.full_name}</span>
@@ -648,21 +648,21 @@ const PayrollModule = ({ userId, role }: Props) => {
                   <div>
                     <Label className="text-[11px]">Threshold (min)</Label>
                     <Input type="number" value={settingsForm.late_threshold_minutes} onChange={e => setSettingsForm(p => ({ ...p, late_threshold_minutes: e.target.value }))} className="h-8 text-sm" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">এত মিনিট পর Late</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Late after this many minutes</p>
                   </div>
                   <div>
                     <Label className="text-[11px]">Late Days</Label>
                     <Input type="number" value={settingsForm.late_days_for_penalty} onChange={e => setSettingsForm(p => ({ ...p, late_days_for_penalty: e.target.value }))} className="h-8 text-sm" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">এত দিন লেট হলে</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Late days to trigger penalty</p>
                   </div>
                   <div>
                     <Label className="text-[11px]">Penalty Days</Label>
                     <Input type="number" value={settingsForm.penalty_days_deducted} onChange={e => setSettingsForm(p => ({ ...p, penalty_days_deducted: e.target.value }))} className="h-8 text-sm" />
-                    <p className="text-[10px] text-muted-foreground mt-0.5">এত দিনের বেতন কাটা</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Salary days deducted</p>
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-2 bg-muted/50 rounded p-1.5">
-                  📌 যেমন: {settingsForm.late_threshold_minutes} মিনিটের বেশি লেট হলে Late count হবে। {settingsForm.late_days_for_penalty} দিন Late = {settingsForm.penalty_days_deducted} দিনের বেতন কাটা।
+                  📌 Example: Late after {settingsForm.late_threshold_minutes} min. {settingsForm.late_days_for_penalty} late days = {settingsForm.penalty_days_deducted} day(s) salary deducted.
                 </p>
               </div>
 

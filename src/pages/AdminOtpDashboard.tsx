@@ -39,7 +39,7 @@ const AdminOtpDashboard = () => {
 
     const adminRoles = roles?.filter(r => r.role === "admin" || r.role === "super_admin");
     if (!adminRoles?.length) {
-      toast({ title: "অনুমতি নেই", description: "শুধুমাত্র অ্যাডমিন এই পেজ দেখতে পারবে", variant: "destructive" });
+      toast({ title: "Access Denied", description: "Only admins can view this page", variant: "destructive" });
       navigate("/dashboard");
       return false;
     }
@@ -101,27 +101,27 @@ const AdminOtpDashboard = () => {
     navigator.clipboard.writeText(otp);
     setCopiedId(userId);
     setTimeout(() => setCopiedId(null), 2000);
-    toast({ title: "কপি হয়েছে", description: `OTP: ${otp}` });
+    toast({ title: "Copied", description: `OTP: ${otp}` });
   };
 
   const regenerateOtp = async (userId: string) => {
     const { data, error } = await supabase.rpc("generate_otp", { _user_id: userId });
     if (error) {
-      toast({ title: "ত্রুটি", description: "OTP তৈরি করতে সমস্যা", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to generate OTP", variant: "destructive" });
       return;
     }
-    toast({ title: "নতুন OTP", description: `OTP: ${data}` });
+    toast({ title: "New OTP", description: `OTP: ${data}` });
     await fetchPendingUsers();
   };
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "এইমাত্র";
-    if (mins < 60) return `${mins} মিনিট আগে`;
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins} min ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} ঘণ্টা আগে`;
-    return `${Math.floor(hrs / 24)} দিন আগে`;
+    if (hrs < 24) return `${hrs} hr ago`;
+    return `${Math.floor(hrs / 24)} days ago`;
   };
 
   if (!isAdmin) return null;
@@ -133,8 +133,8 @@ const AdminOtpDashboard = () => {
           <div className="flex items-center gap-3">
             <ShieldCheck className="h-7 w-7 text-primary" />
             <div>
-              <h1 className="text-xl font-bold text-foreground md:text-2xl">OTP ম্যানেজমেন্ট</h1>
-              <p className="text-sm text-muted-foreground">অপেক্ষমাণ ব্যবহারকারীদের OTP</p>
+              <h1 className="text-xl font-bold text-foreground md:text-2xl">OTP Management</h1>
+              <p className="text-sm text-muted-foreground">OTP for pending users</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -142,7 +142,7 @@ const AdminOtpDashboard = () => {
               <RefreshCw className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
-              ড্যাশবোর্ড
+              Dashboard
             </Button>
           </div>
         </div>
@@ -151,22 +151,22 @@ const AdminOtpDashboard = () => {
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-3 text-muted-foreground">
               <RefreshCw className="h-8 w-8 animate-spin" />
-              <span>লোড হচ্ছে...</span>
+              <span>Loading...</span>
             </div>
           </div>
         ) : pendingUsers.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
               <Users className="h-12 w-12" />
-              <p className="text-lg font-medium">কোন অপেক্ষমাণ ব্যবহারকারী নেই</p>
-              <p className="text-sm">সকল ব্যবহারকারী সক্রিয় আছে</p>
+              <p className="text-lg font-medium">No pending users</p>
+              <p className="text-sm">All users are active</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>{pendingUsers.length} জন অপেক্ষমাণ</span>
+              <span>{pendingUsers.length} pending</span>
             </div>
 
             {pendingUsers.map((user) => (
@@ -222,7 +222,7 @@ const AdminOtpDashboard = () => {
                       onClick={() => regenerateOtp(user.user_id)}
                     >
                       <RefreshCw className="h-4 w-4" />
-                      OTP তৈরি করুন
+                      Generate OTP
                     </Button>
                   )}
                 </CardContent>
