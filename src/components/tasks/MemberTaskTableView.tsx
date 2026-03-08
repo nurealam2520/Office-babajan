@@ -73,9 +73,6 @@ const MemberTaskTableView = ({ tasks, onSelect }: Props) => {
                     )}
                   </TableCell>
                   <TableCell className="py-2">
-                    <Badge className={`text-[10px] ${s.class}`} variant="outline">{s.label}</Badge>
-                  </TableCell>
-                  <TableCell className="py-2">
                     {task.label ? (
                       <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
                         {labelLabels[task.label] || task.label}
