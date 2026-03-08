@@ -1,3 +1,4 @@
+// Dashboard - Member view
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package } from "lucide-react";
