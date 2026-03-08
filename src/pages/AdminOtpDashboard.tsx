@@ -158,8 +158,8 @@ const AdminOtpDashboard = () => {
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
               <Users className="h-12 w-12" />
-              <p className="text-lg font-medium">কোন অপেক্ষমাণ ব্যবহারকারী নেই</p>
-              <p className="text-sm">সকল ব্যবহারকারী সক্রিয় আছে</p>
+              <p className="text-lg font-medium">No pending users</p>
+              <p className="text-sm">All users are active</p>
             </CardContent>
           </Card>
         ) : (
