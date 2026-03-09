@@ -48,16 +48,16 @@ interface ColumnDef {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { key: "task_number", label: "Task ID", minWidth: 60, defaultWidth: 80 },
-  { key: "title", label: "Description", minWidth: 150, defaultWidth: 220 },
-  { key: "assigned_to", label: "Assign To", minWidth: 100, defaultWidth: 140 },
-  { key: "label", label: "Label", minWidth: 100, defaultWidth: 140 },
-  { key: "due_date", label: "Due Date", minWidth: 90, defaultWidth: 110 },
-  { key: "planned_date", label: "P. Date", minWidth: 90, defaultWidth: 110 },
-  { key: "budget", label: "Budget", minWidth: 70, defaultWidth: 90, align: "right" },
-  { key: "credit_line", label: "Credit Line", minWidth: 70, defaultWidth: 90, align: "right" },
-  { key: "t_security", label: "T. Security", minWidth: 70, defaultWidth: 90, align: "right" },
-  { key: "admin_note", label: "Remark", minWidth: 120, defaultWidth: 160 },
+  { key: "task_number", label: "Task ID", minWidth: 50, defaultWidth: 70 },
+  { key: "title", label: "Description", minWidth: 120, defaultWidth: 180 },
+  { key: "assigned_to", label: "Assign To", minWidth: 80, defaultWidth: 120 },
+  { key: "label", label: "Label", minWidth: 80, defaultWidth: 120 },
+  { key: "due_date", label: "Due Date", minWidth: 80, defaultWidth: 100 },
+  { key: "planned_date", label: "P. Date", minWidth: 80, defaultWidth: 100 },
+  { key: "budget", label: "Budget", minWidth: 60, defaultWidth: 80, align: "right" },
+  { key: "credit_line", label: "Credit Line", minWidth: 60, defaultWidth: 80, align: "right" },
+  { key: "t_security", label: "T. Security", minWidth: 60, defaultWidth: 80, align: "right" },
+  { key: "admin_note", label: "Remark", minWidth: 100, defaultWidth: 140 },
 ];
 
 // Inline editable cell
@@ -260,9 +260,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
 
   return (
     <>
-      <div className="w-full overflow-x-auto border rounded-lg -mx-2 px-0 sm:mx-0">
-        <div style={{ minWidth: colWidths.reduce((s, w) => s + w, 0) }}>
-          <Table>
+      <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x">
+        <div style={{ minWidth: `${colWidths.reduce((s, w) => s + w, 0)}px` }}>
+          <Table className="text-xs sm:text-sm">
             <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
               <TableRow>
                 {COLUMNS.map((col, i) => (
