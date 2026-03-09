@@ -410,9 +410,8 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
                   </TableRow>
                 );
               })}
-            </TableBody>
-          </Table>
-        </div>
+            </tbody>
+          </table>
       </div>
 
       <EditTaskDialog
