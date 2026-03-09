@@ -715,6 +715,121 @@ const PayrollModule = ({ userId, role }: Props) => {
   );
 };
 
+/** Print view for payroll */
+const PayrollPrintView = forwardRef<HTMLDivElement, { payrolls: Payroll[] }>(({ payrolls }, ref) => {
+  const now = new Date().toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+  const totalNet = payrolls.reduce((s, p) => s + p.net_salary, 0);
+  const totalBasic = payrolls.reduce((s, p) => s + p.basic_salary, 0);
+
+  return (
+    <div ref={ref} className="print-payroll-report hidden">
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          .print-payroll-report, .print-payroll-report * { visibility: visible !important; }
+          .print-payroll-report {
+            position: absolute; left: 0; top: 0; width: 100%;
+            padding: 0; background: white !important; color: black !important;
+            font-family: 'Segoe UI', system-ui, sans-serif; font-size: 10px;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          }
+          .print-payroll-report table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+          .print-payroll-report tr { page-break-inside: avoid; }
+          .print-payroll-report thead { display: table-header-group; }
+          .print-payroll-report tfoot { display: table-footer-group; }
+          .print-payroll-report .pr-header td { border: none; padding: 0; text-align: center; }
+          .print-payroll-report .pr-header-content {
+            padding: 8px 0 6px; border-bottom: 2px solid #1f2937; margin-bottom: 4px;
+          }
+          .print-payroll-report .pr-office { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #111; margin: 0; }
+          .print-payroll-report .pr-tagline { font-size: 10px; color: #6b7280; margin: 2px 0; }
+          .print-payroll-report .pr-title { font-size: 14px; font-weight: 700; color: #1f2937; margin: 4px 0 0; }
+          .print-payroll-report .pr-meta { font-size: 9px; color: #6b7280; margin: 2px 0 0; }
+          .print-payroll-report .pr-col-header th {
+            background: #f3f4f6 !important; font-weight: 700; font-size: 8px;
+            text-transform: uppercase; letter-spacing: 0.5px; color: #374151;
+            border: 1px solid #d1d5db; padding: 5px 6px; text-align: left;
+          }
+          .print-payroll-report td.pr-cell {
+            border: 1px solid #d1d5db; padding: 4px 6px; text-align: left;
+            vertical-align: top; font-size: 9px; color: #1f2937;
+          }
+          .print-payroll-report .pr-even td.pr-cell { background: #f9fafb !important; }
+          .print-payroll-report .pr-summary td {
+            background: #e5e7eb !important; font-weight: 700; font-size: 10px;
+            color: #111; border: 1px solid #d1d5db; padding: 5px 6px;
+          }
+          .print-payroll-report .pr-footer td {
+            border: none; text-align: center; font-size: 9px; color: #9ca3af;
+            padding: 6px 0 0; border-top: 1px solid #d1d5db;
+          }
+          @page { margin: 10mm; size: landscape; }
+        }
+      `}</style>
+      <table>
+        <thead>
+          <tr className="pr-header">
+            <td colSpan={9}>
+              <div className="pr-header-content">
+                <p className="pr-office">Office Management</p>
+                <p className="pr-tagline">Shahzada's Hub — Official Report</p>
+                <p className="pr-title">Payroll Report</p>
+                <p className="pr-meta">Generated: {now} &nbsp;•&nbsp; Total Records: {payrolls.length}</p>
+              </div>
+            </td>
+          </tr>
+          <tr className="pr-col-header">
+            <th style={{ width: "30px" }}>#</th>
+            <th>Employee</th>
+            <th>Month</th>
+            <th style={{ textAlign: "right" }}>Basic Salary</th>
+            <th style={{ textAlign: "right" }}>OT Pay</th>
+            <th style={{ textAlign: "right" }}>Deductions</th>
+            <th style={{ textAlign: "right" }}>Net Salary</th>
+            <th style={{ width: "65px" }}>Status</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr className="pr-footer">
+            <td colSpan={9}>Office Management — Shahzada's Hub &nbsp;•&nbsp; Confidential</td>
+          </tr>
+        </tfoot>
+        <tbody>
+          {payrolls.map((p, idx) => {
+            const otPay = p.overtime_hours * p.overtime_rate;
+            const totalDed = p.penalty_deduction + p.other_deductions + p.tax_deduction + p.loan_deduction + p.advance_deduction;
+            return (
+              <tr key={p.id} className={idx % 2 !== 0 ? "pr-even" : ""}>
+                <td className="pr-cell">{idx + 1}</td>
+                <td className="pr-cell"><strong>{p.user_name}</strong></td>
+                <td className="pr-cell">{p.month}</td>
+                <td className="pr-cell" style={{ textAlign: "right" }}>৳{fmtNum(p.basic_salary)}</td>
+                <td className="pr-cell" style={{ textAlign: "right" }}>৳{fmtNum(otPay)}</td>
+                <td className="pr-cell" style={{ textAlign: "right" }}>৳{fmtNum(totalDed)}</td>
+                <td className="pr-cell" style={{ textAlign: "right", fontWeight: "bold" }}>৳{fmtNum(p.net_salary)}</td>
+                <td className="pr-cell">{p.status}</td>
+                <td className="pr-cell" style={{ fontSize: "8px" }}>{p.note || "—"}</td>
+              </tr>
+            );
+          })}
+          <tr className="pr-summary">
+            <td colSpan={3} style={{ textAlign: "right" }}>Total:</td>
+            <td style={{ textAlign: "right" }}>৳{fmtNum(totalBasic)}</td>
+            <td></td>
+            <td></td>
+            <td style={{ textAlign: "right" }}>৳{fmtNum(totalNet)}</td>
+            <td colSpan={2}></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+});
+PayrollPrintView.displayName = "PayrollPrintView";
+
 /** Individual payroll card */
 const PayrollCard = ({ payroll: p, isAdmin, onMarkPaid, onMarkProcessing, onViewDetail }: {
   payroll: Payroll; isAdmin: boolean; onMarkPaid: () => void; onMarkProcessing: () => void; onViewDetail: () => void;
