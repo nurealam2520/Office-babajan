@@ -22,19 +22,14 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [userFilter, setUserFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
-    if (!printRef.current) return;
-    printRef.current.classList.remove("hidden");
-    window.print();
-    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
-  };
-
-  const handlePdfExport = () => {
     if (!printRef.current) return;
     printRef.current.classList.remove("hidden");
     window.print();
@@ -81,19 +76,28 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   }, [fetchData]);
 
   const filtered = tasks.filter((t) => {
+    // Status filter
     if (statusFilter !== "all" && t.status !== statusFilter) return false;
-    if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
+    // User filter
+    if (userFilter !== "all" && t.assigned_to !== userFilter) return false;
+    // Date range filter
+    if (dateFrom) {
+      const taskDate = t.due_date || t.created_at;
+      if (taskDate && new Date(taskDate) < new Date(dateFrom)) return false;
+    }
+    if (dateTo) {
+      const taskDate = t.due_date || t.created_at;
+      if (taskDate && new Date(taskDate) > new Date(dateTo + "T23:59:59")) return false;
+    }
+    // Search text
     if (search) {
       const q = search.toLowerCase();
-      // Filter by label value
       if (["live", "advance", "waiting_for_goods"].includes(q)) {
         return t.label === q;
       }
-      // Filter by status
       if (["pending", "in_progress", "completed", "cancelled", "issues", "processing", "ready_to_bid", "bidded"].includes(q)) {
         return t.status === q;
       }
-      // Filter overdue tasks
       if (q === "overdue") {
         return t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed";
       }
@@ -113,11 +117,11 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Task Management</h2>
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Print Report">
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Print / Save as PDF">
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Print</span>
           </Button>
-          <Button size="sm" variant="outline" className="gap-1" onClick={handlePdfExport} title="Save as PDF">
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Save as PDF">
             <FileDown className="h-4 w-4" />
             <span className="hidden sm:inline">PDF</span>
           </Button>
@@ -149,6 +153,15 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         search={search}
         onSearchChange={setSearch}
         totalCount={filtered.length}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        userFilter={userFilter}
+        onUserFilterChange={setUserFilter}
+        dateFrom={dateFrom}
+        onDateFromChange={setDateFrom}
+        dateTo={dateTo}
+        onDateToChange={setDateTo}
+        staffList={staffList}
       />
 
       {loading ? (
