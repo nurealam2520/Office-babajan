@@ -158,6 +158,7 @@ const PayrollModule = ({ userId, role }: Props) => {
       const s = settingsData[0] as any;
       setSettings(s);
       setSettingsForm({
+        office_name: s.office_name || "Office Management",
         office_start_time: s.office_start_time?.substring(0, 5) || "09:00",
         office_end_time: s.office_end_time?.substring(0, 5) || "18:00",
         weekly_off_day: s.weekly_off_day,
