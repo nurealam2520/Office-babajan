@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { Clock, CheckCircle, XCircle, Search, Users, CalendarDays } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Clock, CheckCircle, XCircle, Search, Users, CalendarDays, ArrowUpDown, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,9 +22,7 @@ interface AttendanceRecord {
   check_in: string;
   check_out: string | null;
   status: string;
-  latitude: number | null;
-  longitude: number | null;
-  device_info: string | null;
+  note: string | null;
   source: string;
   user_name?: string;
 }
@@ -41,6 +40,101 @@ interface LeaveRequest {
   leave_type_name?: string;
 }
 
+type SortKey = "user_name" | "check_in" | "check_out" | "source" | "status" | "total";
+type SortDir = "asc" | "desc";
+
+const COLUMNS = [
+  { key: "user_name", label: "Staff Name", sortable: true, minWidth: 140 },
+  { key: "check_in", label: "Check In", sortable: true, minWidth: 100 },
+  { key: "check_out", label: "Check Out", sortable: true, minWidth: 100 },
+  { key: "total", label: "Total", sortable: true, minWidth: 80 },
+  { key: "source", label: "Source", sortable: true, minWidth: 80 },
+  { key: "status", label: "Status", sortable: true, minWidth: 80 },
+  { key: "note", label: "Note", sortable: false, minWidth: 120 },
+];
+
+const ResizableHeader = ({ children, width, onResize }: { children: React.ReactNode; width: number; onResize: (delta: number) => void }) => {
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startX.current = e.clientX;
+    startWidth.current = width;
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const delta = e.clientX - startX.current;
+    onResize(delta);
+  };
+
+  const handleMouseUp = () => {
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+
+  return (
+    <TableHead style={{ width, minWidth: width, position: "relative" }} className="select-none">
+      {children}
+      <div
+        onMouseDown={handleMouseDown}
+        className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 flex items-center justify-center"
+      >
+        <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+      </div>
+    </TableHead>
+  );
+};
+
+const InlineEditCell = ({
+  value,
+  onSave,
+  type = "text",
+}: {
+  value: string;
+  onSave: (val: string) => void;
+  type?: string;
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) inputRef.current.focus();
+  }, [editing]);
+
+  const handleSave = () => {
+    setEditing(false);
+    if (editValue !== value) onSave(editValue);
+  };
+
+  if (editing) {
+    return (
+      <Input
+        ref={inputRef}
+        type={type}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onBlur={handleSave}
+        onKeyDown={(e) => e.key === "Enter" && handleSave()}
+        className="h-7 text-xs"
+      />
+    );
+  }
+
+  return (
+    <div
+      onDoubleClick={() => { setEditValue(value); setEditing(true); }}
+      className="cursor-pointer hover:bg-muted/50 px-1 py-0.5 rounded min-h-[24px] text-xs"
+      title="Double-click to edit"
+    >
+      {value || "—"}
+    </div>
+  );
+};
+
 const AttendanceAdmin = ({ userId, role }: Props) => {
   const { toast } = useToast();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
@@ -50,8 +144,10 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [activeTab, setActiveTab] = useState("attendance");
+  const [sortKey, setSortKey] = useState<SortKey>("check_in");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [colWidths, setColWidths] = useState<number[]>(COLUMNS.map(c => c.minWidth));
 
-  // Leave action dialog
   const [actionDialog, setActionDialog] = useState<{ open: boolean; request: LeaveRequest | null; action: string }>({
     open: false, request: null, action: "",
   });
@@ -95,6 +191,25 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
     fetchData();
   }, [fetchData]);
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const handleResize = (index: number, delta: number) => {
+    setColWidths(prev => {
+      const newWidths = [...prev];
+      newWidths[index] = Math.max(COLUMNS[index].minWidth, prev[index] + delta);
+      return newWidths;
+    });
+  };
+
+  const handleInlineUpdate = async (id: string, field: string, value: string) => {
+    const { error } = await supabase.from("attendance").update({ [field]: value || null } as any).eq("id", id);
+    if (error) toast({ title: "Update failed", variant: "destructive" });
+    else { toast({ title: "Updated ✓" }); fetchData(); }
+  };
+
   const handleLeaveAction = async (action: "approved" | "rejected") => {
     if (!actionDialog.request) return;
     const { error } = await (supabase.from("leave_requests" as any) as any)
@@ -115,15 +230,41 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
     }
   };
 
-  const filteredAttendance = attendance.filter((a) =>
-    !searchQuery || a.user_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getTotal = (rec: AttendanceRecord): string => {
+    if (!rec.check_out) return "—";
+    const d = new Date(rec.check_out).getTime() - new Date(rec.check_in).getTime();
+    return `${Math.floor(d / 3600000)}h ${Math.floor((d % 3600000) / 60000)}m`;
+  };
+
+  const sortedAttendance = [...attendance]
+    .filter((a) => !searchQuery || a.user_name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "user_name": cmp = (a.user_name || "").localeCompare(b.user_name || ""); break;
+        case "check_in": cmp = new Date(a.check_in).getTime() - new Date(b.check_in).getTime(); break;
+        case "check_out": cmp = (a.check_out || "").localeCompare(b.check_out || ""); break;
+        case "source": cmp = a.source.localeCompare(b.source); break;
+        case "status": cmp = a.status.localeCompare(b.status); break;
+        case "total":
+          const ta = a.check_out ? new Date(a.check_out).getTime() - new Date(a.check_in).getTime() : 0;
+          const tb = b.check_out ? new Date(b.check_out).getTime() - new Date(b.check_in).getTime() : 0;
+          cmp = ta - tb;
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
   const pendingLeaves = leaveRequests.filter((l) => l.status === "pending");
   const processedLeaves = leaveRequests.filter((l) => l.status !== "pending");
 
   const totalPresent = attendance.length;
   const totalCheckedOut = attendance.filter((a) => a.check_out).length;
+
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />;
+    return sortDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   return (
     <div className="space-y-4">
@@ -143,7 +284,6 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
         </TabsList>
 
         <TabsContent value="attendance" className="space-y-3">
-          {/* Summary & Date Picker */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               type="date"
@@ -162,7 +302,6 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-2">
             <Card>
               <CardContent className="p-3 text-center">
@@ -186,65 +325,64 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
 
           {loading ? (
             <p className="text-center text-sm text-muted-foreground py-8">Loading...</p>
-          ) : filteredAttendance.length === 0 ? (
+          ) : sortedAttendance.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-8">No attendance records</p>
           ) : (
-            <div className="space-y-2">
-              {filteredAttendance.map((rec) => {
-                const checkIn = new Date(rec.check_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-                const checkOut = rec.check_out
-                  ? new Date(rec.check_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
-                  : null;
-                const total = rec.check_out
-                  ? (() => {
-                      const d = new Date(rec.check_out).getTime() - new Date(rec.check_in).getTime();
-                      return `${Math.floor(d / 3600000)}h ${Math.floor((d % 3600000) / 60000)}m`;
-                    })()
-                  : null;
-
-                return (
-                  <Card key={rec.id}>
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <p className="text-sm font-medium">{rec.user_name}</p>
-                            <Badge 
-                              variant={rec.source === "device" ? "default" : "secondary"} 
-                              className="text-[9px] h-4 px-1.5"
-                            >
-                              {rec.source === "device" ? "🔒 Device" : "📱 App"}
-                            </Badge>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            {checkIn} → {checkOut || "Active"}
-                            {total && <span className="ml-2 font-medium">({total})</span>}
-                          </p>
-                          {rec.device_info && (
-                            <p className="text-[10px] text-muted-foreground">{rec.device_info}</p>
-                          )}
+            <div className="border rounded-lg overflow-auto max-h-[60vh]">
+              <Table>
+                <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
+                  <TableRow>
+                    {COLUMNS.map((col, i) => (
+                      <ResizableHeader key={col.key} width={colWidths[i]} onResize={(d) => handleResize(i, d)}>
+                        <div
+                          className={`flex items-center gap-1 text-xs font-semibold ${col.sortable ? "cursor-pointer hover:text-primary" : ""}`}
+                          onClick={() => col.sortable && handleSort(col.key as SortKey)}
+                        >
+                          {col.label}
+                          {col.sortable && <SortIcon col={col.key} />}
                         </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {rec.latitude && (
-                            <Badge variant="outline" className="text-[9px] gap-1">
-                              📍 {rec.latitude.toFixed(2)}, {rec.longitude?.toFixed(2)}
-                            </Badge>
-                          )}
-                          <Badge variant={checkOut ? "secondary" : "default"} className="text-[10px]">
-                            {checkOut ? "Done" : "Active"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </ResizableHeader>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedAttendance.map((rec) => (
+                    <TableRow key={rec.id} className="hover:bg-muted/30">
+                      <TableCell className="text-xs font-medium">{rec.user_name}</TableCell>
+                      <TableCell className="text-xs">
+                        {new Date(rec.check_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {rec.check_out
+                          ? new Date(rec.check_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-xs font-medium">{getTotal(rec)}</TableCell>
+                      <TableCell>
+                        <Badge variant={rec.source === "device" ? "default" : "secondary"} className="text-[9px]">
+                          {rec.source === "device" ? "🔒 Device" : "📱 App"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={rec.check_out ? "secondary" : "default"} className="text-[9px]">
+                          {rec.check_out ? "Done" : "Active"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <InlineEditCell
+                          value={rec.note || ""}
+                          onSave={(val) => handleInlineUpdate(rec.id, "note", val)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </TabsContent>
 
         <TabsContent value="leaves" className="space-y-3">
-          {/* Pending */}
           {pendingLeaves.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-amber-500">Pending Approvals ({pendingLeaves.length})</h3>
@@ -289,7 +427,6 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
             </div>
           )}
 
-          {/* Processed */}
           {processedLeaves.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-muted-foreground">History</h3>
@@ -324,7 +461,6 @@ const AttendanceAdmin = ({ userId, role }: Props) => {
         </TabsContent>
       </Tabs>
 
-      {/* Leave Action Dialog */}
       <Dialog open={actionDialog.open} onOpenChange={(o) => setActionDialog({ ...actionDialog, open: o })}>
         <DialogContent className="max-w-sm">
           <DialogHeader>

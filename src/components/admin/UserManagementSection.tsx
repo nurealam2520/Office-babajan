@@ -288,98 +288,19 @@ const UserManagementSection = ({ userId, role }: Props) => {
       ) : filteredProfiles.length === 0 ? (
         <div className="py-12 text-center text-muted-foreground text-sm">No users found</div>
       ) : (
-        <div className="space-y-2">
-          {filteredProfiles.map(user => {
-            const restriction = getRestriction(user.user_id);
-            return (
-              <Card key={user.user_id} className={restriction ? "border-destructive/30 bg-destructive/5" : ""}>
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xs font-semibold text-primary">{user.full_name.charAt(0)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm">{user.full_name}</span>
-                        <span className="text-xs text-muted-foreground">@{user.username}</span>
-                        {user.employee_id && (
-                          <Badge variant="outline" className="text-[10px]">ID: {user.employee_id}</Badge>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">📱 {user.mobile_number}</p>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      {(role === "super_admin" || role === "admin") && (
-                        <>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Manage Groups"
-                            onClick={() => openGroupDialog(user)}>
-                            <Building2 className="h-3.5 w-3.5 text-primary" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" title="View Conversations"
-                            onClick={() => viewConversations(user)}>
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
-                      )}
-                      {!isProtectedFromAction(user.user_id) && (
-                        <>
-                          {restriction ? (
-                            (role === "super_admin" || role === "admin" || role === "manager") && (
-                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => removeRestriction(restriction.id)}>
-                                <ShieldOff className="h-3 w-3" /> Remove
-                              </Button>
-                            )
-                          ) : (
-                            <>
-                              {(role === "super_admin" || role === "admin") && (
-                                <>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Ban User"
-                                    onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}>
-                                    <Ban className="h-3.5 w-3.5 text-destructive" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Restrict Messages"
-                                    onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
-                                    <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
-                                  </Button>
-                                  {role === "super_admin" && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Permanently Delete"
-                                      onClick={() => setDeleteConfirm(user)}>
-                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                    </Button>
-                                  )}
-                                </>
-                              )}
-                              {role === "manager" && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7" title="Restrict Messages"
-                                  onClick={() => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}>
-                                  <MessageSquareOff className="h-3.5 w-3.5 text-accent-foreground" />
-                                </Button>
-                              )}
-                            </>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {restriction && (
-                    <div className="mt-2 flex items-center gap-2 flex-wrap rounded-md bg-destructive/10 px-2.5 py-1.5">
-                      <Badge variant="destructive" className="text-[10px]">
-                        {restriction.restriction_type === "ban" ? "🚫 Banned" : restriction.restriction_type === "restrict" ? "⚠️ Restricted" : "🗑️ Deleted"}
-                      </Badge>
-                      <Badge variant="outline" className="text-[10px] gap-1">
-                        <Clock className="h-2.5 w-2.5" />
-                        {getTimeRemaining(restriction.expires_at)}
-                      </Badge>
-                      {restriction.reason && (
-                        <span className="text-[10px] text-muted-foreground">Reason: {restriction.reason}</span>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <UserManagementTable
+          profiles={filteredProfiles}
+          restrictions={restrictions}
+          role={role}
+          getUserRole={getUserRole}
+          isProtectedFromAction={isProtectedFromAction}
+          onBan={(user) => { setDuration("24h"); setActionDialog({ open: true, type: "ban", user }); }}
+          onRestrict={(user) => { setDuration("24h"); setActionDialog({ open: true, type: "restrict", user }); }}
+          onDelete={(user) => setDeleteConfirm(user)}
+          onRemoveRestriction={removeRestriction}
+          onViewConversations={viewConversations}
+          onManageGroups={openGroupDialog}
+        />
       )}
 
       {/* Restriction Info Dialog */}
