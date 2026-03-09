@@ -176,6 +176,8 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         userId={userId}
         onCreated={fetchData}
       />
+
+      <TaskReportPrintView ref={printRef} tasks={filtered} />
     </div>
   );
 };
