@@ -368,6 +368,7 @@ export type Database = {
           late_days_for_penalty: number
           late_threshold_minutes: number
           office_end_time: string
+          office_name: string
           office_start_time: string
           penalty_days_deducted: number
           updated_at: string
@@ -380,6 +381,7 @@ export type Database = {
           late_days_for_penalty?: number
           late_threshold_minutes?: number
           office_end_time?: string
+          office_name?: string
           office_start_time?: string
           penalty_days_deducted?: number
           updated_at?: string
@@ -392,6 +394,7 @@ export type Database = {
           late_days_for_penalty?: number
           late_threshold_minutes?: number
           office_end_time?: string
+          office_name?: string
           office_start_time?: string
           penalty_days_deducted?: number
           updated_at?: string

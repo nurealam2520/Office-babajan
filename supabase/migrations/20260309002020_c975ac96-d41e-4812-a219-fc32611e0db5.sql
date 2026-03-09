@@ -1,0 +1,1 @@
+ALTER TABLE public.payroll_settings ADD COLUMN office_name text NOT NULL DEFAULT 'Office Management';
