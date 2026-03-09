@@ -1,8 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Plus, LayoutList, Table2, Printer, FileDown } from "lucide-react";
+import {
+  Plus, RefreshCw, ClipboardList, List, LayoutGrid, Calendar as CalendarIcon,
+  Printer, FileDown, Save
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import TaskFilters from "./TaskFilters";
 import TaskCard, { type Task } from "./TaskCard";
 import TaskTableView from "./TaskTableView";
 import CreateTaskDialog from "./CreateTaskDialog";
@@ -14,6 +19,13 @@ interface Props {
   initialSearch?: string;
 }
 
+const labelFilters = [
+  { value: "all", label: "সব লেবেল" },
+  { value: "live", label: "🟢 Live" },
+  { value: "advance", label: "🔵 Advance" },
+  { value: "waiting_for_goods", label: "🟠 Waiting for Goods" },
+];
+
 const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<Map<string, string>>(new Map());
@@ -21,12 +33,10 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState(initialSearch);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [labelFilter, setLabelFilter] = useState("all");
   const [userFilter, setUserFilter] = useState("all");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"card" | "table">("table");
+  const [viewMode, setViewMode] = useState<"card" | "table" | "calendar">("table");
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -75,30 +85,11 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
 
-  const LABEL_VALUES = ["live", "advance", "waiting_for_goods"];
-
   const filtered = tasks.filter((t) => {
-    // Label filter
-    if (statusFilter !== "all") {
-      if (t.label !== statusFilter) return false;
-    }
-    // User filter
+    if (labelFilter !== "all" && t.label !== labelFilter) return false;
     if (userFilter !== "all" && t.assigned_to !== userFilter) return false;
-    // Date range filter
-    if (dateFrom) {
-      const taskDate = t.due_date || t.created_at;
-      if (taskDate && new Date(taskDate) < new Date(dateFrom)) return false;
-    }
-    if (dateTo) {
-      const taskDate = t.due_date || t.created_at;
-      if (taskDate && new Date(taskDate) > new Date(dateTo + "T23:59:59")) return false;
-    }
-    // Search text
     if (search) {
       const q = search.toLowerCase();
-      if (["live", "advance", "waiting_for_goods"].includes(q)) {
-        return t.label === q;
-      }
       return (
         t.title.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q) ||
@@ -110,66 +101,102 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     return true;
   });
 
+  // Group by date for calendar view
+  const groupedByDate = filtered.reduce((acc, t) => {
+    const date = t.due_date ? new Date(t.due_date).toISOString().split("T")[0] : "no_date";
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(t);
+    return acc;
+  }, {} as Record<string, Task[]>);
+
   return (
-    <div className="space-y-3 sm:space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm sm:text-lg font-semibold hidden sm:block">Task Management</h2>
-        <div className="flex items-center gap-0.5 sm:gap-1">
-          <Button size="sm" variant="outline" className="gap-1 h-7 sm:h-8 px-2 sm:px-3" onClick={handlePrint} title="Print">
-            <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline text-xs">Print</span>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">টাস্ক ম্যানেজমেন্ট</h2>
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
+            <Printer className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">প্রিন্ট</span>
           </Button>
-          <Button size="sm" variant="outline" className="gap-1 h-7 sm:h-8 px-2 sm:px-3" onClick={handlePrint} title="PDF">
-            <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline text-xs">PDF</span>
+          <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
+            <FileDown className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">PDF</span>
           </Button>
-          <div className="flex items-center border rounded-md overflow-hidden ml-1 sm:ml-2">
-            <button
-              onClick={() => setViewMode("card")}
-              className={`p-1 sm:p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              title="Card View"
-            >
-              <LayoutList className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`p-1 sm:p-1.5 ${viewMode === "table" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-              title="Excel View"
-            >
-              <Table2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </button>
-          </div>
           {role !== "member" && (
-            <Button size="sm" className="gap-0.5 sm:gap-1 h-7 sm:h-8 px-2 sm:px-3 text-xs" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">New</span> <span className="sm:hidden">+</span>
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs h-8">
+              <Plus className="h-3.5 w-3.5" /> নতুন টাস্ক
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={fetchData} className="h-8 w-8 p-0">
+            <RefreshCw className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
-      <TaskFilters
-        search={search}
-        onSearchChange={setSearch}
-        totalCount={filtered.length}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        userFilter={userFilter}
-        onUserFilterChange={setUserFilter}
-        dateFrom={dateFrom}
-        onDateFromChange={setDateFrom}
-        dateTo={dateTo}
-        onDateToChange={setDateTo}
-        staffList={staffList}
-      />
+      {/* View mode & Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
+          {[
+            { mode: "card" as const, icon: LayoutGrid, label: "কার্ড" },
+            { mode: "table" as const, icon: List, label: "টেবিল" },
+            { mode: "calendar" as const, icon: CalendarIcon, label: "ক্যালেন্ডার" },
+          ].map((v) => (
+            <Button
+              key={v.mode}
+              size="sm"
+              variant={viewMode === v.mode ? "default" : "ghost"}
+              className="h-7 text-xs gap-1 px-2"
+              onClick={() => setViewMode(v.mode)}
+            >
+              <v.icon className="h-3 w-3" />
+              <span className="hidden sm:inline">{v.label}</span>
+            </Button>
+          ))}
+        </div>
 
+        <Select value={labelFilter} onValueChange={setLabelFilter}>
+          <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {labelFilters.map((s) => (
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {staffList.length > 0 && (
+          <Select value={userFilter} onValueChange={setUserFilter}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="সব ইউজার" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">সব ইউজার</SelectItem>
+              {staffList.map((s) => (
+                <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        <Badge variant="secondary" className="text-xs">{filtered.length} টাস্ক</Badge>
+      </div>
+
+      {/* Content */}
       {loading ? (
-        <p className="text-center text-sm text-muted-foreground py-8">Loading tasks...</p>
+        <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-sm text-muted-foreground py-8">No tasks found</p>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
+            <ClipboardList className="h-12 w-12 opacity-30" />
+            <p className="text-sm">কোন টাস্ক নেই</p>
+          </CardContent>
+        </Card>
       ) : viewMode === "table" ? (
         <TaskTableView tasks={filtered} staffList={staffList} />
-      ) : (
-        <div className="space-y-2">
+      ) : viewMode === "card" ? (
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((task) => (
             <TaskCard
               key={task.id}
@@ -178,6 +205,38 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
               onToggle={() => setExpandedId(expandedId === task.id ? null : task.id)}
             />
           ))}
+        </div>
+      ) : (
+        /* Calendar View */
+        <div className="space-y-3">
+          {Object.entries(groupedByDate)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([date, dateTasks]) => (
+              <div key={date}>
+                <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-primary" />
+                  {date === "no_date"
+                    ? "তারিখ নির্ধারিত নয়"
+                    : new Date(date).toLocaleDateString("bn-BD", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                  <Badge variant="secondary" className="text-[10px]">{dateTasks.length}</Badge>
+                </h3>
+                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 pl-6">
+                  {dateTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      expanded={expandedId === task.id}
+                      onToggle={() => setExpandedId(expandedId === task.id ? null : task.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
         </div>
       )}
 

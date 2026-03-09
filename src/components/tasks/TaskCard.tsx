@@ -1,4 +1,4 @@
-import { Clock, User, ChevronDown, ChevronUp, AlertTriangle, Tag } from "lucide-react";
+import { Clock, AlertTriangle, Tag } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,21 +36,21 @@ interface Props {
   onToggle: () => void;
 }
 
-const priorityColors: Record<string, string> = {
-  high: "bg-destructive/10 text-destructive border-destructive/30",
-  medium: "bg-amber-500/10 text-amber-600 border-amber-500/30",
-  low: "bg-primary/10 text-primary border-primary/30",
+const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  pending: { label: "অপেক্ষমাণ", variant: "secondary" },
+  in_progress: { label: "কাজ চলছে", variant: "default" },
+  completed: { label: "সম্পন্ন", variant: "outline" },
+  cancelled: { label: "বাতিল", variant: "destructive" },
+  issues: { label: "সমস্যা", variant: "destructive" },
+  processing: { label: "প্রসেসিং", variant: "default" },
+  ready_to_bid: { label: "বিড রেডি", variant: "outline" },
+  bidded: { label: "বিড হয়েছে", variant: "outline" },
 };
 
-const statusColors: Record<string, string> = {
-  pending: "bg-muted text-muted-foreground",
-  in_progress: "bg-primary/10 text-primary",
-  completed: "bg-emerald-500/10 text-emerald-600",
-  cancelled: "bg-destructive/10 text-destructive",
-  issues: "bg-amber-500/10 text-amber-600",
-  processing: "bg-blue-500/10 text-blue-600",
-  ready_to_bid: "bg-violet-500/10 text-violet-600",
-  bidded: "bg-teal-500/10 text-teal-600",
+const priorityMap: Record<string, { label: string; color: string }> = {
+  low: { label: "নিম্ন", color: "bg-muted text-muted-foreground" },
+  medium: { label: "মধ্যম", color: "bg-accent/20 text-accent-foreground" },
+  high: { label: "উচ্চ", color: "bg-destructive/20 text-destructive" },
 };
 
 const labelColors: Record<string, string> = {
@@ -65,134 +65,165 @@ const labelLabels: Record<string, string> = {
   waiting_for_goods: "Waiting for the Goods",
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  issues: "Issues",
-  processing: "Processing",
-  ready_to_bid: "Ready to Bid",
-  bidded: "Bidded",
+const getTimeRemaining = (dueDate: string) => {
+  const diff = new Date(dueDate).getTime() - Date.now();
+  if (diff < 0) return { text: "সময় শেষ!", overdue: true, percent: 100 };
+  const hrs = Math.floor(diff / 3600000);
+  const days = Math.floor(hrs / 24);
+  if (days > 0)
+    return {
+      text: `${days} দিন ${hrs % 24} ঘণ্টা বাকি`,
+      overdue: false,
+      percent: Math.max(0, 100 - (diff / (7 * 86400000)) * 100),
+    };
+  return {
+    text: `${hrs} ঘণ্টা বাকি`,
+    overdue: false,
+    percent: Math.min(90, 100 - (diff / 86400000) * 100),
+  };
 };
 
 const TaskCard = ({ task, expanded, onToggle }: Props) => {
   const { toast } = useToast();
-  const isOverdue = task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
+  const timeInfo = task.due_date ? getTimeRemaining(task.due_date) : null;
+  const isOverdue = timeInfo?.overdue && task.status !== "completed";
+  const prio = priorityMap[task.priority] || priorityMap.medium;
 
   const handleLabelChange = async (newLabel: string) => {
     const labelValue = newLabel === "none" ? null : newLabel;
     await supabase.from("tasks").update({ label: labelValue } as any).eq("id", task.id);
-    toast({ title: `Label → ${labelValue ? labelLabels[labelValue] : "None"}` });
+    toast({ title: `লেবেল → ${labelValue ? labelLabels[labelValue] : "None"}` });
   };
 
   return (
-    <Card className={`transition-shadow hover:shadow-md ${isOverdue ? "border-destructive/50" : ""}`}>
-      <CardContent className="p-4 space-y-2">
+    <Card
+      className={`cursor-pointer hover:shadow-md transition-shadow ${isOverdue ? "border-destructive/50" : ""}`}
+      onClick={onToggle}
+    >
+      <CardContent className="p-3 space-y-2">
+        {/* Header */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              {task.task_number && (
-                <span className="text-[10px] font-mono text-muted-foreground">#{task.task_number}</span>
-              )}
-              <h3 className="font-semibold text-sm text-foreground">{task.title}</h3>
-            </div>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {task.due_date && (
-                <span className={`text-[11px] flex items-center gap-1 ${isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                  <Clock className="h-3 w-3" />
-                  {new Date(task.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  {isOverdue && <AlertTriangle className="h-3 w-3" />}
-                </span>
-              )}
-              {task.assignee_name && (
-                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <User className="h-3 w-3" /> {task.assignee_name}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-            {task.label && (
-              <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
-                {labelLabels[task.label] || task.label}
-              </Badge>
+          <div className="min-w-0">
+            {task.task_number && (
+              <span className="text-[10px] font-mono text-muted-foreground">#{task.task_number}</span>
             )}
-            <button onClick={onToggle} className="p-1 hover:bg-muted rounded">
-              {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
+            <p className="text-sm font-medium truncate">{task.title}</p>
+          </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <Badge variant={statusLabels[task.status]?.variant || "secondary"} className="text-[10px]">
+              {statusLabels[task.status]?.label || task.status}
+            </Badge>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${prio.color}`}>{prio.label}</span>
           </div>
         </div>
 
+        {/* Description */}
+        {task.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+        )}
+
+        {/* Assignee & Date */}
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>👤 {task.assignee_name || "Unknown"}</span>
+          {task.due_date && (
+            <span className={isOverdue ? "text-destructive font-medium" : ""}>
+              📅 {new Date(task.due_date).toLocaleDateString("bn-BD")}
+            </span>
+          )}
+        </div>
+
+        {/* Progress */}
         {task.progress > 0 && (
-          <div className="flex items-center gap-2">
-            <Progress value={task.progress} className="h-1.5 flex-1" />
-            <span className="text-[10px] text-muted-foreground">{task.progress}%</span>
+          <div className="space-y-1">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>অগ্রগতি</span>
+              <span>{task.progress}%</span>
+            </div>
+            <Progress value={task.progress} className="h-1" />
           </div>
         )}
 
-        {expanded && (
-          <div className="pt-2 space-y-2 border-t">
-            {task.description && (
-              <p className="text-xs text-muted-foreground whitespace-pre-wrap">{task.description}</p>
+        {/* Time remaining */}
+        {timeInfo && task.status !== "completed" && (
+          <div className="flex items-center gap-1 text-[10px]">
+            {timeInfo.overdue ? (
+              <AlertTriangle className="h-3 w-3 text-destructive" />
+            ) : (
+              <Clock className="h-3 w-3" />
             )}
+            <span className={timeInfo.overdue ? "text-destructive font-medium" : "text-muted-foreground"}>
+              {timeInfo.text}
+            </span>
+          </div>
+        )}
+
+        {/* Budget */}
+        {task.budget != null && task.budget > 0 && (
+          <span className="text-[10px] text-muted-foreground">
+            💰 বাজেট: ৳{Number(task.budget).toLocaleString("bn-BD")}
+          </span>
+        )}
+
+        {/* Label badge */}
+        {task.label && (
+          <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
+            {labelLabels[task.label] || task.label}
+          </Badge>
+        )}
+
+        {/* Expanded details */}
+        {expanded && (
+          <div className="pt-2 space-y-2 border-t" onClick={(e) => e.stopPropagation()}>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               {task.planned_date && (
                 <div>
-                  <span className="text-muted-foreground">Planned: </span>
-                  {new Date(task.planned_date).toLocaleDateString("en-US")}
-                </div>
-              )}
-              {task.budget != null && (
-                <div>
-                  <span className="text-muted-foreground">Budget: </span>
-                  {task.budget.toLocaleString()}
+                  <span className="text-muted-foreground">🗓️ পরিকল্পিত: </span>
+                  {new Date(task.planned_date).toLocaleDateString("bn-BD")}
                 </div>
               )}
               {task.credit_line && (
                 <div>
-                  <span className="text-muted-foreground">Credit Line: </span>
+                  <span className="text-muted-foreground">💳 ক্রেডিট: </span>
                   {task.credit_line}
                 </div>
               )}
               {task.t_security != null && (
                 <div>
-                  <span className="text-muted-foreground">T. Security: </span>
-                  {task.t_security.toLocaleString()}
+                  <span className="text-muted-foreground">🔒 সিকিউরিটি: </span>
+                  {task.t_security.toLocaleString("bn-BD")}
                 </div>
               )}
               {task.category && (
                 <div>
-                  <span className="text-muted-foreground">Category: </span>
+                  <span className="text-muted-foreground">📂 ক্যাটাগরি: </span>
                   {task.category}
                 </div>
               )}
               {task.assigner_name && (
                 <div>
-                  <span className="text-muted-foreground">Assigned by: </span>
+                  <span className="text-muted-foreground">📋 প্রেরক: </span>
                   {task.assigner_name}
                 </div>
               )}
             </div>
+
             {task.admin_note && (
-              <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Note</p>
-                <p className="text-xs">{task.admin_note}</p>
-              </div>
+              <p className="text-xs bg-muted rounded p-2 italic">💬 {task.admin_note}</p>
             )}
+
             {/* Label change */}
             <div className="flex items-center gap-2">
               <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Label:</span>
+              <span className="text-xs text-muted-foreground">লেবেল:</span>
               <Select value={task.label || "none"} onValueChange={handleLabelChange}>
                 <SelectTrigger className="h-7 w-[180px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Label</SelectItem>
-                  <SelectItem value="live">Live</SelectItem>
-                  <SelectItem value="advance">Advance</SelectItem>
-                  <SelectItem value="waiting_for_goods">Waiting for the Goods</SelectItem>
+                  <SelectItem value="live">🟢 Live</SelectItem>
+                  <SelectItem value="advance">🔵 Advance</SelectItem>
+                  <SelectItem value="waiting_for_goods">🟠 Waiting for the Goods</SelectItem>
                 </SelectContent>
               </Select>
             </div>
