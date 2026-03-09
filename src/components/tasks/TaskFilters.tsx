@@ -20,15 +20,7 @@ interface Props {
 }
 
 const STATUSES = [
-  { value: "all", label: "All Status" },
-  { value: "pending", label: "Pending" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "issues", label: "Issues" },
-  { value: "processing", label: "Processing" },
-  { value: "ready_to_bid", label: "Ready to Bid" },
-  { value: "bidded", label: "Bidded" },
+  { value: "all", label: "All Labels" },
   { value: "live", label: "🟢 Live" },
   { value: "advance", label: "🔵 Advance" },
   { value: "waiting_for_goods", label: "🟠 Waiting for Goods" },

@@ -99,12 +99,6 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       if (["live", "advance", "waiting_for_goods"].includes(q)) {
         return t.label === q;
       }
-      if (["pending", "in_progress", "completed", "cancelled", "issues", "processing", "ready_to_bid", "bidded"].includes(q)) {
-        return t.status === q;
-      }
-      if (q === "overdue") {
-        return t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed";
-      }
       return (
         t.title.toLowerCase().includes(q) ||
         t.description?.toLowerCase().includes(q) ||

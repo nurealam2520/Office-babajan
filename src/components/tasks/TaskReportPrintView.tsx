@@ -8,14 +8,9 @@ const labelLabels: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  issues: "Issues",
-  processing: "Processing",
-  ready_to_bid: "Ready to Bid",
-  bidded: "Bidded",
+  live: "Live",
+  advance: "Advance",
+  waiting_for_goods: "Waiting for the Goods",
 };
 
 const fmtDate = (d: string | null) => {
