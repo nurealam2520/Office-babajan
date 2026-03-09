@@ -75,7 +75,7 @@ const SuperAdminDashboard = () => {
 
   const navItems: { id: ActiveView; icon: any; title: string; adminOnly?: boolean }[] = [
     { id: "home", icon: LayoutDashboard, title: "Dashboard" },
-    { id: "tasks", icon: ClipboardList, title: "Tasks" },
+    { id: "tasks", icon: ClipboardList, title: "Tasks", mobileTitle: "Task Management" },
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "attendance", icon: CalendarCheck, title: "Attendance" },
     { id: "announcements", icon: Megaphone, title: "Announcements" },
