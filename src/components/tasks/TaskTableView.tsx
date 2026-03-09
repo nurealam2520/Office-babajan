@@ -260,10 +260,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
 
   return (
     <>
-      <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x">
-        <div style={{ minWidth: `${colWidths.reduce((s, w) => s + w, 0)}px` }}>
-          <Table className="text-xs sm:text-sm">
-            <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
+      <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x -webkit-overflow-scrolling-touch">
+        <table className="caption-bottom text-xs sm:text-sm" style={{ width: `${colWidths.reduce((s, w) => s + w, 0)}px`, tableLayout: 'fixed' }}>
+            <thead className="sticky top-0 z-10 bg-muted/95 backdrop-blur [&_tr]:border-b">
               <TableRow>
                 {COLUMNS.map((col, i) => (
                   <ResizableHeader
@@ -282,8 +281,8 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
                   </ResizableHeader>
                 ))}
               </TableRow>
-            </TableHeader>
-            <TableBody>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
               {sortedTasks.map((task) => {
                 const isOverdue =
                   task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
@@ -411,9 +410,8 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
                   </TableRow>
                 );
               })}
-            </TableBody>
-          </Table>
-        </div>
+            </tbody>
+          </table>
       </div>
 
       <EditTaskDialog
