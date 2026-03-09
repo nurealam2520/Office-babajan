@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ArrowUp, ArrowDown, ArrowUpDown, Check, X, Pencil } from "lucide-react";
 import EditTaskDialog from "./EditTaskDialog";
 import type { Task } from "./TaskCard";
 
@@ -34,9 +36,182 @@ const fmtNum = (n: number | null | undefined) => {
   return n.toLocaleString();
 };
 
+type SortKey = "task_number" | "title" | "assigned_to" | "label" | "due_date" | "planned_date" | "budget" | "credit_line" | "t_security" | "admin_note";
+type SortDir = "asc" | "desc";
+
+interface ColumnDef {
+  key: SortKey;
+  label: string;
+  minWidth: number;
+  defaultWidth: number;
+  align?: "left" | "right";
+}
+
+const COLUMNS: ColumnDef[] = [
+  { key: "task_number", label: "Task ID", minWidth: 60, defaultWidth: 80 },
+  { key: "title", label: "Description", minWidth: 150, defaultWidth: 220 },
+  { key: "assigned_to", label: "Assign To", minWidth: 100, defaultWidth: 140 },
+  { key: "label", label: "Label", minWidth: 100, defaultWidth: 140 },
+  { key: "due_date", label: "Due Date", minWidth: 90, defaultWidth: 110 },
+  { key: "planned_date", label: "P. Date", minWidth: 90, defaultWidth: 110 },
+  { key: "budget", label: "Budget", minWidth: 70, defaultWidth: 90, align: "right" },
+  { key: "credit_line", label: "Credit Line", minWidth: 70, defaultWidth: 90, align: "right" },
+  { key: "t_security", label: "T. Security", minWidth: 70, defaultWidth: 90, align: "right" },
+  { key: "admin_note", label: "Remark", minWidth: 120, defaultWidth: 160 },
+];
+
+// Inline editable cell
+const InlineEditCell = ({
+  value,
+  onSave,
+  type = "text",
+  align = "left",
+}: {
+  value: string;
+  onSave: (v: string) => Promise<void>;
+  type?: "text" | "number" | "date";
+  align?: "left" | "right";
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+
+  const handleSave = async () => {
+    if (editValue !== value) {
+      await onSave(editValue);
+    }
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(value);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-0.5">
+        <Input
+          ref={inputRef}
+          type={type}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSave();
+            if (e.key === "Escape") handleCancel();
+          }}
+          onBlur={handleSave}
+          className={`h-6 text-xs px-1 py-0 min-w-0 ${align === "right" ? "text-right" : ""}`}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`group/cell flex items-center gap-1 cursor-pointer min-h-[24px] ${align === "right" ? "justify-end" : ""}`}
+      onDoubleClick={() => {
+        setEditValue(value);
+        setEditing(true);
+      }}
+    >
+      <span className="text-xs truncate">{value || "—"}</span>
+      <Pencil className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/cell:opacity-100 shrink-0 transition-opacity" />
+    </div>
+  );
+};
+
+// Resizable column header
+const ResizableHeader = ({
+  children,
+  width,
+  onResize,
+  className = "",
+}: {
+  children: React.ReactNode;
+  width: number;
+  onResize: (delta: number) => void;
+  className?: string;
+}) => {
+  const startX = useRef(0);
+  const startWidth = useRef(0);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startX.current = e.clientX;
+    startWidth.current = width;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX.current;
+      onResize(delta);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+
+  return (
+    <TableHead
+      className={`relative select-none ${className}`}
+      style={{ width: `${width}px`, minWidth: `${width}px` }}
+    >
+      {children}
+      <div
+        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 active:bg-primary/50 transition-colors"
+        onMouseDown={onMouseDown}
+      />
+    </TableHead>
+  );
+};
+
 const TaskTableView = ({ tasks, staffList }: Props) => {
   const { toast } = useToast();
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [colWidths, setColWidths] = useState<number[]>(COLUMNS.map((c) => c.defaultWidth));
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const handleResize = (index: number, delta: number) => {
+    setColWidths((prev) => {
+      const next = [...prev];
+      next[index] = Math.max(COLUMNS[index].minWidth, COLUMNS[index].defaultWidth + delta);
+      return next;
+    });
+  };
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (!sortKey) return 0;
+    const dir = sortDir === "asc" ? 1 : -1;
+    const av = (a as any)[sortKey];
+    const bv = (b as any)[sortKey];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+    return String(av).localeCompare(String(bv)) * dir;
+  });
 
   const handleLabelChange = async (taskId: string, newLabel: string) => {
     const labelValue = newLabel === "none" ? null : newLabel;
@@ -57,88 +232,181 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     }
   };
 
+  const handleInlineUpdate = async (taskId: string, field: string, value: string) => {
+    let updateData: Record<string, any> = {};
+    if (field === "budget" || field === "t_security") {
+      updateData[field] = value ? parseFloat(value) : null;
+    } else if (field === "due_date" || field === "planned_date") {
+      updateData[field] = value || null;
+    } else {
+      updateData[field] = value || null;
+    }
+    const { error } = await supabase.from("tasks").update(updateData).eq("id", taskId);
+    if (error) {
+      toast({ title: "আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "আপডেট হয়েছে" });
+    }
+  };
+
+  const SortIcon = ({ colKey }: { colKey: SortKey }) => {
+    if (sortKey !== colKey) return <ArrowUpDown className="h-3 w-3 text-muted-foreground/50" />;
+    return sortDir === "asc" ? (
+      <ArrowUp className="h-3 w-3 text-primary" />
+    ) : (
+      <ArrowDown className="h-3 w-3 text-primary" />
+    );
+  };
+
   return (
     <>
-      <div className="w-full overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-        <div className="min-w-[900px]">
+      <div className="w-full overflow-x-auto border rounded-lg -mx-2 px-0 sm:mx-0">
+        <div style={{ minWidth: colWidths.reduce((s, w) => s + w, 0) }}>
           <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-[80px] text-xs font-bold">Task ID</TableHead>
-                <TableHead className="min-w-[200px] text-xs font-bold">Description</TableHead>
-                <TableHead className="w-[140px] text-xs font-bold">Assign To</TableHead>
-                <TableHead className="w-[150px] text-xs font-bold">Label</TableHead>
-                <TableHead className="w-[110px] text-xs font-bold">Due Date</TableHead>
-                <TableHead className="w-[110px] text-xs font-bold">P. Date</TableHead>
-                <TableHead className="w-[90px] text-xs font-bold text-right">Budget</TableHead>
-                <TableHead className="w-[90px] text-xs font-bold text-right">Credit Line</TableHead>
-                <TableHead className="w-[90px] text-xs font-bold text-right">T. Security</TableHead>
-                <TableHead className="min-w-[150px] text-xs font-bold">Remark</TableHead>
+            <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
+              <TableRow>
+                {COLUMNS.map((col, i) => (
+                  <ResizableHeader
+                    key={col.key}
+                    width={colWidths[i]}
+                    onResize={(delta) => handleResize(i, delta)}
+                    className={`text-xs font-bold cursor-pointer hover:bg-muted/80 transition-colors ${col.align === "right" ? "text-right" : ""}`}
+                  >
+                    <div
+                      className={`flex items-center gap-1 ${col.align === "right" ? "justify-end" : ""}`}
+                      onClick={() => handleSort(col.key)}
+                    >
+                      <span>{col.label}</span>
+                      <SortIcon colKey={col.key} />
+                    </div>
+                  </ResizableHeader>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks.map((task) => {
-                const isOverdue = task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
+              {sortedTasks.map((task) => {
+                const isOverdue =
+                  task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
                 return (
                   <TableRow
                     key={task.id}
-                    className={`cursor-pointer hover:bg-muted/30 ${isOverdue ? "bg-destructive/5" : ""}`}
+                    className={`hover:bg-muted/30 transition-colors ${isOverdue ? "bg-destructive/5" : ""}`}
                   >
+                    {/* Task ID */}
                     <TableCell
-                      className="text-xs font-mono text-muted-foreground py-2"
+                      className="text-xs font-mono text-muted-foreground py-1.5 cursor-pointer"
+                      style={{ width: colWidths[0] }}
                       onClick={() => setEditTask(task)}
                     >
                       {task.task_number || "—"}
                     </TableCell>
-                    <TableCell className="py-2" onClick={() => setEditTask(task)}>
-                      <p className="text-xs font-medium leading-tight">{task.title}</p>
+
+                    {/* Description - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[1] }}>
+                      <InlineEditCell
+                        value={task.title}
+                        onSave={(v) => handleInlineUpdate(task.id, "title", v)}
+                      />
                       {task.description && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{task.description}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{task.description}</p>
                       )}
                     </TableCell>
-                    <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+
+                    {/* Assign To - dropdown */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[2] }} onClick={(e) => e.stopPropagation()}>
                       <Select value={task.assigned_to} onValueChange={(v) => handleAssignChange(task.id, v)}>
-                        <SelectTrigger className="h-7 text-xs border-none shadow-none bg-transparent px-1">
+                        <SelectTrigger className="h-6 text-xs border-none shadow-none bg-transparent px-1">
                           <SelectValue>{task.assignee_name || "—"}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {staffList.map(s => (
-                            <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>
+                          {staffList.map((s) => (
+                            <SelectItem key={s.user_id} value={s.user_id}>
+                              {s.full_name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+
+                    {/* Label - dropdown */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[3] }} onClick={(e) => e.stopPropagation()}>
                       <Select value={task.label || "none"} onValueChange={(v) => handleLabelChange(task.id, v)}>
-                        <SelectTrigger className="h-7 text-xs border-none shadow-none bg-transparent px-1">
+                        <SelectTrigger className="h-6 text-xs border-none shadow-none bg-transparent px-1">
                           <SelectValue>
                             {task.label ? (
                               <Badge className={`text-[10px] ${labelColors[task.label] || ""}`} variant="outline">
                                 {labelLabels[task.label] || task.label}
                               </Badge>
-                            ) : "—"}
+                            ) : (
+                              "—"
+                            )}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">No Label</SelectItem>
-                          <SelectItem value="live">Live</SelectItem>
-                          <SelectItem value="advance">Advance</SelectItem>
-                          <SelectItem value="waiting_for_goods">Waiting for the Goods</SelectItem>
+                          <SelectItem value="live">🟢 Live</SelectItem>
+                          <SelectItem value="advance">🔵 Advance</SelectItem>
+                          <SelectItem value="waiting_for_goods">🟠 Waiting for the Goods</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
+
+                    {/* Due Date - inline editable */}
                     <TableCell
-                      className={`text-xs py-2 ${isOverdue ? "text-destructive font-medium" : ""}`}
-                      onClick={() => setEditTask(task)}
+                      className={`py-1.5 ${isOverdue ? "text-destructive font-medium" : ""}`}
+                      style={{ width: colWidths[4] }}
                     >
-                      {fmtDate(task.due_date)}
+                      <InlineEditCell
+                        value={task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "due_date", v)}
+                        type="date"
+                      />
                     </TableCell>
-                    <TableCell className="text-xs py-2" onClick={() => setEditTask(task)}>{fmtDate(task.planned_date)}</TableCell>
-                    <TableCell className="text-xs py-2 text-right" onClick={() => setEditTask(task)}>{fmtNum(task.budget)}</TableCell>
-                    <TableCell className="text-xs py-2 text-right" onClick={() => setEditTask(task)}>{task.credit_line || ""}</TableCell>
-                    <TableCell className="text-xs py-2 text-right" onClick={() => setEditTask(task)}>{fmtNum(task.t_security)}</TableCell>
-                    <TableCell className="text-xs py-2 text-muted-foreground max-w-[200px]" onClick={() => setEditTask(task)}>
-                      <p className="line-clamp-2">{task.admin_note || "—"}</p>
+
+                    {/* Planned Date - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[5] }}>
+                      <InlineEditCell
+                        value={task.planned_date ? new Date(task.planned_date).toISOString().split("T")[0] : ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "planned_date", v)}
+                        type="date"
+                      />
+                    </TableCell>
+
+                    {/* Budget - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[6] }}>
+                      <InlineEditCell
+                        value={task.budget?.toString() || ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "budget", v)}
+                        type="number"
+                        align="right"
+                      />
+                    </TableCell>
+
+                    {/* Credit Line - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[7] }}>
+                      <InlineEditCell
+                        value={task.credit_line || ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "credit_line", v)}
+                        align="right"
+                      />
+                    </TableCell>
+
+                    {/* T. Security - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[8] }}>
+                      <InlineEditCell
+                        value={task.t_security?.toString() || ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "t_security", v)}
+                        type="number"
+                        align="right"
+                      />
+                    </TableCell>
+
+                    {/* Remark - inline editable */}
+                    <TableCell className="py-1.5" style={{ width: colWidths[9] }}>
+                      <InlineEditCell
+                        value={task.admin_note || ""}
+                        onSave={(v) => handleInlineUpdate(task.id, "admin_note", v)}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -151,7 +419,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
       <EditTaskDialog
         task={editTask}
         open={!!editTask}
-        onOpenChange={(open) => { if (!open) setEditTask(null); }}
+        onOpenChange={(open) => {
+          if (!open) setEditTask(null);
+        }}
         staffList={staffList}
       />
     </>
