@@ -25,6 +25,21 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    printRef.current.classList.remove("hidden");
+    window.print();
+    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
+  };
+
+  const handlePdfExport = () => {
+    if (!printRef.current) return;
+    printRef.current.classList.remove("hidden");
+    window.print();
+    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
