@@ -281,8 +281,8 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
                   </ResizableHeader>
                 ))}
               </TableRow>
-            </TableHeader>
-            <TableBody>
+            </thead>
+            <tbody className="[&_tr:last-child]:border-0">
               {sortedTasks.map((task) => {
                 const isOverdue =
                   task.due_date && new Date(task.due_date).getTime() < Date.now() && task.status !== "completed";
