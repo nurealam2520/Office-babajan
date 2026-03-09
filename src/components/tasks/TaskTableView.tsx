@@ -147,7 +147,7 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
             </TableBody>
           </Table>
         </div>
-      </ScrollArea>
+      </div>
 
       <EditTaskDialog
         task={editTask}
