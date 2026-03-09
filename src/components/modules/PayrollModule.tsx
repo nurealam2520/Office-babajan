@@ -112,6 +112,7 @@ const PayrollModule = ({ userId, role }: Props) => {
 
   // Settings form
   const [settingsForm, setSettingsForm] = useState({
+    office_name: "Office Management",
     office_start_time: "09:00", office_end_time: "18:00", weekly_off_day: "friday",
     late_threshold_minutes: "15", late_days_for_penalty: "3", penalty_days_deducted: "1",
     default_overtime_rate: "100",
