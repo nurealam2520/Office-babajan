@@ -113,7 +113,15 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Task Management</h2>
         <div className="flex items-center gap-1">
-          <div className="flex items-center border rounded-md overflow-hidden mr-2">
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Print Report">
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">Print</span>
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePdfExport} title="Save as PDF">
+            <FileDown className="h-4 w-4" />
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
+          <div className="flex items-center border rounded-md overflow-hidden ml-2">
             <button
               onClick={() => setViewMode("card")}
               className={`p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
