@@ -632,6 +632,19 @@ const PayrollModule = ({ userId, role }: Props) => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">🏢 Office Name</p>
+                <Input
+                  placeholder="Office Name"
+                  value={settingsForm.office_name}
+                  onChange={e => setSettingsForm(p => ({ ...p, office_name: e.target.value }))}
+                  className="h-9"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">This name will appear on printed reports</p>
+              </div>
+
+              <Separator />
+
+              <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-2">🕐 Office Hours</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
