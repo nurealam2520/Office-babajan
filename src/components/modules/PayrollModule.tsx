@@ -708,6 +708,9 @@ const PayrollModule = ({ userId, role }: Props) => {
           {detailPayroll && <PayslipDetail payroll={detailPayroll} />}
         </DialogContent>
       </Dialog>
+
+      {/* Print View */}
+      <PayrollPrintView ref={printRef} payrolls={filtered} />
     </div>
   );
 };
