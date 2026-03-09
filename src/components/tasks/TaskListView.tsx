@@ -111,9 +111,9 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm sm:text-lg font-semibold">Tasks</h2>
+        <h2 className="text-sm sm:text-lg font-semibold hidden sm:block">Task Management</h2>
         <div className="flex items-center gap-0.5 sm:gap-1">
           <Button size="sm" variant="outline" className="gap-1 h-7 sm:h-8 px-2 sm:px-3" onClick={handlePrint} title="Print">
             <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
