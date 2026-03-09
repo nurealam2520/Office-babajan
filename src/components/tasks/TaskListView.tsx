@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
-import { Plus, LayoutList, Table2 } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Plus, LayoutList, Table2, Printer, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import TaskFilters from "./TaskFilters";
 import TaskCard, { type Task } from "./TaskCard";
 import TaskTableView from "./TaskTableView";
 import CreateTaskDialog from "./CreateTaskDialog";
+import TaskReportPrintView from "./TaskReportPrintView";
 
 interface Props {
   userId: string;
