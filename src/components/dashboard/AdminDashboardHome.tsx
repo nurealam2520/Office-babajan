@@ -192,20 +192,20 @@ const AdminDashboardHome = ({ userId, role, onNavigate }: Props) => {
       <h2 className="text-lg font-semibold">Dashboard Overview</h2>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {statCards.map(card => (
           <Card
             key={card.label}
             className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => onNavigate?.(card.tab)}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">{card.label}</p>
-                  <p className="text-2xl font-bold">{card.value}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{card.label}</p>
+                  <p className="text-lg font-bold">{card.value}</p>
                 </div>
-                <card.icon className={`h-8 w-8 ${card.color} opacity-60`} />
+                <card.icon className={`h-5 w-5 ${card.color} opacity-60`} />
               </div>
             </CardContent>
           </Card>
