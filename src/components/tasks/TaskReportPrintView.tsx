@@ -49,7 +49,7 @@ const TaskReportPrintView = forwardRef<HTMLDivElement, Props>(({ tasks, title = 
             left: 0;
             top: 0;
             width: 100%;
-            padding: 10mm;
+            padding: 0;
             background: white !important;
             color: black !important;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -57,83 +57,91 @@ const TaskReportPrintView = forwardRef<HTMLDivElement, Props>(({ tasks, title = 
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-          .print-report .office-name {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            margin: 0 0 4px;
-            color: #111;
-          }
-          .print-report .office-tagline {
-            text-align: center;
-            font-size: 11px;
-            color: #6b7280;
-            margin: 0 0 8px;
-          }
-          .print-report .report-header {
-            text-align: center;
-            margin-bottom: 12px;
-            border-bottom: 2px solid #1f2937;
-            padding-bottom: 10px;
-          }
-          .print-report .report-header h1 {
-            font-size: 16px;
-            font-weight: 700;
-            margin: 6px 0 0;
-            color: #1f2937;
-          }
-          .print-report .report-header .meta {
-            font-size: 10px;
-            color: #6b7280;
-            margin: 4px 0 0;
-          }
           .print-report table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 8px;
             page-break-inside: auto;
           }
           .print-report tr {
             page-break-inside: avoid;
             page-break-after: auto;
           }
+          /* thead repeats on every page */
           .print-report thead {
             display: table-header-group;
           }
-          .print-report th, .print-report td {
-            border: 1px solid #d1d5db;
-            padding: 4px 6px;
-            text-align: left;
-            vertical-align: top;
-            font-size: 9px;
+          /* tfoot repeats on every page */
+          .print-report tfoot {
+            display: table-footer-group;
           }
-          .print-report th {
+          .print-report .header-row td {
+            border: none;
+            padding: 0;
+            text-align: center;
+          }
+          .print-report .header-content {
+            padding: 8px 0 6px;
+            border-bottom: 2px solid #1f2937;
+            margin-bottom: 4px;
+          }
+          .print-report .office-name {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #111;
+            margin: 0;
+          }
+          .print-report .office-tagline {
+            font-size: 10px;
+            color: #6b7280;
+            margin: 2px 0;
+          }
+          .print-report .report-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 4px 0 0;
+          }
+          .print-report .report-meta {
+            font-size: 9px;
+            color: #6b7280;
+            margin: 2px 0 0;
+          }
+          .print-report .col-header-row th {
             background: #f3f4f6 !important;
             font-weight: 700;
             font-size: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 5px 6px;
+            text-align: left;
           }
-          .print-report td { color: #1f2937; }
-          .print-report .row-even { background: #f9fafb !important; }
-          .print-report .report-footer {
-            margin-top: 12px;
+          .print-report td.data-cell {
+            border: 1px solid #d1d5db;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 9px;
+            color: #1f2937;
+          }
+          .print-report .row-even td.data-cell { background: #f9fafb !important; }
+          .print-report .summary-row td {
+            background: #e5e7eb !important;
+            font-weight: 700;
+            font-size: 10px;
+            color: #111;
+            border: 1px solid #d1d5db;
+            padding: 5px 6px;
+          }
+          .print-report .footer-row td {
+            border: none;
             text-align: center;
             font-size: 9px;
             color: #9ca3af;
+            padding: 6px 0 0;
             border-top: 1px solid #d1d5db;
-            padding-top: 6px;
-            page-break-inside: avoid;
-          }
-          .print-report .summary-row {
-            background: #e5e7eb !important;
-            font-weight: 700;
-          }
-          .print-report .summary-row td {
-            font-size: 10px;
-            color: #111;
           }
           @page {
             margin: 10mm;
@@ -142,52 +150,64 @@ const TaskReportPrintView = forwardRef<HTMLDivElement, Props>(({ tasks, title = 
         }
       `}</style>
 
-      <div className="report-header">
-        <p className="office-name">Office Management</p>
-        <p className="office-tagline">Shahzada's Hub — Official Report</p>
-        <h1>{title}</h1>
-        <p className="meta">Generated: {now} &nbsp;•&nbsp; Total Tasks: {tasks.length}</p>
-      </div>
-
       <table>
+        {/* This thead repeats on every printed page */}
         <thead>
-          <tr>
+          <tr className="header-row">
+            <td colSpan={12}>
+              <div className="header-content">
+                <p className="office-name">Office Management</p>
+                <p className="office-tagline">Shahzada's Hub — Official Report</p>
+                <p className="report-title">{title}</p>
+                <p className="report-meta">Generated: {now} &nbsp;•&nbsp; Total Tasks: {tasks.length}</p>
+              </div>
+            </td>
+          </tr>
+          <tr className="col-header-row">
             <th style={{ width: "30px" }}>#</th>
             <th style={{ width: "60px" }}>Task ID</th>
-            <th style={{ minWidth: "140px" }}>Title</th>
-            <th style={{ width: "100px" }}>Assigned To</th>
-            <th style={{ width: "70px" }}>Status</th>
-            <th style={{ width: "80px" }}>Label</th>
-            <th style={{ width: "80px" }}>Due Date</th>
-            <th style={{ width: "80px" }}>P. Date</th>
-            <th style={{ width: "70px", textAlign: "right" }}>Budget</th>
-            <th style={{ width: "70px" }}>Credit Line</th>
-            <th style={{ width: "70px", textAlign: "right" }}>T. Security</th>
-            <th style={{ minWidth: "100px" }}>Remark</th>
+            <th style={{ minWidth: "130px" }}>Title</th>
+            <th style={{ width: "95px" }}>Assigned To</th>
+            <th style={{ width: "65px" }}>Status</th>
+            <th style={{ width: "75px" }}>Label</th>
+            <th style={{ width: "75px" }}>Due Date</th>
+            <th style={{ width: "75px" }}>P. Date</th>
+            <th style={{ width: "65px", textAlign: "right" }}>Budget</th>
+            <th style={{ width: "65px" }}>Credit Line</th>
+            <th style={{ width: "65px", textAlign: "right" }}>T. Security</th>
+            <th style={{ minWidth: "90px" }}>Remark</th>
           </tr>
         </thead>
+
+        {/* This tfoot repeats on every printed page bottom */}
+        <tfoot>
+          <tr className="footer-row">
+            <td colSpan={12}>
+              Office Management — Shahzada's Hub &nbsp;•&nbsp; Confidential
+            </td>
+          </tr>
+        </tfoot>
+
         <tbody>
           {tasks.map((task, idx) => (
-            <tr key={task.id} className={idx % 2 === 0 ? "" : "row-even"}>
-              <td>{idx + 1}</td>
-              <td style={{ fontFamily: "monospace" }}>{task.task_number || "—"}</td>
-              <td>
+            <tr key={task.id} className={idx % 2 !== 0 ? "row-even" : ""}>
+              <td className="data-cell">{idx + 1}</td>
+              <td className="data-cell" style={{ fontFamily: "monospace" }}>{task.task_number || "—"}</td>
+              <td className="data-cell">
                 <strong>{task.title}</strong>
                 {task.description && <div style={{ fontSize: "8px", color: "#6b7280", marginTop: 1 }}>{task.description}</div>}
               </td>
-              <td>{task.assignee_name || "—"}</td>
-              <td>{statusLabels[task.status] || task.status}</td>
-              <td>{task.label ? labelLabels[task.label] || task.label : "—"}</td>
-              <td>{fmtDate(task.due_date)}</td>
-              <td>{fmtDate(task.planned_date)}</td>
-              <td style={{ textAlign: "right" }}>{fmtNum(task.budget)}</td>
-              <td>{task.credit_line || "—"}</td>
-              <td style={{ textAlign: "right" }}>{fmtNum(task.t_security)}</td>
-              <td style={{ fontSize: "8px" }}>{task.admin_note || "—"}</td>
+              <td className="data-cell">{task.assignee_name || "—"}</td>
+              <td className="data-cell">{statusLabels[task.status] || task.status}</td>
+              <td className="data-cell">{task.label ? labelLabels[task.label] || task.label : "—"}</td>
+              <td className="data-cell">{fmtDate(task.due_date)}</td>
+              <td className="data-cell">{fmtDate(task.planned_date)}</td>
+              <td className="data-cell" style={{ textAlign: "right" }}>{fmtNum(task.budget)}</td>
+              <td className="data-cell">{task.credit_line || "—"}</td>
+              <td className="data-cell" style={{ textAlign: "right" }}>{fmtNum(task.t_security)}</td>
+              <td className="data-cell" style={{ fontSize: "8px" }}>{task.admin_note || "—"}</td>
             </tr>
           ))}
-        </tbody>
-        <tfoot>
           <tr className="summary-row">
             <td colSpan={8} style={{ textAlign: "right" }}>Total:</td>
             <td style={{ textAlign: "right" }}>{fmtNum(tasks.reduce((s, t) => s + (t.budget || 0), 0))}</td>
@@ -195,12 +215,8 @@ const TaskReportPrintView = forwardRef<HTMLDivElement, Props>(({ tasks, title = 
             <td style={{ textAlign: "right" }}>{fmtNum(tasks.reduce((s, t) => s + (t.t_security || 0), 0))}</td>
             <td></td>
           </tr>
-        </tfoot>
+        </tbody>
       </table>
-
-      <div className="report-footer">
-        Office Management — Shahzada's Hub &nbsp;•&nbsp; Confidential &nbsp;•&nbsp; Page 1
-      </div>
     </div>
   );
 });
