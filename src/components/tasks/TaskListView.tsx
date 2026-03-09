@@ -1,11 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
-import { Plus, LayoutList, Table2 } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Plus, LayoutList, Table2, Printer, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import TaskFilters from "./TaskFilters";
 import TaskCard, { type Task } from "./TaskCard";
 import TaskTableView from "./TaskTableView";
 import CreateTaskDialog from "./CreateTaskDialog";
+import TaskReportPrintView from "./TaskReportPrintView";
 
 interface Props {
   userId: string;
@@ -24,6 +25,21 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    printRef.current.classList.remove("hidden");
+    window.print();
+    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
+  };
+
+  const handlePdfExport = () => {
+    if (!printRef.current) return;
+    printRef.current.classList.remove("hidden");
+    window.print();
+    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -97,7 +113,15 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Task Management</h2>
         <div className="flex items-center gap-1">
-          <div className="flex items-center border rounded-md overflow-hidden mr-2">
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Print Report">
+            <Printer className="h-4 w-4" />
+            <span className="hidden sm:inline">Print</span>
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1" onClick={handlePdfExport} title="Save as PDF">
+            <FileDown className="h-4 w-4" />
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
+          <div className="flex items-center border rounded-md overflow-hidden ml-2">
             <button
               onClick={() => setViewMode("card")}
               className={`p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
@@ -152,6 +176,8 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         userId={userId}
         onCreated={fetchData}
       />
+
+      <TaskReportPrintView ref={printRef} tasks={filtered} />
     </div>
   );
 };
