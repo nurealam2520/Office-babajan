@@ -101,6 +101,14 @@ const PayrollModule = ({ userId, role }: Props) => {
   const [settings, setSettings] = useState<PayrollSettings | null>(null);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [activeTab, setActiveTab] = useState("payrolls");
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    printRef.current.classList.remove("hidden");
+    window.print();
+    setTimeout(() => printRef.current?.classList.add("hidden"), 500);
+  };
 
   // Settings form
   const [settingsForm, setSettingsForm] = useState({
