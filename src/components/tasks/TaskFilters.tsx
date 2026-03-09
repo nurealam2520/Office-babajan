@@ -29,6 +29,9 @@ const STATUSES = [
   { value: "processing", label: "Processing" },
   { value: "ready_to_bid", label: "Ready to Bid" },
   { value: "bidded", label: "Bidded" },
+  { value: "live", label: "🟢 Live" },
+  { value: "advance", label: "🔵 Advance" },
+  { value: "waiting_for_goods", label: "🟠 Waiting for Goods" },
 ];
 
 const TaskFilters = ({
