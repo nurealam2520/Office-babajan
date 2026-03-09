@@ -183,6 +183,7 @@ const PayrollModule = ({ userId, role }: Props) => {
     if (!settings) return;
     setSavingSettings(true);
     const { error } = await supabase.from("payroll_settings").update({
+      office_name: settingsForm.office_name,
       office_start_time: settingsForm.office_start_time + ":00",
       office_end_time: settingsForm.office_end_time + ":00",
       weekly_off_day: settingsForm.weekly_off_day,
