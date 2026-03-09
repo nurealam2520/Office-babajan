@@ -112,6 +112,7 @@ const PayrollModule = ({ userId, role }: Props) => {
 
   // Settings form
   const [settingsForm, setSettingsForm] = useState({
+    office_name: "Office Management",
     office_start_time: "09:00", office_end_time: "18:00", weekly_off_day: "friday",
     late_threshold_minutes: "15", late_days_for_penalty: "3", penalty_days_deducted: "1",
     default_overtime_rate: "100",
@@ -157,6 +158,7 @@ const PayrollModule = ({ userId, role }: Props) => {
       const s = settingsData[0] as any;
       setSettings(s);
       setSettingsForm({
+        office_name: s.office_name || "Office Management",
         office_start_time: s.office_start_time?.substring(0, 5) || "09:00",
         office_end_time: s.office_end_time?.substring(0, 5) || "18:00",
         weekly_off_day: s.weekly_off_day,
@@ -181,6 +183,7 @@ const PayrollModule = ({ userId, role }: Props) => {
     if (!settings) return;
     setSavingSettings(true);
     const { error } = await supabase.from("payroll_settings").update({
+      office_name: settingsForm.office_name,
       office_start_time: settingsForm.office_start_time + ":00",
       office_end_time: settingsForm.office_end_time + ":00",
       weekly_off_day: settingsForm.weekly_off_day,
@@ -628,6 +631,19 @@ const PayrollModule = ({ userId, role }: Props) => {
               <CardTitle className="text-sm">⚙️ Payroll Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2">🏢 Office Name</p>
+                <Input
+                  placeholder="Office Name"
+                  value={settingsForm.office_name}
+                  onChange={e => setSettingsForm(p => ({ ...p, office_name: e.target.value }))}
+                  className="h-9"
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">This name will appear on printed reports</p>
+              </div>
+
+              <Separator />
+
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-2">🕐 Office Hours</p>
                 <div className="grid grid-cols-2 gap-3">
