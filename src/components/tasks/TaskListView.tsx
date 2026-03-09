@@ -78,11 +78,9 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const LABEL_VALUES = ["live", "advance", "waiting_for_goods"];
 
   const filtered = tasks.filter((t) => {
-    // Status or label filter
+    // Label filter
     if (statusFilter !== "all") {
-      if (LABEL_VALUES.includes(statusFilter)) {
-        if (t.label !== statusFilter) return false;
-      } else if (t.status !== statusFilter) return false;
+      if (t.label !== statusFilter) return false;
     }
     // User filter
     if (userFilter !== "all" && t.assigned_to !== userFilter) return false;
