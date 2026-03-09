@@ -75,9 +75,15 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
 
+  const LABEL_VALUES = ["live", "advance", "waiting_for_goods"];
+
   const filtered = tasks.filter((t) => {
-    // Status filter
-    if (statusFilter !== "all" && t.status !== statusFilter) return false;
+    // Status or label filter
+    if (statusFilter !== "all") {
+      if (LABEL_VALUES.includes(statusFilter)) {
+        if (t.label !== statusFilter) return false;
+      } else if (t.status !== statusFilter) return false;
+    }
     // User filter
     if (userFilter !== "all" && t.assigned_to !== userFilter) return false;
     // Date range filter
