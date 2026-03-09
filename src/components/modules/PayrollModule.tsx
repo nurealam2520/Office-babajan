@@ -442,8 +442,14 @@ const PayrollModule = ({ userId, role }: Props) => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8" />
             </div>
+            <Button variant="outline" size="sm" className="gap-1 shrink-0" onClick={handlePrint} title="Print">
+              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1 shrink-0" onClick={handlePrint} title="PDF">
+              <FileDown className="h-4 w-4" /> <span className="hidden sm:inline">PDF</span>
+            </Button>
             <Button variant="outline" size="sm" className="gap-1 shrink-0" onClick={exportCSV}>
-              <Download className="h-4 w-4" /> Export
+              <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
             </Button>
           </div>
           {filtered.length === 0 ? (
