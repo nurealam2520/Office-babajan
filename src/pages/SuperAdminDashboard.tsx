@@ -73,9 +73,9 @@ const SuperAdminDashboard = () => {
 
   if (!role || !session) return null;
 
-  const navItems: { id: ActiveView; icon: any; title: string; adminOnly?: boolean }[] = [
+  const navItems: { id: ActiveView; icon: any; title: string; mobileTitle?: string; adminOnly?: boolean }[] = [
     { id: "home", icon: LayoutDashboard, title: "Dashboard" },
-    { id: "tasks", icon: ClipboardList, title: "Tasks" },
+    { id: "tasks", icon: ClipboardList, title: "Tasks", mobileTitle: "Task Management" },
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "attendance", icon: CalendarCheck, title: "Attendance" },
     { id: "announcements", icon: Megaphone, title: "Announcements" },
@@ -147,10 +147,9 @@ const SuperAdminDashboard = () => {
             const t = navItems.find(t => t.id === activeView);
             if (!t) return null;
             return (
-              <Button variant="secondary" size="sm" className="gap-2 pointer-events-none text-xs">
-                <t.icon className="h-4 w-4" />
-                {t.title}
-              </Button>
+              <span className="text-xs font-semibold text-muted-foreground">
+                {t.mobileTitle || t.title}
+              </span>
             );
           })()}
         </div>
