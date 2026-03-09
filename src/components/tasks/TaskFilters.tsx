@@ -45,37 +45,37 @@ const TaskFilters = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1.5 sm:space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filters</span>
+        <div className="flex items-center gap-1.5">
+          <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+          <span className="text-xs sm:text-sm font-medium">Filters</span>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-destructive" onClick={clearFilters}>
-              <X className="h-3 w-3" /> Clear
+            <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] sm:h-6 sm:px-2 sm:text-xs gap-0.5 text-destructive" onClick={clearFilters}>
+              <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> Clear
             </Button>
           )}
         </div>
-        <Badge variant="outline">{totalCount} tasks</Badge>
+        <Badge variant="outline" className="text-[10px] sm:text-xs h-5 sm:h-auto px-1.5 sm:px-2.5">{totalCount} tasks</Badge>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-1 sm:gap-2">
         {/* Search */}
-        <div className="relative sm:col-span-2 lg:col-span-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative col-span-2 lg:col-span-1">
+          <Search className="absolute left-2 sm:left-3 top-1/2 h-3 w-3 sm:h-4 sm:w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search tasks..."
+            placeholder="Search..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 h-9"
+            className="pl-7 sm:pl-10 h-7 sm:h-9 text-[11px] sm:text-sm"
           />
         </div>
 
         {/* Status filter */}
         {onStatusFilterChange && (
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Status" />
+            <SelectTrigger className="h-7 sm:h-9 text-[11px] sm:text-xs">
+              <SelectValue placeholder="Label" />
             </SelectTrigger>
             <SelectContent>
               {STATUSES.map(s => (
@@ -88,8 +88,8 @@ const TaskFilters = ({
         {/* User filter */}
         {onUserFilterChange && staffList.length > 0 && (
           <Select value={userFilter} onValueChange={onUserFilterChange}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Assigned To" />
+            <SelectTrigger className="h-7 sm:h-9 text-[11px] sm:text-xs">
+              <SelectValue placeholder="User" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Users</SelectItem>
@@ -104,10 +104,10 @@ const TaskFilters = ({
         {onDateFromChange && (
           <Input
             type="date"
-            placeholder="From date"
+            placeholder="From"
             value={dateFrom}
             onChange={e => onDateFromChange(e.target.value)}
-            className="h-9 text-xs"
+            className="h-7 sm:h-9 text-[11px] sm:text-xs"
           />
         )}
 
@@ -115,10 +115,10 @@ const TaskFilters = ({
         {onDateToChange && (
           <Input
             type="date"
-            placeholder="To date"
+            placeholder="To"
             value={dateTo}
             onChange={e => onDateToChange(e.target.value)}
-            className="h-9 text-xs"
+            className="h-7 sm:h-9 text-[11px] sm:text-xs"
           />
         )}
       </div>

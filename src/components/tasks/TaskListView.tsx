@@ -113,35 +113,35 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Task Management</h2>
-        <div className="flex items-center gap-1">
-          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Print / Save as PDF">
-            <Printer className="h-4 w-4" />
-            <span className="hidden sm:inline">Print</span>
+        <h2 className="text-sm sm:text-lg font-semibold">Tasks</h2>
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          <Button size="sm" variant="outline" className="gap-1 h-7 sm:h-8 px-2 sm:px-3" onClick={handlePrint} title="Print">
+            <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline text-xs">Print</span>
           </Button>
-          <Button size="sm" variant="outline" className="gap-1" onClick={handlePrint} title="Save as PDF">
-            <FileDown className="h-4 w-4" />
-            <span className="hidden sm:inline">PDF</span>
+          <Button size="sm" variant="outline" className="gap-1 h-7 sm:h-8 px-2 sm:px-3" onClick={handlePrint} title="PDF">
+            <FileDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline text-xs">PDF</span>
           </Button>
-          <div className="flex items-center border rounded-md overflow-hidden ml-2">
+          <div className="flex items-center border rounded-md overflow-hidden ml-1 sm:ml-2">
             <button
               onClick={() => setViewMode("card")}
-              className={`p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              className={`p-1 sm:p-1.5 ${viewMode === "card" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
               title="Card View"
             >
-              <LayoutList className="h-4 w-4" />
+              <LayoutList className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={`p-1.5 ${viewMode === "table" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              className={`p-1 sm:p-1.5 ${viewMode === "table" ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
               title="Excel View"
             >
-              <Table2 className="h-4 w-4" />
+              <Table2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           </div>
           {role !== "member" && (
-            <Button size="sm" className="gap-1" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4" /> New Task
+            <Button size="sm" className="gap-0.5 sm:gap-1 h-7 sm:h-8 px-2 sm:px-3 text-xs" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">New</span> <span className="sm:hidden">+</span>
             </Button>
           )}
         </div>
