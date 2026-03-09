@@ -26,7 +26,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const [viewMode, setViewMode] = useState<"card" | "table">("table");
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
