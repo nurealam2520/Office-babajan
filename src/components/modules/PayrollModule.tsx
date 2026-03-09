@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { DollarSign, Plus, Search, Download, Eye, Settings, Calendar, Zap, ChevronDown, ChevronUp, Trash2, Save } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { DollarSign, Plus, Search, Download, Eye, Settings, Calendar, Zap, ChevronDown, ChevronUp, Trash2, Save, Printer, FileDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
