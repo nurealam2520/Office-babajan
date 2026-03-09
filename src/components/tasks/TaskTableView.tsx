@@ -260,9 +260,8 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
 
   return (
     <>
-      <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x">
-        <div style={{ minWidth: `${colWidths.reduce((s, w) => s + w, 0)}px` }}>
-          <Table className="text-xs sm:text-sm">
+      <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x -webkit-overflow-scrolling-touch">
+        <table className="w-full caption-bottom text-xs sm:text-sm" style={{ minWidth: `${colWidths.reduce((s, w) => s + w, 0)}px` }}>
             <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
               <TableRow>
                 {COLUMNS.map((col, i) => (
