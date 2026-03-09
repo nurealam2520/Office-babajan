@@ -78,11 +78,9 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const LABEL_VALUES = ["live", "advance", "waiting_for_goods"];
 
   const filtered = tasks.filter((t) => {
-    // Status or label filter
+    // Label filter
     if (statusFilter !== "all") {
-      if (LABEL_VALUES.includes(statusFilter)) {
-        if (t.label !== statusFilter) return false;
-      } else if (t.status !== statusFilter) return false;
+      if (t.label !== statusFilter) return false;
     }
     // User filter
     if (userFilter !== "all" && t.assigned_to !== userFilter) return false;
@@ -100,12 +98,6 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       const q = search.toLowerCase();
       if (["live", "advance", "waiting_for_goods"].includes(q)) {
         return t.label === q;
-      }
-      if (["pending", "in_progress", "completed", "cancelled", "issues", "processing", "ready_to_bid", "bidded"].includes(q)) {
-        return t.status === q;
-      }
-      if (q === "overdue") {
-        return t.due_date && new Date(t.due_date).getTime() < Date.now() && t.status !== "completed";
       }
       return (
         t.title.toLowerCase().includes(q) ||
