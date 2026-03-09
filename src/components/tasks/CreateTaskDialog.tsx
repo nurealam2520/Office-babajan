@@ -108,6 +108,13 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField control={form.control} name="task_number" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Task ID</FormLabel>
+                  <FormControl><Input placeholder="e.g. T-001" {...field} /></FormControl>
+                </FormItem>
+              )} />
+
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem className="sm:col-span-2">
                   <FormLabel>Title *</FormLabel>
@@ -130,16 +137,6 @@ const CreateTaskDialog = ({ open, onOpenChange, userId, onCreated }: Props) => {
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                </FormItem>
-              )} />
-
-
-
-
-              <FormField control={form.control} name="task_number" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Task ID</FormLabel>
-                  <FormControl><Input placeholder="e.g. T-001" {...field} /></FormControl>
                 </FormItem>
               )} />
 
