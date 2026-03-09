@@ -262,7 +262,7 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     <>
       <div className="w-full overflow-x-auto border rounded-lg mx-0 touch-pan-x -webkit-overflow-scrolling-touch">
         <table className="w-full caption-bottom text-xs sm:text-sm" style={{ minWidth: `${colWidths.reduce((s, w) => s + w, 0)}px` }}>
-            <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur">
+            <thead className="sticky top-0 z-10 bg-muted/95 backdrop-blur [&_tr]:border-b">
               <TableRow>
                 {COLUMNS.map((col, i) => (
                   <ResizableHeader
