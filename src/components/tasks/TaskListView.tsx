@@ -216,8 +216,8 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
                 <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 text-primary" />
                   {date === "no_date"
-                    ? "তারিখ নির্ধারিত নয়"
-                    : new Date(date).toLocaleDateString("bn-BD", {
+                    ? "No date set"
+                    : new Date(date).toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",

@@ -160,7 +160,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
         {/* Budget */}
         {task.budget != null && task.budget > 0 && (
           <span className="text-[10px] text-muted-foreground">
-            💰 বাজেট: ৳{Number(task.budget).toLocaleString("bn-BD")}
+            💰 Budget: ৳{Number(task.budget).toLocaleString()}
           </span>
         )}
 

@@ -243,9 +243,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     }
     const { error } = await supabase.from("tasks").update(updateData).eq("id", taskId);
     if (error) {
-      toast({ title: "আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "আপডেট হয়েছে" });
+      toast({ title: "Updated successfully" });
     }
   };
 
