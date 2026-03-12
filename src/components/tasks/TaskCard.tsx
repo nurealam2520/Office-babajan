@@ -201,7 +201,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               )}
               {task.assigner_name && (
                 <div>
-                  <span className="text-muted-foreground">📋 প্রেরক: </span>
+                  <span className="text-muted-foreground">📋 Assigned by: </span>
                   {task.assigner_name}
                 </div>
               )}
