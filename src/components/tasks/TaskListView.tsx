@@ -20,7 +20,7 @@ interface Props {
 }
 
 const labelFilters = [
-  { value: "all", label: "সব লেবেল" },
+  { value: "all", label: "All Labels" },
   { value: "live", label: "🟢 Live" },
   { value: "advance", label: "🔵 Advance" },
   { value: "waiting_for_goods", label: "🟠 Waiting for Goods" },
