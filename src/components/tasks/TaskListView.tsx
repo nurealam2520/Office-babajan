@@ -125,7 +125,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
           </Button>
           {role !== "member" && (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs h-8">
-              <Plus className="h-3.5 w-3.5" /> নতুন টাস্ক
+              <Plus className="h-3.5 w-3.5" /> New Task
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={fetchData} className="h-8 w-8 p-0">
