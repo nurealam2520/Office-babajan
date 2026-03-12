@@ -48,9 +48,9 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 };
 
 const priorityMap: Record<string, { label: string; color: string }> = {
-  low: { label: "নিম্ন", color: "bg-muted text-muted-foreground" },
-  medium: { label: "মধ্যম", color: "bg-accent/20 text-accent-foreground" },
-  high: { label: "উচ্চ", color: "bg-destructive/20 text-destructive" },
+  low: { label: "Low", color: "bg-muted text-muted-foreground" },
+  medium: { label: "Medium", color: "bg-accent/20 text-accent-foreground" },
+  high: { label: "High", color: "bg-destructive/20 text-destructive" },
 };
 
 const labelColors: Record<string, string> = {
