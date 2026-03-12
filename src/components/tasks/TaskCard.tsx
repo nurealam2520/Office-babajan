@@ -127,7 +127,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
           <span>👤 {task.assignee_name || "Unknown"}</span>
           {task.due_date && (
             <span className={isOverdue ? "text-destructive font-medium" : ""}>
-              📅 {new Date(task.due_date).toLocaleDateString("bn-BD")}
+              📅 {new Date(task.due_date).toLocaleDateString("en-US")}
             </span>
           )}
         </div>
