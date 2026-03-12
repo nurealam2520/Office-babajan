@@ -190,7 +190,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
             <ClipboardList className="h-12 w-12 opacity-30" />
-            <p className="text-sm">কোন টাস্ক নেই</p>
+            <p className="text-sm">No tasks found</p>
           </CardContent>
         </Card>
       ) : viewMode === "table" ? (
