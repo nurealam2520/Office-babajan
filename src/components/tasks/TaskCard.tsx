@@ -190,7 +190,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               {task.t_security != null && (
                 <div>
                   <span className="text-muted-foreground">🔒 Security: </span>
-                  {task.t_security.toLocaleString("bn-BD")}
+                  {task.t_security.toLocaleString()}
                 </div>
               )}
               {task.category && (
