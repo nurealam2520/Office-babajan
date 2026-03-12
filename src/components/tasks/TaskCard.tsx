@@ -214,7 +214,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
             {/* Label change */}
             <div className="flex items-center gap-2">
               <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">লেবেল:</span>
+              <span className="text-xs text-muted-foreground">Label:</span>
               <Select value={task.label || "none"} onValueChange={handleLabelChange}>
                 <SelectTrigger className="h-7 w-[180px] text-xs">
                   <SelectValue />
