@@ -67,12 +67,12 @@ const labelLabels: Record<string, string> = {
 
 const getTimeRemaining = (dueDate: string) => {
   const diff = new Date(dueDate).getTime() - Date.now();
-  if (diff < 0) return { text: "সময় শেষ!", overdue: true, percent: 100 };
+  if (diff < 0) return { text: "Overdue!", overdue: true, percent: 100 };
   const hrs = Math.floor(diff / 3600000);
   const days = Math.floor(hrs / 24);
   if (days > 0)
     return {
-      text: `${days} দিন ${hrs % 24} ঘণ্টা বাকি`,
+      text: `${days}d ${hrs % 24}h remaining`,
       overdue: false,
       percent: Math.max(0, 100 - (diff / (7 * 86400000)) * 100),
     };
