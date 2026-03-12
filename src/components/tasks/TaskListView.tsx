@@ -185,7 +185,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
 
       {/* Content */}
       {loading ? (
-        <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
+        <div className="py-12 text-center text-muted-foreground">Loading...</div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
