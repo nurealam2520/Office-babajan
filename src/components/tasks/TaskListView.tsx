@@ -113,7 +113,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">টাস্ক ম্যানেজমেন্ট</h2>
+        <h2 className="text-lg font-semibold">Task Management</h2>
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
             <Printer className="h-3.5 w-3.5" />
