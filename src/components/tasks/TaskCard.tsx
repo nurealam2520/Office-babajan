@@ -195,7 +195,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               )}
               {task.category && (
                 <div>
-                  <span className="text-muted-foreground">📂 ক্যাটাগরি: </span>
+                  <span className="text-muted-foreground">📂 Category: </span>
                   {task.category}
                 </div>
               )}
