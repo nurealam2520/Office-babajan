@@ -177,7 +177,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               {task.planned_date && (
                 <div>
-                  <span className="text-muted-foreground">🗓️ পরিকল্পিত: </span>
+                  <span className="text-muted-foreground">🗓️ Planned: </span>
                   {new Date(task.planned_date).toLocaleDateString("bn-BD")}
                 </div>
               )}
