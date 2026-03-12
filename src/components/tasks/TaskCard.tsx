@@ -92,7 +92,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
   const handleLabelChange = async (newLabel: string) => {
     const labelValue = newLabel === "none" ? null : newLabel;
     await supabase.from("tasks").update({ label: labelValue } as any).eq("id", task.id);
-    toast({ title: `লেবেল → ${labelValue ? labelLabels[labelValue] : "None"}` });
+    toast({ title: `Label → ${labelValue ? labelLabels[labelValue] : "None"}` });
   };
 
   return (
