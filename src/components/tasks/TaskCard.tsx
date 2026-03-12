@@ -37,14 +37,14 @@ interface Props {
 }
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { label: "অপেক্ষমাণ", variant: "secondary" },
-  in_progress: { label: "কাজ চলছে", variant: "default" },
-  completed: { label: "সম্পন্ন", variant: "outline" },
-  cancelled: { label: "বাতিল", variant: "destructive" },
-  issues: { label: "সমস্যা", variant: "destructive" },
-  processing: { label: "প্রসেসিং", variant: "default" },
-  ready_to_bid: { label: "বিড রেডি", variant: "outline" },
-  bidded: { label: "বিড হয়েছে", variant: "outline" },
+  pending: { label: "Pending", variant: "secondary" },
+  in_progress: { label: "In Progress", variant: "default" },
+  completed: { label: "Completed", variant: "outline" },
+  cancelled: { label: "Cancelled", variant: "destructive" },
+  issues: { label: "Issues", variant: "destructive" },
+  processing: { label: "Processing", variant: "default" },
+  ready_to_bid: { label: "Ready to Bid", variant: "outline" },
+  bidded: { label: "Bidded", variant: "outline" },
 };
 
 const priorityMap: Record<string, { label: string; color: string }> = {
