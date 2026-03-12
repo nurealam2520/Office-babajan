@@ -217,18 +217,18 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     const labelValue = newLabel === "none" ? null : newLabel;
     const { error } = await supabase.from("tasks").update({ label: labelValue }).eq("id", taskId);
     if (error) {
-      toast({ title: "Label আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Label update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Label আপডেট হয়েছে" });
+      toast({ title: "Label updated" });
     }
   };
 
   const handleAssignChange = async (taskId: string, newUserId: string) => {
     const { error } = await supabase.from("tasks").update({ assigned_to: newUserId }).eq("id", taskId);
     if (error) {
-      toast({ title: "Assignee আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Assignee update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Assignee আপডেট হয়েছে" });
+      toast({ title: "Assignee updated" });
     }
   };
 
@@ -243,9 +243,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     }
     const { error } = await supabase.from("tasks").update(updateData).eq("id", taskId);
     if (error) {
-      toast({ title: "আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "আপডেট হয়েছে" });
+      toast({ title: "Updated successfully" });
     }
   };
 

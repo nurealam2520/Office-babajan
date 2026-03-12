@@ -37,20 +37,20 @@ interface Props {
 }
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { label: "অপেক্ষমাণ", variant: "secondary" },
-  in_progress: { label: "কাজ চলছে", variant: "default" },
-  completed: { label: "সম্পন্ন", variant: "outline" },
-  cancelled: { label: "বাতিল", variant: "destructive" },
-  issues: { label: "সমস্যা", variant: "destructive" },
-  processing: { label: "প্রসেসিং", variant: "default" },
-  ready_to_bid: { label: "বিড রেডি", variant: "outline" },
-  bidded: { label: "বিড হয়েছে", variant: "outline" },
+  pending: { label: "Pending", variant: "secondary" },
+  in_progress: { label: "In Progress", variant: "default" },
+  completed: { label: "Completed", variant: "outline" },
+  cancelled: { label: "Cancelled", variant: "destructive" },
+  issues: { label: "Issues", variant: "destructive" },
+  processing: { label: "Processing", variant: "default" },
+  ready_to_bid: { label: "Ready to Bid", variant: "outline" },
+  bidded: { label: "Bidded", variant: "outline" },
 };
 
 const priorityMap: Record<string, { label: string; color: string }> = {
-  low: { label: "নিম্ন", color: "bg-muted text-muted-foreground" },
-  medium: { label: "মধ্যম", color: "bg-accent/20 text-accent-foreground" },
-  high: { label: "উচ্চ", color: "bg-destructive/20 text-destructive" },
+  low: { label: "Low", color: "bg-muted text-muted-foreground" },
+  medium: { label: "Medium", color: "bg-accent/20 text-accent-foreground" },
+  high: { label: "High", color: "bg-destructive/20 text-destructive" },
 };
 
 const labelColors: Record<string, string> = {
@@ -67,17 +67,17 @@ const labelLabels: Record<string, string> = {
 
 const getTimeRemaining = (dueDate: string) => {
   const diff = new Date(dueDate).getTime() - Date.now();
-  if (diff < 0) return { text: "সময় শেষ!", overdue: true, percent: 100 };
+  if (diff < 0) return { text: "Overdue!", overdue: true, percent: 100 };
   const hrs = Math.floor(diff / 3600000);
   const days = Math.floor(hrs / 24);
   if (days > 0)
     return {
-      text: `${days} দিন ${hrs % 24} ঘণ্টা বাকি`,
+      text: `${days}d ${hrs % 24}h remaining`,
       overdue: false,
       percent: Math.max(0, 100 - (diff / (7 * 86400000)) * 100),
     };
   return {
-    text: `${hrs} ঘণ্টা বাকি`,
+    text: `${hrs}h remaining`,
     overdue: false,
     percent: Math.min(90, 100 - (diff / 86400000) * 100),
   };
@@ -92,7 +92,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
   const handleLabelChange = async (newLabel: string) => {
     const labelValue = newLabel === "none" ? null : newLabel;
     await supabase.from("tasks").update({ label: labelValue } as any).eq("id", task.id);
-    toast({ title: `লেবেল → ${labelValue ? labelLabels[labelValue] : "None"}` });
+    toast({ title: `Label → ${labelValue ? labelLabels[labelValue] : "None"}` });
   };
 
   return (
@@ -127,7 +127,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
           <span>👤 {task.assignee_name || "Unknown"}</span>
           {task.due_date && (
             <span className={isOverdue ? "text-destructive font-medium" : ""}>
-              📅 {new Date(task.due_date).toLocaleDateString("bn-BD")}
+              📅 {new Date(task.due_date).toLocaleDateString("en-US")}
             </span>
           )}
         </div>
@@ -136,7 +136,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
         {task.progress > 0 && (
           <div className="space-y-1">
             <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>অগ্রগতি</span>
+              <span>Progress</span>
               <span>{task.progress}%</span>
             </div>
             <Progress value={task.progress} className="h-1" />
@@ -160,7 +160,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
         {/* Budget */}
         {task.budget != null && task.budget > 0 && (
           <span className="text-[10px] text-muted-foreground">
-            💰 বাজেট: ৳{Number(task.budget).toLocaleString("bn-BD")}
+            💰 Budget: ৳{Number(task.budget).toLocaleString()}
           </span>
         )}
 
@@ -177,31 +177,31 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               {task.planned_date && (
                 <div>
-                  <span className="text-muted-foreground">🗓️ পরিকল্পিত: </span>
-                  {new Date(task.planned_date).toLocaleDateString("bn-BD")}
+                  <span className="text-muted-foreground">🗓️ Planned: </span>
+                  {new Date(task.planned_date).toLocaleDateString("en-US")}
                 </div>
               )}
               {task.credit_line && (
                 <div>
-                  <span className="text-muted-foreground">💳 ক্রেডিট: </span>
+                  <span className="text-muted-foreground">💳 Credit: </span>
                   {task.credit_line}
                 </div>
               )}
               {task.t_security != null && (
                 <div>
-                  <span className="text-muted-foreground">🔒 সিকিউরিটি: </span>
-                  {task.t_security.toLocaleString("bn-BD")}
+                  <span className="text-muted-foreground">🔒 Security: </span>
+                  {task.t_security.toLocaleString()}
                 </div>
               )}
               {task.category && (
                 <div>
-                  <span className="text-muted-foreground">📂 ক্যাটাগরি: </span>
+                  <span className="text-muted-foreground">📂 Category: </span>
                   {task.category}
                 </div>
               )}
               {task.assigner_name && (
                 <div>
-                  <span className="text-muted-foreground">📋 প্রেরক: </span>
+                  <span className="text-muted-foreground">📋 Assigned by: </span>
                   {task.assigner_name}
                 </div>
               )}
@@ -214,7 +214,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
             {/* Label change */}
             <div className="flex items-center gap-2">
               <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">লেবেল:</span>
+              <span className="text-xs text-muted-foreground">Label:</span>
               <Select value={task.label || "none"} onValueChange={handleLabelChange}>
                 <SelectTrigger className="h-7 w-[180px] text-xs">
                   <SelectValue />

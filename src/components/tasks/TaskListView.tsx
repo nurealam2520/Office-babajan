@@ -20,7 +20,7 @@ interface Props {
 }
 
 const labelFilters = [
-  { value: "all", label: "সব লেবেল" },
+  { value: "all", label: "All Labels" },
   { value: "live", label: "🟢 Live" },
   { value: "advance", label: "🔵 Advance" },
   { value: "waiting_for_goods", label: "🟠 Waiting for Goods" },
@@ -113,11 +113,11 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">টাস্ক ম্যানেজমেন্ট</h2>
+        <h2 className="text-lg font-semibold">Task Management</h2>
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
             <Printer className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">প্রিন্ট</span>
+            <span className="hidden sm:inline">Print</span>
           </Button>
           <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
             <FileDown className="h-3.5 w-3.5" />
@@ -125,7 +125,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
           </Button>
           {role !== "member" && (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs h-8">
-              <Plus className="h-3.5 w-3.5" /> নতুন টাস্ক
+              <Plus className="h-3.5 w-3.5" /> New Task
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={fetchData} className="h-8 w-8 p-0">
@@ -138,9 +138,9 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
           {[
-            { mode: "card" as const, icon: LayoutGrid, label: "কার্ড" },
-            { mode: "table" as const, icon: List, label: "টেবিল" },
-            { mode: "calendar" as const, icon: CalendarIcon, label: "ক্যালেন্ডার" },
+            { mode: "card" as const, icon: LayoutGrid, label: "Card" },
+            { mode: "table" as const, icon: List, label: "Table" },
+            { mode: "calendar" as const, icon: CalendarIcon, label: "Calendar" },
           ].map((v) => (
             <Button
               key={v.mode}
@@ -169,10 +169,10 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         {staffList.length > 0 && (
           <Select value={userFilter} onValueChange={setUserFilter}>
             <SelectTrigger className="w-[140px] h-8 text-xs">
-              <SelectValue placeholder="সব ইউজার" />
+              <SelectValue placeholder="All Users" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">সব ইউজার</SelectItem>
+              <SelectItem value="all">All Users</SelectItem>
               {staffList.map((s) => (
                 <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>
               ))}
@@ -180,17 +180,17 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
           </Select>
         )}
 
-        <Badge variant="secondary" className="text-xs">{filtered.length} টাস্ক</Badge>
+        <Badge variant="secondary" className="text-xs">{filtered.length} Tasks</Badge>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="py-12 text-center text-muted-foreground">লোড হচ্ছে...</div>
+        <div className="py-12 text-center text-muted-foreground">Loading...</div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
             <ClipboardList className="h-12 w-12 opacity-30" />
-            <p className="text-sm">কোন টাস্ক নেই</p>
+            <p className="text-sm">No tasks found</p>
           </CardContent>
         </Card>
       ) : viewMode === "table" ? (
@@ -216,8 +216,8 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
                 <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 text-primary" />
                   {date === "no_date"
-                    ? "তারিখ নির্ধারিত নয়"
-                    : new Date(date).toLocaleDateString("bn-BD", {
+                    ? "No date set"
+                    : new Date(date).toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",
