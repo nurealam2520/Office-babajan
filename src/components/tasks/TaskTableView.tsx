@@ -217,9 +217,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
     const labelValue = newLabel === "none" ? null : newLabel;
     const { error } = await supabase.from("tasks").update({ label: labelValue }).eq("id", taskId);
     if (error) {
-      toast({ title: "Label আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Label update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Label আপডেট হয়েছে" });
+      toast({ title: "Label updated" });
     }
   };
 
