@@ -169,10 +169,10 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         {staffList.length > 0 && (
           <Select value={userFilter} onValueChange={setUserFilter}>
             <SelectTrigger className="w-[140px] h-8 text-xs">
-              <SelectValue placeholder="সব ইউজার" />
+              <SelectValue placeholder="All Users" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">সব ইউজার</SelectItem>
+              <SelectItem value="all">All Users</SelectItem>
               {staffList.map((s) => (
                 <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>
               ))}
