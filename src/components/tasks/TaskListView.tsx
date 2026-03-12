@@ -138,9 +138,9 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex gap-0.5 rounded-lg border p-0.5 bg-muted/30">
           {[
-            { mode: "card" as const, icon: LayoutGrid, label: "কার্ড" },
-            { mode: "table" as const, icon: List, label: "টেবিল" },
-            { mode: "calendar" as const, icon: CalendarIcon, label: "ক্যালেন্ডার" },
+            { mode: "card" as const, icon: LayoutGrid, label: "Card" },
+            { mode: "table" as const, icon: List, label: "Table" },
+            { mode: "calendar" as const, icon: CalendarIcon, label: "Calendar" },
           ].map((v) => (
             <Button
               key={v.mode}
