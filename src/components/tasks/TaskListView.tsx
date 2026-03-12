@@ -180,7 +180,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
           </Select>
         )}
 
-        <Badge variant="secondary" className="text-xs">{filtered.length} টাস্ক</Badge>
+        <Badge variant="secondary" className="text-xs">{filtered.length} Tasks</Badge>
       </div>
 
       {/* Content */}
