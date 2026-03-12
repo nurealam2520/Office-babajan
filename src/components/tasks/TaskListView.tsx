@@ -117,7 +117,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
             <Printer className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">প্রিন্ট</span>
+            <span className="hidden sm:inline">Print</span>
           </Button>
           <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5 text-xs h-8">
             <FileDown className="h-3.5 w-3.5" />
