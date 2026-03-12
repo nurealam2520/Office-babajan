@@ -226,9 +226,9 @@ const TaskTableView = ({ tasks, staffList }: Props) => {
   const handleAssignChange = async (taskId: string, newUserId: string) => {
     const { error } = await supabase.from("tasks").update({ assigned_to: newUserId }).eq("id", taskId);
     if (error) {
-      toast({ title: "Assignee আপডেট ব্যর্থ", description: error.message, variant: "destructive" });
+      toast({ title: "Assignee update failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Assignee আপডেট হয়েছে" });
+      toast({ title: "Assignee updated" });
     }
   };
 
