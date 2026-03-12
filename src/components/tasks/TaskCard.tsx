@@ -136,7 +136,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
         {task.progress > 0 && (
           <div className="space-y-1">
             <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>অগ্রগতি</span>
+              <span>Progress</span>
               <span>{task.progress}%</span>
             </div>
             <Progress value={task.progress} className="h-1" />
