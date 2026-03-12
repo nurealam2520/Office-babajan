@@ -183,7 +183,7 @@ const TaskCard = ({ task, expanded, onToggle }: Props) => {
               )}
               {task.credit_line && (
                 <div>
-                  <span className="text-muted-foreground">💳 ক্রেডিট: </span>
+                  <span className="text-muted-foreground">💳 Credit: </span>
                   {task.credit_line}
                 </div>
               )}
