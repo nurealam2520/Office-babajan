@@ -77,7 +77,7 @@ const getTimeRemaining = (dueDate: string) => {
       percent: Math.max(0, 100 - (diff / (7 * 86400000)) * 100),
     };
   return {
-    text: `${hrs} ঘণ্টা বাকি`,
+    text: `${hrs}h remaining`,
     overdue: false,
     percent: Math.min(90, 100 - (diff / 86400000) * 100),
   };
