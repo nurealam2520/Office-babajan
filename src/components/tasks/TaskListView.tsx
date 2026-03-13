@@ -15,7 +15,7 @@ import TaskReportPrintView from "./TaskReportPrintView";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "member";
+  role: "super_admin" | "admin" | "manager" | "member" | "co_worker" | "co_worker_data_entry";
   initialSearch?: string;
 }
 
