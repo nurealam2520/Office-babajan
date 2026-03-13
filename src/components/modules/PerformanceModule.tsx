@@ -13,7 +13,7 @@ import { format } from "date-fns";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "staff";
+  role: "super_admin" | "admin" | "manager" | "staff" | "co_worker" | "co_worker_data_entry";
 }
 
 interface Review {

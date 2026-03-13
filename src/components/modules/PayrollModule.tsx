@@ -16,7 +16,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, parseISO, 
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "staff";
+  role: "super_admin" | "admin" | "manager" | "staff" | "co_worker" | "co_worker_data_entry";
 }
 
 interface Payroll {
