@@ -1,4 +1,4 @@
-// Dashboard - Member view
+// Dashboard - Co-Worker / Co-Worker+DataEntry view
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package } from "lucide-react";
