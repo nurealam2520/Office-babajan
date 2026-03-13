@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,9 +16,10 @@ import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
 import AssetsModule from "@/components/modules/AssetsModule";
 import PayrollModule from "@/components/modules/PayrollModule";
+import ActivityLogsModule from "@/components/modules/ActivityLogsModule";
 import officeLogo from "@/assets/office-logo.png";
 
-type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "shifts" | "assets" | "payroll";
+type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "announcements" | "shifts" | "assets" | "payroll" | "logs";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
