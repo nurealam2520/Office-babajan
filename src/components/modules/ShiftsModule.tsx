@@ -142,7 +142,7 @@ const ShiftsModule = ({ userId, role }: Props) => {
   const fetchShifts = async () => {
     setLoading(true);
     let query = supabase.from("shifts" as any).select("*").order("shift_date", { ascending: false }).limit(50);
-    if (role === "staff") {
+    if (role === "staff" || role === "co_worker" || role === "co_worker_data_entry") {
       query = query.eq("user_id", userId);
     }
     const { data } = await query;

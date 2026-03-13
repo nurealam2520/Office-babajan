@@ -150,7 +150,7 @@ const AssetsModule = ({ userId, role }: Props) => {
   const fetchAssets = async () => {
     setLoading(true);
     let query = supabase.from("assets" as any).select("*").order("created_at", { ascending: false });
-    if (role === "staff") query = query.eq("assigned_to", userId);
+    if (role === "staff" || role === "co_worker" || role === "co_worker_data_entry") query = query.eq("assigned_to", userId);
     const { data } = await query;
     const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
     const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);

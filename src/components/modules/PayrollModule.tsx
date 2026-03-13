@@ -139,7 +139,7 @@ const PayrollModule = ({ userId, role }: Props) => {
 
     // Fetch payrolls
     let query = supabase.from("payrolls").select("*").order("created_at", { ascending: false }).limit(200);
-    if (role === "staff") query = query.eq("user_id", userId);
+    if (role === "staff" || role === "co_worker" || role === "co_worker_data_entry") query = query.eq("user_id", userId);
     const { data: payrollData } = await query;
 
     // Fetch profiles
