@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "staff";
+  role: "super_admin" | "admin" | "manager" | "staff" | "co_worker" | "co_worker_data_entry";
 }
 
 export type ChatView =

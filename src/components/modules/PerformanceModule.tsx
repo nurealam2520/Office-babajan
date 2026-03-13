@@ -13,7 +13,7 @@ import { format } from "date-fns";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "staff";
+  role: "super_admin" | "admin" | "manager" | "staff" | "co_worker" | "co_worker_data_entry";
 }
 
 interface Review {
@@ -48,7 +48,7 @@ const PerformanceModule = ({ userId, role }: Props) => {
   const fetchReviews = async () => {
     setLoading(true);
     let query = supabase.from("performance_reviews" as any).select("*").order("created_at", { ascending: false }).limit(50);
-    if (role === "staff") query = query.eq("user_id", userId);
+    if (role === "staff" || role === "co_worker" || role === "co_worker_data_entry") query = query.eq("user_id", userId);
     const { data } = await query;
     const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
     const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);

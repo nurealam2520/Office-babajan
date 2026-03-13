@@ -15,7 +15,7 @@ import TaskReportPrintView from "./TaskReportPrintView";
 
 interface Props {
   userId: string;
-  role: "super_admin" | "admin" | "manager" | "member";
+  role: "super_admin" | "admin" | "manager" | "member" | "co_worker" | "co_worker_data_entry";
   initialSearch?: string;
 }
 
@@ -49,7 +49,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     let tasksQuery = supabase.from("tasks").select("*").order("created_at", { ascending: false });
-    if (role === "member") {
+    if (role === "member" || role === "co_worker" || role === "co_worker_data_entry") {
       tasksQuery = tasksQuery.eq("assigned_to", userId);
     }
     const [{ data: tasksData }, { data: profilesData }] = await Promise.all([
@@ -123,7 +123,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
             <FileDown className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">PDF</span>
           </Button>
-          {role !== "member" && (
+          {(role !== "member" && role !== "co_worker") && (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs h-8">
               <Plus className="h-3.5 w-3.5" /> New Task
             </Button>

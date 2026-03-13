@@ -1,4 +1,4 @@
-// Dashboard - Member view
+// Dashboard - Co-Worker / Co-Worker+DataEntry view
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package } from "lucide-react";
@@ -22,6 +22,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string; username: string; employee_id: string | null } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("co_worker");
   const [activeTab, setActiveTab] = useState("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [taskCount, setTaskCount] = useState(0);
@@ -41,6 +42,10 @@ const Dashboard = () => {
       if (isAdmin) { navigate("/admin"); return; }
       const isManager = roles?.some(r => r.role === "manager");
       if (isManager) { navigate("/manager"); return; }
+      
+      const isDataEntry = roles?.some(r => r.role === "co_worker_data_entry");
+      if (isDataEntry) setUserRole("co_worker_data_entry");
+      else setUserRole("co_worker");
 
       const { data } = await supabase
         .from("profiles")
@@ -156,14 +161,14 @@ const Dashboard = () => {
         </div>
 
         {activeTab === "home" && <StaffDashboardHome userId={userId} onNavigate={(tab) => setActiveTab(tab)} />}
-        {activeTab === "tasks" && <TaskListView userId={userId} role="member" />}
+        {activeTab === "tasks" && <TaskListView userId={userId} role={userRole as any} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
-        {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
-        {activeTab === "notices" && <AnnouncementsModule userId={userId} role="staff" />}
-        {activeTab === "shifts" && <ShiftsModule userId={userId} role="staff" />}
-        {activeTab === "payroll" && <PayrollModule userId={userId} role="staff" />}
-        {activeTab === "assets" && <AssetsModule userId={userId} role="staff" />}
+        {activeTab === "chat" && <ChatModule userId={userId} role="co_worker" />}
+        {activeTab === "notices" && <AnnouncementsModule userId={userId} role="co_worker" />}
+        {activeTab === "shifts" && <ShiftsModule userId={userId} role="co_worker" />}
+        {activeTab === "payroll" && <PayrollModule userId={userId} role="co_worker" />}
+        {activeTab === "assets" && <AssetsModule userId={userId} role="co_worker" />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>

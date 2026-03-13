@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          log_type: string
+          target_id: string | null
+          target_type: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          log_type?: string
+          target_id?: string | null
+          target_type?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          log_type?: string
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           business_id: string | null
@@ -884,7 +917,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "super_admin" | "admin" | "manager" | "member"
+      app_role:
+        | "super_admin"
+        | "admin"
+        | "manager"
+        | "member"
+        | "co_worker"
+        | "co_worker_data_entry"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1012,7 +1051,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["super_admin", "admin", "manager", "member"],
+      app_role: [
+        "super_admin",
+        "admin",
+        "manager",
+        "member",
+        "co_worker",
+        "co_worker_data_entry",
+      ],
     },
   },
 } as const

@@ -1,12 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Ban, Trash2, ShieldOff, Search, Eye, MessageSquareOff, Clock, ArrowLeft, Info, Building2 } from "lucide-react";
+import { Ban, Trash2, ShieldOff, Search, Eye, MessageSquareOff, Clock, ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -46,6 +44,13 @@ const getDurationMs = (val: string): number | null => {
     default: return null;
   }
 };
+
+const ROLE_OPTIONS = [
+  { value: "co_worker", label: "Co-Worker" },
+  { value: "co_worker_data_entry", label: "Co-Worker + Data Entry" },
+  { value: "manager", label: "Manager" },
+  { value: "admin", label: "Admin" },
+];
 
 const RESTRICTION_INFO = [
   {
@@ -89,23 +94,20 @@ const UserManagementSection = ({ userId, role }: Props) => {
   });
   const [userMessages, setUserMessages] = useState<any[]>([]);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [groupDialog, setGroupDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
-  const [userGroupIds, setUserGroupIds] = useState<string[]>([]);
-  const [businesses, setBusinesses] = useState<{ id: string; name: string }[]>([]);
-  const [savingGroups, setSavingGroups] = useState(false);
+  const [roleDialog, setRoleDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
+  const [newRole, setNewRole] = useState("");
+  const [savingRole, setSavingRole] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [{ data: p }, { data: r }, { data: roles }, { data: biz }] = await Promise.all([
+    const [{ data: p }, { data: r }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_restrictions").select("*").eq("is_active", true),
       supabase.from("user_roles").select("*"),
-      supabase.from("businesses").select("id, name").eq("is_active", true),
     ]);
     setProfiles(p || []);
     setRestrictions(r || []);
     setUserRoles(roles || []);
-    setBusinesses(biz || []);
     setLoading(false);
   }, []);
 
@@ -115,7 +117,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
 
   const getUserRole = (uid: string): string => {
     const r = userRoles.find(r => r.user_id === uid);
-    return r?.role || "staff";
+    return r?.role || "co_worker";
   };
 
   const isProtectedFromAction = (uid: string) => {
@@ -167,36 +169,35 @@ const UserManagementSection = ({ userId, role }: Props) => {
     fetchData();
   };
 
-  const openGroupDialog = async (user: any) => {
-    setGroupDialog({ open: true, user });
-    const { data } = await supabase
-      .from("user_businesses")
-      .select("business_id")
-      .eq("user_id", user.user_id);
-    setUserGroupIds(data?.map(d => d.business_id) || []);
+  const openRoleDialog = (user: any) => {
+    setRoleDialog({ open: true, user });
+    setNewRole(getUserRole(user.user_id));
   };
 
-  const toggleGroup = (bizId: string) => {
-    setUserGroupIds(prev => prev.includes(bizId) ? prev.filter(id => id !== bizId) : [...prev, bizId]);
-  };
+  const saveRole = async () => {
+    if (!roleDialog.user || !newRole) return;
+    setSavingRole(true);
+    const uid = roleDialog.user.user_id;
 
-  const saveGroups = async () => {
-    if (!groupDialog.user) return;
-    setSavingGroups(true);
-    const uid = groupDialog.user.user_id;
+    // Delete existing roles for this user
+    await supabase.from("user_roles").delete().eq("user_id", uid);
+    // Insert new role
+    await supabase.from("user_roles").insert({ user_id: uid, role: newRole } as any);
 
-    await supabase.from("user_businesses").delete().eq("user_id", uid);
+    // Log the action
+    await supabase.from("activity_logs" as any).insert({
+      user_id: userId,
+      action: "role_change",
+      target_type: "user",
+      target_id: uid,
+      details: { new_role: newRole, target_name: roleDialog.user.full_name },
+      log_type: "system",
+    });
 
-    if (userGroupIds.length > 0) {
-      await supabase.from("user_businesses").insert(
-        userGroupIds.map(bizId => ({ user_id: uid, business_id: bizId, assigned_by: userId }))
-      );
-      await supabase.from("profiles").update({ business_id: userGroupIds[0] }).eq("user_id", uid);
-    }
-
-    setSavingGroups(false);
-    setGroupDialog({ open: false, user: null });
-    toast({ title: "Success", description: "Groups updated" });
+    setSavingRole(false);
+    setRoleDialog({ open: false, user: null });
+    toast({ title: "Role Updated", description: `${roleDialog.user.full_name} is now ${newRole.replace(/_/g, " ")}` });
+    fetchData();
   };
 
   const viewConversations = async (user: any) => {
@@ -299,7 +300,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
           onDelete={(user) => setDeleteConfirm(user)}
           onRemoveRestriction={removeRestriction}
           onViewConversations={viewConversations}
-          onManageGroups={openGroupDialog}
+          onChangeRole={openRoleDialog}
         />
       )}
 
@@ -477,39 +478,31 @@ const UserManagementSection = ({ userId, role }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {/* Group Management Dialog */}
-      <Dialog open={groupDialog.open} onOpenChange={o => setGroupDialog(p => ({ ...p, open: o }))}>
+      {/* Role Change Dialog */}
+      <Dialog open={roleDialog.open} onOpenChange={o => setRoleDialog(p => ({ ...p, open: o }))}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Group Management</DialogTitle>
+            <DialogTitle>Change Role</DialogTitle>
             <DialogDescription>
-              {groupDialog.user?.full_name} (@{groupDialog.user?.username}) — Assign/change groups
+              {roleDialog.user?.full_name} (@{roleDialog.user?.username})
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {businesses.map(b => (
-              <div key={b.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`grp-${b.id}`}
-                  checked={userGroupIds.includes(b.id)}
-                  onCheckedChange={() => toggleGroup(b.id)}
-                />
-                <Label htmlFor={`grp-${b.id}`} className="text-sm cursor-pointer">{b.name}</Label>
-              </div>
-            ))}
-            {userGroupIds.length > 1 && (
-              <p className="text-[11px] text-primary">
-                ✅ Will be in {userGroupIds.length} groups — can switch in dashboard
-              </p>
-            )}
-            {userGroupIds.length === 0 && (
-              <p className="text-[11px] text-destructive">⚠️ Select at least one group</p>
-            )}
+            <Select value={newRole} onValueChange={setNewRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGroupDialog({ open: false, user: null })}>Cancel</Button>
-            <Button onClick={saveGroups} disabled={savingGroups || userGroupIds.length === 0}>
-              {savingGroups ? "Saving..." : "Save"}
+            <Button variant="outline" onClick={() => setRoleDialog({ open: false, user: null })}>Cancel</Button>
+            <Button onClick={saveRole} disabled={savingRole}>
+              {savingRole ? "Saving..." : "Save Role"}
             </Button>
           </DialogFooter>
         </DialogContent>
