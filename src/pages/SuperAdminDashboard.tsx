@@ -83,6 +83,7 @@ const SuperAdminDashboard = () => {
     { id: "shifts", icon: Clock, title: "Shifts" },
     { id: "assets", icon: Package, title: "Assets" },
     { id: "payroll", icon: DollarSign, title: "Payroll" },
+    { id: "logs", icon: ScrollText, title: "Logs" },
     { id: "users", icon: UserCog, title: "Users" },
     ...(role === "super_admin" ? [{ id: "otp" as ActiveView, icon: KeyRound, title: "OTP" }] : []),
   ];
