@@ -14,10 +14,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+
+const ROLE_OPTIONS = [
+  { value: "co_worker", label: "Co-Worker" },
+  { value: "co_worker_data_entry", label: "Co-Worker + Data Entry" },
+  { value: "manager", label: "Manager" },
+  { value: "admin", label: "Admin" },
+];
 
 interface PendingUser {
   user_id: string;
@@ -28,7 +33,6 @@ interface PendingUser {
   otp_code: string | null;
   otp_created_at: string | null;
   selectedRole: string;
-  selectedGroups: string[];
 }
 
 interface BlockedNumber {
@@ -44,7 +48,6 @@ const OtpSection = () => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [businesses, setBusinesses] = useState<{ id: string; name: string; slug: string }[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<PendingUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [blockedNumbers, setBlockedNumbers] = useState<BlockedNumber[]>([]);
@@ -74,16 +77,11 @@ const OtpSection = () => {
 
   const fetchPendingUsers = useCallback(async () => {
     setLoading(true);
-    const [{ data: profiles }, { data: biz }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("user_id, full_name, username, mobile_number, created_at")
-        .eq("is_active", false)
-        .order("created_at", { ascending: false }),
-      supabase.from("businesses").select("id, name, slug").eq("is_active", true),
-    ]);
-
-    if (biz) setBusinesses(biz);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, username, mobile_number, created_at")
+      .eq("is_active", false)
+      .order("created_at", { ascending: false });
 
     if (!profiles?.length) {
       setPendingUsers([]);
@@ -110,8 +108,7 @@ const OtpSection = () => {
       ...p,
       otp_code: otpMap.get(p.user_id)?.code || null,
       otp_created_at: otpMap.get(p.user_id)?.created_at || null,
-      selectedRole: "staff",
-      selectedGroups: [],
+      selectedRole: "co_worker",
     })));
     setLoading(false);
   }, []);
@@ -124,16 +121,6 @@ const OtpSection = () => {
 
   const updateUserRole = (userId: string, value: string) => {
     setPendingUsers(prev => prev.map(u => u.user_id === userId ? { ...u, selectedRole: value } : u));
-  };
-
-  const toggleUserGroup = (userId: string, businessId: string) => {
-    setPendingUsers(prev => prev.map(u => {
-      if (u.user_id !== userId) return u;
-      const groups = u.selectedGroups.includes(businessId)
-        ? u.selectedGroups.filter(g => g !== businessId)
-        : [...u.selectedGroups, businessId];
-      return { ...u, selectedGroups: groups };
-    }));
   };
 
   const copyOtp = (userId: string, otp: string) => {
@@ -186,7 +173,7 @@ const OtpSection = () => {
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Unblocked", description: `${blocked.country_code}${blocked.mobile_number} আনব্লক করা হয়েছে` });
+        toast({ title: "Unblocked", description: `${blocked.country_code}${blocked.mobile_number} has been unblocked` });
         await fetchBlockedNumbers();
       }
     } catch {
@@ -197,24 +184,6 @@ const OtpSection = () => {
   };
 
   const generateOtp = async (user: PendingUser) => {
-    if (user.selectedGroups.length === 0) {
-      toast({ title: "Error", description: "Select at least one group", variant: "destructive" });
-      return;
-    }
-
-    await supabase.from("profiles").update({ business_id: user.selectedGroups[0] }).eq("user_id", user.user_id);
-
-    const { data: session } = await supabase.auth.getSession();
-    const adminId = session?.session?.user?.id;
-    
-    for (const bizId of user.selectedGroups) {
-      await supabase.from("user_businesses").upsert({
-        user_id: user.user_id,
-        business_id: bizId,
-        assigned_by: adminId || null,
-      }, { onConflict: "user_id,business_id" });
-    }
-
     const roleToAssign = user.selectedRole;
     const { data: existingRoles } = await supabase
       .from("user_roles")
@@ -297,35 +266,11 @@ const OtpSection = () => {
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="staff">Staff</SelectItem>
+                        {ROLE_OPTIONS.map(r => (
+                          <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                      Select groups (multiple allowed)
-                    </label>
-                    <div className="space-y-2">
-                      {businesses.map(b => (
-                        <div key={b.id} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`${user.user_id}-${b.id}`}
-                            checked={user.selectedGroups.includes(b.id)}
-                            onCheckedChange={() => toggleUserGroup(user.user_id, b.id)}
-                          />
-                          <Label htmlFor={`${user.user_id}-${b.id}`} className="text-sm cursor-pointer">
-                            {b.name}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                    {user.selectedGroups.length > 1 && (
-                      <p className="text-[11px] text-primary mt-1">
-                        ✅ Will be added to {user.selectedGroups.length} groups — can switch in dashboard
-                      </p>
-                    )}
                   </div>
 
                   {user.otp_code ? (
@@ -347,11 +292,10 @@ const OtpSection = () => {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      disabled={user.selectedGroups.length === 0}
                       onClick={() => generateOtp(user)}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      {user.selectedGroups.length === 0 ? "Select a group first" : "Generate OTP"}
+                      Generate OTP
                     </Button>
                   )}
 
@@ -440,7 +384,7 @@ const OtpSection = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Unblock Number?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{unblockConfirm?.country_code}{unblockConfirm?.mobile_number}</strong> আনব্লক করলে এই নম্বর দিয়ে আবার রেজিস্ট্রেশন করতে পারবে।
+              Unblocking <strong>{unblockConfirm?.country_code}{unblockConfirm?.mobile_number}</strong> will allow this number to register again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

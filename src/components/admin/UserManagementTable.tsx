@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Ban, Trash2, ShieldOff, Eye, MessageSquareOff, Clock, Building2, ArrowUpDown, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import { useState, useRef } from "react";
+import { Ban, Trash2, ShieldOff, Eye, MessageSquareOff, Clock, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,16 +21,35 @@ interface Restriction {
   expires_at: string | null;
 }
 
-type SortKey = "full_name" | "username" | "mobile_number" | "employee_id" | "status";
+type SortKey = "full_name" | "username" | "mobile_number" | "employee_id" | "role" | "status";
 type SortDir = "asc" | "desc";
+
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  manager: "Manager",
+  co_worker: "Co-Worker",
+  co_worker_data_entry: "Co-Worker + DE",
+  member: "Member",
+  staff: "Staff",
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  super_admin: "bg-red-500/10 text-red-600",
+  admin: "bg-purple-500/10 text-purple-600",
+  manager: "bg-blue-500/10 text-blue-600",
+  co_worker: "bg-emerald-500/10 text-emerald-600",
+  co_worker_data_entry: "bg-teal-500/10 text-teal-600",
+};
 
 const COLUMNS = [
   { key: "full_name", label: "Name", sortable: true, minWidth: 140 },
   { key: "username", label: "Username", sortable: true, minWidth: 100 },
   { key: "employee_id", label: "Emp ID", sortable: true, minWidth: 80 },
+  { key: "role", label: "Role", sortable: true, minWidth: 100 },
   { key: "mobile_number", label: "Phone", sortable: true, minWidth: 120 },
-  { key: "status", label: "Status", sortable: true, minWidth: 140 },
-  { key: "actions", label: "Actions", sortable: false, minWidth: 160 },
+  { key: "status", label: "Status", sortable: true, minWidth: 120 },
+  { key: "actions", label: "Actions", sortable: false, minWidth: 180 },
 ];
 
 interface Props {
@@ -44,7 +63,7 @@ interface Props {
   onDelete: (user: UserProfile) => void;
   onRemoveRestriction: (restrictionId: string) => void;
   onViewConversations: (user: UserProfile) => void;
-  onManageGroups: (user: UserProfile) => void;
+  onChangeRole: (user: UserProfile) => void;
 }
 
 const ResizableHeader = ({ children, width, onResize }: { children: React.ReactNode; width: number; onResize: (delta: number) => void }) => {
@@ -93,7 +112,7 @@ const UserManagementTable = ({
   onDelete,
   onRemoveRestriction,
   onViewConversations,
-  onManageGroups,
+  onChangeRole,
 }: Props) => {
   const [sortKey, setSortKey] = useState<SortKey>("full_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -133,6 +152,7 @@ const UserManagementTable = ({
       case "username": cmp = a.username.localeCompare(b.username); break;
       case "mobile_number": cmp = a.mobile_number.localeCompare(b.mobile_number); break;
       case "employee_id": cmp = (a.employee_id || "").localeCompare(b.employee_id || ""); break;
+      case "role": cmp = getUserRole(a.user_id).localeCompare(getUserRole(b.user_id)); break;
       case "status":
         const statusA = rA ? rA.restriction_type : "active";
         const statusB = rB ? rB.restriction_type : "active";
@@ -168,6 +188,7 @@ const UserManagementTable = ({
         <TableBody>
           {sortedProfiles.map((user) => {
             const restriction = getRestriction(user.user_id);
+            const userRole = getUserRole(user.user_id);
             return (
               <TableRow key={user.user_id} className={`hover:bg-muted/30 ${restriction ? "bg-destructive/5" : ""}`}>
                 <TableCell>
@@ -180,6 +201,11 @@ const UserManagementTable = ({
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">@{user.username}</TableCell>
                 <TableCell className="text-xs">{user.employee_id || "—"}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className={`text-[9px] ${ROLE_COLORS[userRole] || ""}`}>
+                    {ROLE_LABELS[userRole] || userRole}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-xs">{user.mobile_number}</TableCell>
                 <TableCell>
                   {restriction ? (
@@ -200,8 +226,8 @@ const UserManagementTable = ({
                   <div className="flex items-center gap-1">
                     {(role === "super_admin" || role === "admin") && (
                       <>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Manage Groups" onClick={() => onManageGroups(user)}>
-                          <Building2 className="h-3 w-3 text-primary" />
+                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Change Role" onClick={() => onChangeRole(user)}>
+                          <UserCog className="h-3 w-3 text-primary" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-6 w-6" title="View Messages" onClick={() => onViewConversations(user)}>
                           <Eye className="h-3 w-3" />
