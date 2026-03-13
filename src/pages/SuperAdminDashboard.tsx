@@ -170,6 +170,7 @@ const SuperAdminDashboard = () => {
         {activeView === "payroll" && <PayrollModule userId={session.user.id} role={role} />}
         {activeView === "otp" && <OtpSection />}
         {activeView === "users" && <UserManagementSection userId={session.user.id} role={role} />}
+        {activeView === "logs" && <ActivityLogsModule userId={session.user.id} role={role} />}
       </div>
     </div>
   );
