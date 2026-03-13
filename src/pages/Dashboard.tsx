@@ -161,14 +161,14 @@ const Dashboard = () => {
         </div>
 
         {activeTab === "home" && <StaffDashboardHome userId={userId} onNavigate={(tab) => setActiveTab(tab)} />}
-        {activeTab === "tasks" && <TaskListView userId={userId} role="member" />}
+        {activeTab === "tasks" && <TaskListView userId={userId} role={userRole as any} />}
         {activeTab === "attendance" && <MemberAttendance userId={userId} />}
         {activeTab === "leave" && <LeaveManagement userId={userId} />}
-        {activeTab === "chat" && <ChatModule userId={userId} role="staff" />}
-        {activeTab === "notices" && <AnnouncementsModule userId={userId} role="staff" />}
-        {activeTab === "shifts" && <ShiftsModule userId={userId} role="staff" />}
-        {activeTab === "payroll" && <PayrollModule userId={userId} role="staff" />}
-        {activeTab === "assets" && <AssetsModule userId={userId} role="staff" />}
+        {activeTab === "chat" && <ChatModule userId={userId} role="co_worker" />}
+        {activeTab === "notices" && <AnnouncementsModule userId={userId} role="co_worker" />}
+        {activeTab === "shifts" && <ShiftsModule userId={userId} role="co_worker" />}
+        {activeTab === "payroll" && <PayrollModule userId={userId} role="co_worker" />}
+        {activeTab === "assets" && <AssetsModule userId={userId} role="co_worker" />}
         {activeTab === "reports" && <ReportHistory userId={userId} />}
       </div>
     </div>
