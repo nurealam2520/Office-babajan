@@ -123,7 +123,7 @@ const TaskListView = ({ userId, role, initialSearch = "" }: Props) => {
             <FileDown className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">PDF</span>
           </Button>
-          {role !== "member" && (
+          {(role !== "member" && role !== "co_worker") && (
             <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs h-8">
               <Plus className="h-3.5 w-3.5" /> New Task
             </Button>
