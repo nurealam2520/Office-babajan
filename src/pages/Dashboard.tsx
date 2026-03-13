@@ -42,6 +42,10 @@ const Dashboard = () => {
       if (isAdmin) { navigate("/admin"); return; }
       const isManager = roles?.some(r => r.role === "manager");
       if (isManager) { navigate("/manager"); return; }
+      
+      const isDataEntry = roles?.some(r => r.role === "co_worker_data_entry");
+      if (isDataEntry) setUserRole("co_worker_data_entry");
+      else setUserRole("co_worker");
 
       const { data } = await supabase
         .from("profiles")
