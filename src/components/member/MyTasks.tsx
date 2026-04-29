@@ -330,15 +330,16 @@ const TaskDetailContent = ({
       </Button>
     )}
 
-    {task.status === "in_progress" && (
-      <div className="space-y-2">
+    {task.status !== "completed" && (
+      <div className="space-y-2 rounded-md border border-primary/20 bg-primary/5 p-3">
+        <p className="text-xs font-semibold text-primary">📝 Submit Report</p>
         <Textarea
-          placeholder="Write your report..."
+          placeholder="Describe your progress, findings, or completion details..."
           value={reportText}
           onChange={e => setReportText(e.target.value)}
           rows={3}
         />
-        <Button size="sm" onClick={() => onSubmitReport(task.id)} disabled={submitting || !reportText.trim()}>
+        <Button size="sm" onClick={() => onSubmitReport(task.id)} disabled={submitting || !reportText.trim()} className="w-full">
           {submitting ? "Submitting..." : "Submit Report"}
         </Button>
       </div>

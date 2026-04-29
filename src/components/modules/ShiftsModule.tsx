@@ -129,6 +129,8 @@ const ShiftsModule = ({ userId, role }: Props) => {
   const [staffList, setStaffList] = useState<{ user_id: string; full_name: string }[]>([]);
   const [assignTo, setAssignTo] = useState("");
   const [shiftDate, setShiftDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [duration, setDuration] = useState<"1" | "7" | "15" | "30" | "custom">("1");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [shiftType, setShiftType] = useState("morning");
@@ -184,22 +186,43 @@ const ShiftsModule = ({ userId, role }: Props) => {
   const handleCreate = async () => {
     if (!assignTo || !shiftDate) return;
     setSubmitting(true);
-    const { error } = await (supabase.from("shifts" as any) as any).insert({
-      user_id: assignTo,
-      shift_date: shiftDate,
-      start_time: startTime,
-      end_time: endTime,
-      shift_type: shiftType,
-      notes: notes || null,
-      created_by: userId,
-    });
-    if (error) {
-      toast({ title: "Failed to create shift", variant: "destructive" });
+
+    // Build date range
+    const start = new Date(shiftDate);
+    let totalDays = 1;
+    if (duration === "custom") {
+      if (!endDate) { setSubmitting(false); return; }
+      const end = new Date(endDate);
+      totalDays = Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86400000) + 1);
     } else {
-      toast({ title: "Shift assigned!" });
+      totalDays = parseInt(duration, 10);
+    }
+
+    const rows = [] as any[];
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      rows.push({
+        user_id: assignTo,
+        shift_date: d.toISOString().split("T")[0],
+        start_time: startTime,
+        end_time: endTime,
+        shift_type: shiftType,
+        notes: notes || null,
+        created_by: userId,
+      });
+    }
+
+    const { error } = await (supabase.from("shifts" as any) as any).insert(rows);
+    if (error) {
+      toast({ title: "Failed to create shift", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${rows.length} shift${rows.length > 1 ? "s" : ""} assigned!` });
       setCreateOpen(false);
       setAssignTo("");
       setShiftDate("");
+      setEndDate("");
+      setDuration("1");
       setNotes("");
       fetchShifts();
     }
@@ -317,7 +340,7 @@ const ShiftsModule = ({ userId, role }: Props) => {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Assign Shift</DialogTitle>
-            <DialogDescription>Schedule a shift for a staff member</DialogDescription>
+            <DialogDescription>Schedule shift(s) for a staff member</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Select value={assignTo} onValueChange={setAssignTo}>
@@ -326,7 +349,29 @@ const ShiftsModule = ({ userId, role }: Props) => {
                 {staffList.map(s => <SelectItem key={s.user_id} value={s.user_id}>{s.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input type="date" value={shiftDate} onChange={e => setShiftDate(e.target.value)} />
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Start Date</label>
+              <Input type="date" value={shiftDate} onChange={e => setShiftDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Duration</label>
+              <Select value={duration} onValueChange={(v: any) => setDuration(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 day</SelectItem>
+                  <SelectItem value="7">7 days</SelectItem>
+                  <SelectItem value="15">15 days</SelectItem>
+                  <SelectItem value="30">30 days</SelectItem>
+                  <SelectItem value="custom">Custom range</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {duration === "custom" && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">End Date</label>
+                <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
               <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
@@ -341,7 +386,7 @@ const ShiftsModule = ({ userId, role }: Props) => {
               </SelectContent>
             </Select>
             <Input placeholder="Notes (optional)" value={notes} onChange={e => setNotes(e.target.value)} />
-            <Button onClick={handleCreate} disabled={submitting || !assignTo || !shiftDate} className="w-full">
+            <Button onClick={handleCreate} disabled={submitting || !assignTo || !shiftDate || (duration === "custom" && !endDate)} className="w-full">
               {submitting ? "Assigning..." : "Assign Shift"}
             </Button>
           </div>
