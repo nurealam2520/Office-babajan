@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ClipboardList, MessageCircle, LayoutDashboard, Megaphone, Clock, Star, Menu, X } from "lucide-react";
+import { LogOut, ClipboardList, MessageCircle, LayoutDashboard, Megaphone, Clock, Star, Menu, X, UserCog, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,8 @@ import ExportReports from "@/components/dashboard/ExportReports";
 import AnnouncementsModule from "@/components/modules/AnnouncementsModule";
 import ShiftsModule from "@/components/modules/ShiftsModule";
 import PerformanceModule from "@/components/modules/PerformanceModule";
+import UserManagementSection from "@/components/admin/UserManagementSection";
+import AttendanceAdmin from "@/components/admin/AttendanceAdmin";
 import officeLogo from "@/assets/office-logo.png";
 
 const ManagerDashboard = () => {
@@ -66,9 +68,11 @@ const ManagerDashboard = () => {
   const navItems = [
     { id: "home", icon: LayoutDashboard, title: "Dashboard" },
     { id: "tasks", icon: ClipboardList, title: "Tasks" },
+    { id: "attendance", icon: CalendarCheck, title: "Attendance" },
     { id: "chat", icon: MessageCircle, title: "Messages" },
     { id: "announcements", icon: Megaphone, title: "Notices" },
     { id: "shifts", icon: Clock, title: "Shifts" },
+    { id: "users", icon: UserCog, title: "Users" },
     { id: "performance", icon: Star, title: "Reviews" },
   ];
 
@@ -146,9 +150,11 @@ const ManagerDashboard = () => {
           </div>
         )}
         {activeTab === "tasks" && <TaskListView userId={session.user.id} role="manager" />}
+        {activeTab === "attendance" && <AttendanceAdmin userId={session.user.id} role="manager" />}
         {activeTab === "chat" && <ChatModule userId={session.user.id} role="manager" />}
         {activeTab === "announcements" && <AnnouncementsModule userId={session.user.id} role="manager" />}
         {activeTab === "shifts" && <ShiftsModule userId={session.user.id} role="manager" />}
+        {activeTab === "users" && <UserManagementSection userId={session.user.id} role="manager" />}
         {activeTab === "performance" && <PerformanceModule userId={session.user.id} role="manager" />}
       </div>
     </div>

@@ -53,7 +53,11 @@ export type Database = {
           check_in: string
           check_out: string | null
           created_at: string
+          device_info: string | null
           id: string
+          ip_address: string | null
+          latitude: number | null
+          longitude: number | null
           note: string | null
           source: string
           status: string
@@ -64,7 +68,11 @@ export type Database = {
           check_in?: string
           check_out?: string | null
           created_at?: string
+          device_info?: string | null
           id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
           note?: string | null
           source?: string
           status?: string
@@ -75,7 +83,11 @@ export type Database = {
           check_in?: string
           check_out?: string | null
           created_at?: string
+          device_info?: string | null
           id?: string
+          ip_address?: string | null
+          latitude?: number | null
+          longitude?: number | null
           note?: string | null
           source?: string
           status?: string
@@ -525,6 +537,7 @@ export type Database = {
           is_active: boolean
           mobile_number: string
           overtime_rate_per_hour: number
+          temp_password: string | null
           updated_at: string
           user_id: string
           username: string
@@ -540,6 +553,7 @@ export type Database = {
           is_active?: boolean
           mobile_number: string
           overtime_rate_per_hour?: number
+          temp_password?: string | null
           updated_at?: string
           user_id: string
           username: string
@@ -555,6 +569,7 @@ export type Database = {
           is_active?: boolean
           mobile_number?: string
           overtime_rate_per_hour?: number
+          temp_password?: string | null
           updated_at?: string
           user_id?: string
           username?: string
@@ -568,6 +583,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          notes: string | null
+          shift_date: string
+          shift_type: string
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          shift_date: string
+          shift_type?: string
+          start_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          shift_date?: string
+          shift_type?: string
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       task_reports: {
         Row: {
@@ -624,13 +678,21 @@ export type Database = {
           admin_note: string | null
           assigned_by: string
           assigned_to: string
+          budget: number | null
           business_id: string | null
+          category: string | null
           created_at: string
+          credit_line: string | null
           description: string | null
           due_date: string | null
           id: string
+          inputter_id: string | null
           label: string | null
+          planned_date: string | null
+          priority: string
           status: string
+          t_security: number | null
+          task_number: string | null
           title: string
           updated_at: string
         }
@@ -638,13 +700,21 @@ export type Database = {
           admin_note?: string | null
           assigned_by: string
           assigned_to: string
+          budget?: number | null
           business_id?: string | null
+          category?: string | null
           created_at?: string
+          credit_line?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          inputter_id?: string | null
           label?: string | null
+          planned_date?: string | null
+          priority?: string
           status?: string
+          t_security?: number | null
+          task_number?: string | null
           title: string
           updated_at?: string
         }
@@ -652,13 +722,21 @@ export type Database = {
           admin_note?: string | null
           assigned_by?: string
           assigned_to?: string
+          budget?: number | null
           business_id?: string | null
+          category?: string | null
           created_at?: string
+          credit_line?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          inputter_id?: string | null
           label?: string | null
+          planned_date?: string | null
+          priority?: string
           status?: string
+          t_security?: number | null
+          task_number?: string | null
           title?: string
           updated_at?: string
         }
@@ -902,6 +980,7 @@ export type Database = {
     Functions: {
       generate_otp: { Args: { _user_id: string }; Returns: string }
       get_user_business_id: { Args: { _user_id: string }; Returns: string }
+      get_user_temp_password: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Ban, Trash2, ShieldOff, Eye, MessageSquareOff, Clock, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, UserCog } from "lucide-react";
+import { Ban, Trash2, ShieldOff, Eye, MessageSquareOff, Clock, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, UserCog, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -64,6 +64,7 @@ interface Props {
   onRemoveRestriction: (restrictionId: string) => void;
   onViewConversations: (user: UserProfile) => void;
   onChangeRole: (user: UserProfile) => void;
+  onViewPassword?: (user: UserProfile) => void;
 }
 
 const ResizableHeader = ({ children, width, onResize }: { children: React.ReactNode; width: number; onResize: (delta: number) => void }) => {
@@ -113,6 +114,7 @@ const UserManagementTable = ({
   onRemoveRestriction,
   onViewConversations,
   onChangeRole,
+  onViewPassword,
 }: Props) => {
   const [sortKey, setSortKey] = useState<SortKey>("full_name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -232,6 +234,11 @@ const UserManagementTable = ({
                         <Button variant="ghost" size="icon" className="h-6 w-6" title="View Messages" onClick={() => onViewConversations(user)}>
                           <Eye className="h-3 w-3" />
                         </Button>
+                        {role === "super_admin" && onViewPassword && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" title="View Password" onClick={() => onViewPassword(user)}>
+                            <KeyRound className="h-3 w-3 text-amber-600" />
+                          </Button>
+                        )}
                       </>
                     )}
                     {!isProtectedFromAction(user.user_id) && (
