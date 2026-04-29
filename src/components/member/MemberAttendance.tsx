@@ -128,9 +128,23 @@ const MemberAttendance = ({ userId }: Props) => {
 
   const handleCheckOut = async () => {
     if (!todayRecord) return;
+    const location = await getLocation();
+    if (location.lat == null || location.lng == null) {
+      toast({
+        title: "Location required",
+        description: "Please enable GPS/location permission to check out.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const existingNote = todayRecord.note || "";
+    const checkoutNote = `${existingNote}\n🏁 Out: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
     const { error } = await supabase
       .from("attendance")
-      .update({ check_out: new Date().toISOString() })
+      .update({
+        check_out: new Date().toISOString(),
+        note: checkoutNote,
+      } as any)
       .eq("id", todayRecord.id);
     if (error) {
       toast({ title: "Check-out failed", variant: "destructive" });
