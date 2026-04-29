@@ -97,6 +97,7 @@ const UserManagementSection = ({ userId, role }: Props) => {
   const [roleDialog, setRoleDialog] = useState<{ open: boolean; user: any | null }>({ open: false, user: null });
   const [newRole, setNewRole] = useState("");
   const [savingRole, setSavingRole] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState<{ open: boolean; user: any | null; password: string | null; loading: boolean }>({ open: false, user: null, password: null, loading: false });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -301,6 +302,11 @@ const UserManagementSection = ({ userId, role }: Props) => {
           onRemoveRestriction={removeRestriction}
           onViewConversations={viewConversations}
           onChangeRole={openRoleDialog}
+          onViewPassword={async (user) => {
+            setPasswordDialog({ open: true, user, password: null, loading: true });
+            const { data } = await supabase.rpc("get_user_temp_password" as any, { _user_id: user.user_id });
+            setPasswordDialog({ open: true, user, password: (data as any) || null, loading: false });
+          }}
         />
       )}
 
@@ -505,6 +511,38 @@ const UserManagementSection = ({ userId, role }: Props) => {
               {savingRole ? "Saving..." : "Save Role"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password View Dialog (Super Admin only) */}
+      <Dialog open={passwordDialog.open} onOpenChange={(o) => !o && setPasswordDialog({ open: false, user: null, password: null, loading: false })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>🔑 User Password</DialogTitle>
+            <DialogDescription>
+              {passwordDialog.user?.full_name} (@{passwordDialog.user?.username})
+            </DialogDescription>
+          </DialogHeader>
+          <Card className="bg-amber-500/10 border-amber-500/20">
+            <CardContent className="p-4">
+              {passwordDialog.loading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : passwordDialog.password ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Password:</p>
+                  <p className="font-mono text-lg font-bold tracking-wider select-all">
+                    {passwordDialog.password}
+                  </p>
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => {
+                    navigator.clipboard.writeText(passwordDialog.password!);
+                    toast({ title: "Copied" });
+                  }}>Copy</Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No password stored for this user (registered before this feature was enabled, or password was reset).</p>
+              )}
+            </CardContent>
+          </Card>
         </DialogContent>
       </Dialog>
     </div>
