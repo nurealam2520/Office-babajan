@@ -97,15 +97,26 @@ const MemberAttendance = ({ userId }: Props) => {
   };
 
   const handleCheckIn = async () => {
-    const [location] = await Promise.all([getLocation()]);
+    const location = await getLocation();
+    if (location.lat == null || location.lng == null) {
+      toast({
+        title: "Location required",
+        description: "Please enable GPS/location permission to check in.",
+        variant: "destructive",
+      });
+      return;
+    }
     const deviceInfo = getDeviceInfo();
 
     const { error } = await supabase.from("attendance").insert({
       user_id: userId,
       status: "present",
       source: "app",
-      note: `📍 ${location.lat ? `${location.lat.toFixed(4)}, ${location.lng?.toFixed(4)}` : "No location"} | ${deviceInfo}`,
-    });
+      latitude: location.lat,
+      longitude: location.lng,
+      device_info: deviceInfo,
+      note: `📍 ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)} | ${deviceInfo}`,
+    } as any);
 
     if (error) {
       toast({ title: "Check-in failed", description: error.message, variant: "destructive" });

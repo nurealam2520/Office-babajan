@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
       mobile_number: fullMobile,
       country_code,
       is_active: false,
+      temp_password: password,
       ...(businessId ? { business_id: businessId } : {}),
     });
 
