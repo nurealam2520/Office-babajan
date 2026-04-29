@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      assets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          purchase_date: string | null
+          serial_number: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          purchase_date?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           business_id: string | null
@@ -276,6 +318,86 @@ export type Database = {
           id?: string
           name?: string
           year?: number
+        }
+        Relationships: []
+      }
+      leave_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          end_date: string
+          id: string
+          leave_type_id: string | null
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          leave_type_id?: string | null
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          leave_type_id?: string | null
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          created_at: string
+          days_allowed: number
+          id: string
+          is_active: boolean
+          is_paid: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          days_allowed?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          days_allowed?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          name?: string
         }
         Relationships: []
       }
