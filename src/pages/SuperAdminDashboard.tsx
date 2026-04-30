@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard, ScrollText } from "lucide-react";
+import { LogOut, KeyRound, UserCog, X, ClipboardList, CalendarCheck, MessageCircle, Megaphone, Clock, Package, DollarSign, Menu, LayoutDashboard, ScrollText, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import OtpSection from "@/components/admin/OtpSection";
 import UserManagementSection from "@/components/admin/UserManagementSection";
 import TaskListView from "@/components/tasks/TaskListView";
@@ -24,6 +25,7 @@ type ActiveView = "home" | "otp" | "users" | "tasks" | "attendance" | "chat" | "
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isReady } = useAuthReady();
   const [role, setRole] = useState<"super_admin" | "admin" | null>(null);
   const [session, setSession] = useState<any>(null);
   const [profileName, setProfileName] = useState("");
@@ -33,15 +35,17 @@ const SuperAdminDashboard = () => {
   const [taskSearchFilter, setTaskSearchFilter] = useState("");
 
   useEffect(() => {
+    if (!isReady) return;
+    if (!user) { navigate("/login", { replace: true }); return; }
+
     const checkAccess = async () => {
       const { data: { session: s } } = await supabase.auth.getSession();
-      if (!s) { navigate("/login"); return; }
       setSession(s);
 
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", s.user.id);
+        .eq("user_id", user.id);
 
       const isSuperAdmin = roles?.some(r => r.role === "super_admin");
       const isAdmin = roles?.some(r => r.role === "admin");
@@ -54,7 +58,7 @@ const SuperAdminDashboard = () => {
         return;
       }
 
-      const { data: prof } = await supabase.from("profiles").select("full_name, username, employee_id").eq("user_id", s.user.id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("full_name, username, employee_id").eq("user_id", user.id).maybeSingle();
       if (prof && !prof.employee_id) {
         navigate("/employee-setup");
         return;
@@ -65,13 +69,14 @@ const SuperAdminDashboard = () => {
       }
     };
     checkAccess();
-  }, [navigate, toast]);
+  }, [navigate, toast, isReady, user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
 
+  if (!isReady) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading...</div>;
   if (!role || !session) return null;
 
   const navItems: { id: ActiveView; icon: any; title: string; mobileTitle?: string; adminOnly?: boolean }[] = [

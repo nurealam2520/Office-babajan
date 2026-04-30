@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Clock, CheckCircle, XCircle, Search, Users, CalendarDays, ArrowUpDown, ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Search, Users, CalendarDays, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,8 @@ interface AttendanceRecord {
   note: string | null;
   source: string;
   user_name?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface LeaveRequest {

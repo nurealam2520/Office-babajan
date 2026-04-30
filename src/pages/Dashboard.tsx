@@ -1,11 +1,12 @@
 // Dashboard - Co-Worker / Co-Worker+DataEntry view
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package } from "lucide-react";
+import { ClipboardList, CalendarCheck, FileText, LogOut, Menu, X, CalendarDays, MessageCircle, LayoutDashboard, Megaphone, Clock, DollarSign, Package, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import TaskListView from "@/components/tasks/TaskListView";
 import MemberAttendance from "@/components/member/MemberAttendance";
 import ReportHistory from "@/components/member/ReportHistory";
@@ -20,6 +21,7 @@ import officeLogo from "@/assets/office-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, isReady } = useAuthReady();
   const [profile, setProfile] = useState<{ full_name: string; username: string; employee_id: string | null } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>("co_worker");
@@ -28,15 +30,16 @@ const Dashboard = () => {
   const [taskCount, setTaskCount] = useState(0);
 
   useEffect(() => {
+    if (!isReady) return;
+    if (!user) { navigate("/login", { replace: true }); return; }
+
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate("/login"); return; }
-      setUserId(session.user.id);
+      setUserId(user.id);
 
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", session.user.id);
+        .eq("user_id", user.id);
 
       const isAdmin = roles?.some(r => r.role === "admin" || r.role === "super_admin");
       if (isAdmin) { navigate("/admin"); return; }
@@ -50,7 +53,7 @@ const Dashboard = () => {
       const { data } = await supabase
         .from("profiles")
         .select("full_name, username, employee_id")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
       
       if (!data?.employee_id) {
@@ -63,18 +66,19 @@ const Dashboard = () => {
       const { data: activeTasks } = await supabase
         .from("tasks")
         .select("id")
-        .eq("assigned_to", session.user.id)
+        .eq("assigned_to", user.id)
         .neq("status", "completed");
       setTaskCount(activeTasks?.length || 0);
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, isReady, user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
 
+  if (!isReady) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading...</div>;
   if (!userId) return null;
 
   const tabs = [
@@ -103,6 +107,9 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={() => navigate("/profile")} title="Profile">
+              <UserCircle className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>

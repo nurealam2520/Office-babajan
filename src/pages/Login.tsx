@@ -193,6 +193,7 @@ const Login = () => {
         </Form>
         <div className="mt-4 flex flex-col items-center gap-1.5 text-sm text-muted-foreground sm:flex-row sm:justify-between">
           <Link to="/register" className="font-medium text-primary hover:underline">Register</Link>
+          <Link to="/forgot-password" className="font-medium text-primary hover:underline">Forgot password?</Link>
           <Link to="/verify-otp" className="font-medium text-primary hover:underline">Verify OTP</Link>
         </div>
       </div>

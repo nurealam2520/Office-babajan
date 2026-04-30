@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import TaskListView from "@/components/tasks/TaskListView";
 import ChatModule from "@/components/chat/ChatModule";
 import AdminDashboardHome from "@/components/dashboard/AdminDashboardHome";
@@ -19,6 +20,7 @@ import officeLogo from "@/assets/office-logo.png";
 const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isReady } = useAuthReady();
   const [session, setSession] = useState<any>(null);
   const [verified, setVerified] = useState(false);
   const [profileName, setProfileName] = useState("");
@@ -27,15 +29,17 @@ const ManagerDashboard = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (!isReady) return;
+    if (!user) { navigate("/login", { replace: true }); return; }
+
     const checkAccess = async () => {
       const { data: { session: s } } = await supabase.auth.getSession();
-      if (!s) { navigate("/login"); return; }
       setSession(s);
 
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", s.user.id);
+        .eq("user_id", user.id);
 
       const isManager = roles?.some(r => r.role === "manager");
       if (!isManager) {
@@ -45,7 +49,7 @@ const ManagerDashboard = () => {
       }
       setVerified(true);
 
-      const { data: prof } = await supabase.from("profiles").select("full_name, username, employee_id").eq("user_id", s.user.id).maybeSingle();
+      const { data: prof } = await supabase.from("profiles").select("full_name, username, employee_id").eq("user_id", user.id).maybeSingle();
       if (prof && !prof.employee_id) {
         navigate("/employee-setup");
         return;
@@ -56,13 +60,14 @@ const ManagerDashboard = () => {
       }
     };
     checkAccess();
-  }, [navigate, toast]);
+  }, [navigate, toast, isReady, user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
 
+  if (!isReady) return <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">Loading...</div>;
   if (!verified || !session) return null;
 
   const navItems = [
