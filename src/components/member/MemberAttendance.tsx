@@ -188,10 +188,16 @@ const MemberAttendance = ({ userId }: Props) => {
                 <p className="text-sm font-medium">{new Date(todayRecord.check_in).toLocaleTimeString("en-US")}</p>
               </div>
               {todayRecord.latitude && (
-                <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+                <a
+                  href={`https://www.google.com/maps?q=${todayRecord.latitude},${todayRecord.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1 text-[11px] text-primary hover:underline"
+                  title="View location on Google Maps"
+                >
                   <MapPin className="h-3 w-3" />
                   <span>{todayRecord.latitude.toFixed(4)}, {todayRecord.longitude?.toFixed(4)}</span>
-                </div>
+                </a>
               )}
               {todayRecord.device_info && (
                 <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
