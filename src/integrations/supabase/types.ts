@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          priority: string
+          target_role: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          priority?: string
+          target_role?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          priority?: string
+          target_role?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           assigned_to: string | null
@@ -527,6 +563,48 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          mobile_number: string
+          otp_code: string | null
+          status: string
+          updated_at: string
+          used_at: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          mobile_number: string
+          otp_code?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          mobile_number?: string
+          otp_code?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       payroll_settings: {
         Row: {
           created_at: string
@@ -649,14 +727,17 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           basic_salary: number
           business_id: string | null
           country_code: string
           created_at: string
+          date_of_birth: string | null
           employee_id: string | null
           full_name: string
           id: string
           is_active: boolean
+          joining_date: string | null
           mobile_number: string
           overtime_rate_per_hour: number
           temp_password: string | null
@@ -665,14 +746,17 @@ export type Database = {
           username: string
         }
         Insert: {
+          avatar_url?: string | null
           basic_salary?: number
           business_id?: string | null
           country_code?: string
           created_at?: string
+          date_of_birth?: string | null
           employee_id?: string | null
           full_name: string
           id?: string
           is_active?: boolean
+          joining_date?: string | null
           mobile_number: string
           overtime_rate_per_hour?: number
           temp_password?: string | null
@@ -681,14 +765,17 @@ export type Database = {
           username: string
         }
         Update: {
+          avatar_url?: string | null
           basic_salary?: number
           business_id?: string | null
           country_code?: string
           created_at?: string
+          date_of_birth?: string | null
           employee_id?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
+          joining_date?: string | null
           mobile_number?: string
           overtime_rate_per_hour?: number
           temp_password?: string | null
@@ -1101,8 +1188,13 @@ export type Database = {
     }
     Functions: {
       generate_otp: { Args: { _user_id: string }; Returns: string }
+      get_role_level: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
       get_user_business_id: { Args: { _user_id: string }; Returns: string }
       get_user_temp_password: { Args: { _user_id: string }; Returns: string }
+      get_user_top_role_level: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
